@@ -1,0 +1,42 @@
+name: abcuisto
+description: "Application to search for recipes from ABCuisto"
+
+publish_to: "none"
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.8.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  provider: ^6.1.5+1
+  pocketbase: ^0.23.0+1
+  equatable: ^2.0.7
+  json_serializable: ^6.11.1
+  collection: ^1.19.1
+  bloc: ^9.1.0
+  flutter_bloc: ^9.1.1
+  shared_preferences: ^2.5.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^6.0.0
+  pocketbase_utils: ^0.1.6
+  build_runner: ^2.10.1
+
+flutter:
+  uses-material-design: true
+
+
+pocketbase_utils:
+  enabled: true # Required. Must be set to true to activate the package. Default: false
+  pb_schema_path: pb_schema_abcuisto.json # Optional. Sets the path of your collection schema file. Default: pb_schema.json
+  output_dir: lib/generated/pocketbase # Optional. Sets the directory of generated model files. If the directory doesn't exist — it'll be created. Default: lib/generated/pocketbase
+  line_length: 80 # Optional. Sets the length of line for dart formatter of generated code. Default: 80
+  generate_system_collections: false # Optional. Generate models for the system level collections like `_mfas`, `_otps`, and `_superusers`. Default: false
