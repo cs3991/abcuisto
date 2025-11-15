@@ -42,6 +42,7 @@ enum RecettesRecordFieldsEnum {
   noteId('noteId'),
   groupsIds('groupsIds'),
   nameWithoutDiacritics('nameWithoutDiacritics'),
+  tags('tags'),
   created('created'),
   updated('updated');
 
@@ -51,22 +52,22 @@ enum RecettesRecordFieldsEnum {
 }
 
 enum RecettesRecordCategorieEnum {
-  @_i1.JsonValue('Aperitif')
-  aperitif('Aperitif'),
-  @_i1.JsonValue('Entree')
-  entree('Entree'),
+  @_i1.JsonValue('Apéritif')
+  aperitif('aperitif'),
+  @_i1.JsonValue('Entrée')
+  entree('entree'),
   @_i1.JsonValue('Plat')
-  plat('Plat'),
+  plat('plat'),
   @_i1.JsonValue('Fromage')
-  fromage('Fromage'),
+  fromage('fromage'),
   @_i1.JsonValue('Dessert')
-  dessert('Dessert'),
-  @_i1.JsonValue('Petit-dejeuner')
-  petitDejeuner('Petit-dejeuner'),
+  dessert('dessert'),
+  @_i1.JsonValue('Petit-déjeuner')
+  petitxdejeuner('petitxdejeuner'),
   @_i1.JsonValue('Boisson')
-  boisson('Boisson'),
+  boisson('boisson'),
   @_i1.JsonValue('Sauce')
-  sauce('Sauce');
+  sauce('sauce');
 
   const RecettesRecordCategorieEnum(this.nameInSchema);
 
@@ -75,9 +76,9 @@ enum RecettesRecordCategorieEnum {
 
 enum RecettesRecordTypeNumberEnum {
   @_i1.JsonValue('Personnes')
-  personnes('Personnes'),
-  @_i1.JsonValue('Pieces')
-  pieces('Pieces');
+  personnes('personnes'),
+  @_i1.JsonValue('Pièces')
+  pieces('pieces');
 
   const RecettesRecordTypeNumberEnum(this.nameInSchema);
 
@@ -85,14 +86,31 @@ enum RecettesRecordTypeNumberEnum {
 }
 
 enum RecettesRecordPrixEnum {
-  @_i1.JsonValue('EUR')
-  eur('EUR'),
-  @_i1.JsonValue('EUREUR')
-  eureur('EUREUR'),
-  @_i1.JsonValue('EUREUREUR')
-  eureureur('EUREUREUR');
+  @_i1.JsonValue('€')
+  x('x'),
+  @_i1.JsonValue('€€')
+  xx('xx'),
+  @_i1.JsonValue('€€€')
+  xxx('xxx');
 
   const RecettesRecordPrixEnum(this.nameInSchema);
+
+  final String nameInSchema;
+}
+
+enum RecettesRecordTagsEnum {
+  @_i1.JsonValue('THERMOMIX')
+  thermomix('thermomix'),
+  @_i1.JsonValue('VEGAN')
+  vegan('vegan'),
+  @_i1.JsonValue('VEGETARIEN')
+  vegetarien('vegetarien'),
+  @_i1.JsonValue('ALCOOL')
+  alcool('alcool'),
+  @_i1.JsonValue('SANSGLUTEN')
+  sansgluten('sansgluten');
+
+  const RecettesRecordTagsEnum(this.nameInSchema);
 
   final String nameInSchema;
 }
@@ -121,18 +139,24 @@ final class RecettesRecord extends _i2.BaseRecord {
     this.noteId,
     this.groupsIds,
     this.nameWithoutDiacritics,
+    this.tags,
     this.created,
     this.updated,
+    this.expand,
   }) : super();
 
-  factory RecettesRecord.fromJson(Map<String, dynamic> json) => _$RecettesRecordFromJson(json);
+  factory RecettesRecord.fromJson(Map<String, dynamic> json) =>
+      _$RecettesRecordFromJson(json);
 
   factory RecettesRecord.fromRecordModel(_i3.RecordModel recordModel) {
     final extendedJsonMap = {
       ...recordModel.data,
       RecettesRecordFieldsEnum.id.nameInSchema: recordModel.id,
-      RecettesRecordFieldsEnum.collectionId.nameInSchema: recordModel.collectionId,
-      RecettesRecordFieldsEnum.collectionName.nameInSchema: recordModel.collectionName,
+      RecettesRecordFieldsEnum.collectionId.nameInSchema:
+      recordModel.collectionId,
+      RecettesRecordFieldsEnum.collectionName.nameInSchema:
+      recordModel.collectionName,
+      'expand': recordModel.expand,
     };
     return RecettesRecord.fromJson(extendedJsonMap);
   }
@@ -197,6 +221,8 @@ final class RecettesRecord extends _i2.BaseRecord {
 
   static const nameWithoutDiacriticsMaxValue = 0;
 
+  final List<RecettesRecordTagsEnum>? tags;
+
   final DateTime? created;
 
   final DateTime? updated;
@@ -204,6 +230,8 @@ final class RecettesRecord extends _i2.BaseRecord {
   static const $collectionId = 'pbc_2869346101';
 
   static const $collectionName = 'recettes';
+
+  final Map<String, dynamic>? expand;
 
   Map<String, dynamic> toJson() => _$RecettesRecordToJson(this);
 
@@ -226,6 +254,7 @@ final class RecettesRecord extends _i2.BaseRecord {
     String? noteId,
     List<String>? groupsIds,
     String? nameWithoutDiacritics,
+    List<RecettesRecordTagsEnum>? tags,
     DateTime? created,
     DateTime? updated,
   }) {
@@ -250,7 +279,9 @@ final class RecettesRecord extends _i2.BaseRecord {
       prix: prix ?? this.prix,
       noteId: noteId ?? this.noteId,
       groupsIds: groupsIds ?? this.groupsIds,
-      nameWithoutDiacritics: nameWithoutDiacritics ?? this.nameWithoutDiacritics,
+      nameWithoutDiacritics:
+      nameWithoutDiacritics ?? this.nameWithoutDiacritics,
+      tags: tags ?? this.tags,
       created: created ?? this.created,
       updated: updated ?? this.updated,
     );
@@ -260,11 +291,15 @@ final class RecettesRecord extends _i2.BaseRecord {
     final thisInJsonMap = toJson();
     final otherInJsonMap = other.toJson();
     final Map<String, dynamic> result = {};
-    final _i4.DeepCollectionEquality deepCollectionEquality = _i4.DeepCollectionEquality();
+    final _i4.DeepCollectionEquality deepCollectionEquality =
+    _i4.DeepCollectionEquality();
     for (final mapEntry in thisInJsonMap.entries) {
       final thisValue = mapEntry.value;
       final otherValue = otherInJsonMap[mapEntry.key];
-      if (!deepCollectionEquality.equals(thisValue, otherValue)) {
+      if (!deepCollectionEquality.equals(
+        thisValue,
+        otherValue,
+      )) {
         result.addAll({mapEntry.key: otherValue});
       }
     }
@@ -272,29 +307,31 @@ final class RecettesRecord extends _i2.BaseRecord {
   }
 
   @override
-  List<Object?> get props => [
-    ...super.props,
-    categoriesIds,
-    ustensiles,
-    nom,
-    tempsPreparation,
-    tempsCuisson,
-    vege,
-    steps,
-    createur,
-    createurPseudo,
-    categorie,
-    visible,
-    documents,
-    forNumber,
-    typeNumber,
-    prix,
-    noteId,
-    groupsIds,
-    nameWithoutDiacritics,
-    created,
-    updated,
-  ];
+  List<Object?> get props =>
+      [
+        ...super.props,
+        categoriesIds,
+        ustensiles,
+        nom,
+        tempsPreparation,
+        tempsCuisson,
+        vege,
+        steps,
+        createur,
+        createurPseudo,
+        categorie,
+        visible,
+        documents,
+        forNumber,
+        typeNumber,
+        prix,
+        noteId,
+        groupsIds,
+        nameWithoutDiacritics,
+        tags,
+        created,
+        updated,
+      ];
 
   static Map<String, dynamic> forCreateRequest({
     List<String>? categoriesIds,
@@ -315,6 +352,7 @@ final class RecettesRecord extends _i2.BaseRecord {
     String? noteId,
     List<String>? groupsIds,
     String? nameWithoutDiacritics,
+    List<RecettesRecordTagsEnum>? tags,
     DateTime? created,
     DateTime? updated,
   }) {
@@ -340,6 +378,7 @@ final class RecettesRecord extends _i2.BaseRecord {
       noteId: noteId,
       groupsIds: groupsIds,
       nameWithoutDiacritics: nameWithoutDiacritics,
+      tags: tags,
       created: created,
       updated: updated,
     ).toJson();
@@ -347,109 +386,123 @@ final class RecettesRecord extends _i2.BaseRecord {
     if (categoriesIds != null) {
       result.addAll({
         RecettesRecordFieldsEnum.categoriesIds.nameInSchema:
-            jsonMap[RecettesRecordFieldsEnum.categoriesIds.nameInSchema],
+        jsonMap[RecettesRecordFieldsEnum.categoriesIds.nameInSchema]
       });
     }
     if (ustensiles != null) {
       result.addAll({
         RecettesRecordFieldsEnum.ustensiles.nameInSchema:
-            jsonMap[RecettesRecordFieldsEnum.ustensiles.nameInSchema],
+        jsonMap[RecettesRecordFieldsEnum.ustensiles.nameInSchema]
       });
     }
     if (nom != null) {
       result.addAll({
-        RecettesRecordFieldsEnum.nom.nameInSchema: jsonMap[RecettesRecordFieldsEnum.nom.nameInSchema],
+        RecettesRecordFieldsEnum.nom.nameInSchema:
+        jsonMap[RecettesRecordFieldsEnum.nom.nameInSchema]
       });
     }
     if (tempsPreparation != null) {
       result.addAll({
         RecettesRecordFieldsEnum.tempsPreparation.nameInSchema:
-            jsonMap[RecettesRecordFieldsEnum.tempsPreparation.nameInSchema],
+        jsonMap[RecettesRecordFieldsEnum.tempsPreparation.nameInSchema]
       });
     }
     if (tempsCuisson != null) {
       result.addAll({
         RecettesRecordFieldsEnum.tempsCuisson.nameInSchema:
-            jsonMap[RecettesRecordFieldsEnum.tempsCuisson.nameInSchema],
+        jsonMap[RecettesRecordFieldsEnum.tempsCuisson.nameInSchema]
       });
     }
     result.addAll({
-      RecettesRecordFieldsEnum.vege.nameInSchema: jsonMap[RecettesRecordFieldsEnum.vege.nameInSchema],
+      RecettesRecordFieldsEnum.vege.nameInSchema:
+      jsonMap[RecettesRecordFieldsEnum.vege.nameInSchema]
     });
     if (steps != null) {
       result.addAll({
-        RecettesRecordFieldsEnum.steps.nameInSchema: jsonMap[RecettesRecordFieldsEnum.steps.nameInSchema],
+        RecettesRecordFieldsEnum.steps.nameInSchema:
+        jsonMap[RecettesRecordFieldsEnum.steps.nameInSchema]
       });
     }
     if (createur != null) {
       result.addAll({
         RecettesRecordFieldsEnum.createur.nameInSchema:
-            jsonMap[RecettesRecordFieldsEnum.createur.nameInSchema],
+        jsonMap[RecettesRecordFieldsEnum.createur.nameInSchema]
       });
     }
     if (createurPseudo != null) {
       result.addAll({
         RecettesRecordFieldsEnum.createurPseudo.nameInSchema:
-            jsonMap[RecettesRecordFieldsEnum.createurPseudo.nameInSchema],
+        jsonMap[RecettesRecordFieldsEnum.createurPseudo.nameInSchema]
       });
     }
     if (categorie != null) {
       result.addAll({
         RecettesRecordFieldsEnum.categorie.nameInSchema:
-            jsonMap[RecettesRecordFieldsEnum.categorie.nameInSchema],
+        jsonMap[RecettesRecordFieldsEnum.categorie.nameInSchema]
       });
     }
     result.addAll({
-      RecettesRecordFieldsEnum.visible.nameInSchema: jsonMap[RecettesRecordFieldsEnum.visible.nameInSchema],
+      RecettesRecordFieldsEnum.visible.nameInSchema:
+      jsonMap[RecettesRecordFieldsEnum.visible.nameInSchema]
     });
     if (documents != null) {
       result.addAll({
         RecettesRecordFieldsEnum.documents.nameInSchema:
-            jsonMap[RecettesRecordFieldsEnum.documents.nameInSchema],
+        jsonMap[RecettesRecordFieldsEnum.documents.nameInSchema]
       });
     }
     if (forNumber != null) {
       result.addAll({
         RecettesRecordFieldsEnum.forNumber.nameInSchema:
-            jsonMap[RecettesRecordFieldsEnum.forNumber.nameInSchema],
+        jsonMap[RecettesRecordFieldsEnum.forNumber.nameInSchema]
       });
     }
     if (typeNumber != null) {
       result.addAll({
         RecettesRecordFieldsEnum.typeNumber.nameInSchema:
-            jsonMap[RecettesRecordFieldsEnum.typeNumber.nameInSchema],
+        jsonMap[RecettesRecordFieldsEnum.typeNumber.nameInSchema]
       });
     }
     if (prix != null) {
       result.addAll({
-        RecettesRecordFieldsEnum.prix.nameInSchema: jsonMap[RecettesRecordFieldsEnum.prix.nameInSchema],
+        RecettesRecordFieldsEnum.prix.nameInSchema:
+        jsonMap[RecettesRecordFieldsEnum.prix.nameInSchema]
       });
     }
     if (noteId != null) {
       result.addAll({
-        RecettesRecordFieldsEnum.noteId.nameInSchema: jsonMap[RecettesRecordFieldsEnum.noteId.nameInSchema],
+        RecettesRecordFieldsEnum.noteId.nameInSchema:
+        jsonMap[RecettesRecordFieldsEnum.noteId.nameInSchema]
       });
     }
     if (groupsIds != null) {
       result.addAll({
         RecettesRecordFieldsEnum.groupsIds.nameInSchema:
-            jsonMap[RecettesRecordFieldsEnum.groupsIds.nameInSchema],
+        jsonMap[RecettesRecordFieldsEnum.groupsIds.nameInSchema]
       });
     }
     if (nameWithoutDiacritics != null) {
       result.addAll({
         RecettesRecordFieldsEnum.nameWithoutDiacritics.nameInSchema:
-            jsonMap[RecettesRecordFieldsEnum.nameWithoutDiacritics.nameInSchema],
+        jsonMap[RecettesRecordFieldsEnum.nameWithoutDiacritics.nameInSchema]
+      });
+    }
+    if (tags != null) {
+      result.addAll({
+        RecettesRecordFieldsEnum.tags.nameInSchema:
+        jsonMap[RecettesRecordFieldsEnum.tags.nameInSchema]
       });
     }
     if (created != null) {
       result.addAll({
-        RecettesRecordFieldsEnum.created.nameInSchema: jsonMap[RecettesRecordFieldsEnum.created.nameInSchema],
+        RecettesRecordFieldsEnum.created.nameInSchema:
+        jsonMap[RecettesRecordFieldsEnum.created.nameInSchema]
       });
     }
     if (updated != null) {
       result.addAll({
-        RecettesRecordFieldsEnum.updated.nameInSchema: jsonMap[RecettesRecordFieldsEnum.updated.nameInSchema],
+        RecettesRecordFieldsEnum.updated.nameInSchema:
+        jsonMap[RecettesRecordFieldsEnum.updated.nameInSchema]
       });
     }
     return result;

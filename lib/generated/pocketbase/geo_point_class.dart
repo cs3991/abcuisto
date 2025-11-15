@@ -14,9 +14,11 @@ part 'geo_point_class.g.dart';
 
 @_i1.JsonSerializable()
 class GeoPoint extends _i2.Equatable {
-  GeoPoint(this.lon, this.lat);
+  GeoPoint(this.lon,
+      this.lat,);
 
-  factory GeoPoint.fromJson(Map<String, dynamic> json) => _$GeoPointFromJson(json);
+  factory GeoPoint.fromJson(Map<String, dynamic> json) =>
+      _$GeoPointFromJson(json);
 
   final double lon;
 
@@ -25,5 +27,9 @@ class GeoPoint extends _i2.Equatable {
   Map<String, dynamic> toJson() => _$GeoPointToJson(this);
 
   @override
-  List<Object?> get props => [lat, lon];
+  List<Object?> get props =>
+      [
+        lat,
+        lon,
+      ];
 }

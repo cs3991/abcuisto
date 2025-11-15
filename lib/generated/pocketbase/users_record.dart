@@ -61,16 +61,20 @@ final class UsersRecord extends _i2.AuthRecord {
     this.groups,
     this.created,
     this.updated,
+    this.expand,
   }) : super();
 
-  factory UsersRecord.fromJson(Map<String, dynamic> json) => _$UsersRecordFromJson(json);
+  factory UsersRecord.fromJson(Map<String, dynamic> json) =>
+      _$UsersRecordFromJson(json);
 
   factory UsersRecord.fromRecordModel(_i3.RecordModel recordModel) {
     final extendedJsonMap = {
       ...recordModel.data,
       UsersRecordFieldsEnum.id.nameInSchema: recordModel.id,
       UsersRecordFieldsEnum.collectionId.nameInSchema: recordModel.collectionId,
-      UsersRecordFieldsEnum.collectionName.nameInSchema: recordModel.collectionName,
+      UsersRecordFieldsEnum.collectionName.nameInSchema:
+      recordModel.collectionName,
+      'expand': recordModel.expand,
     };
     return UsersRecord.fromJson(extendedJsonMap);
   }
@@ -102,6 +106,8 @@ final class UsersRecord extends _i2.AuthRecord {
   static const $collectionId = '_pb_users_auth_';
 
   static const $collectionName = 'users';
+
+  final Map<String, dynamic>? expand;
 
   Map<String, dynamic> toJson() => _$UsersRecordToJson(this);
 
@@ -140,11 +146,15 @@ final class UsersRecord extends _i2.AuthRecord {
     final thisInJsonMap = toJson();
     final otherInJsonMap = other.toJson();
     final Map<String, dynamic> result = {};
-    final _i4.DeepCollectionEquality deepCollectionEquality = _i4.DeepCollectionEquality();
+    final _i4.DeepCollectionEquality deepCollectionEquality =
+    _i4.DeepCollectionEquality();
     for (final mapEntry in thisInJsonMap.entries) {
       final thisValue = mapEntry.value;
       final otherValue = otherInJsonMap[mapEntry.key];
-      if (!deepCollectionEquality.equals(thisValue, otherValue)) {
+      if (!deepCollectionEquality.equals(
+        thisValue,
+        otherValue,
+      )) {
         result.addAll({mapEntry.key: otherValue});
       }
     }
@@ -152,7 +162,18 @@ final class UsersRecord extends _i2.AuthRecord {
   }
 
   @override
-  List<Object?> get props => [...super.props, name, avatar, username, bio, image, groups, created, updated];
+  List<Object?> get props =>
+      [
+        ...super.props,
+        name,
+        avatar,
+        username,
+        bio,
+        image,
+        groups,
+        created,
+        updated,
+      ];
 
   static Map<String, dynamic> forCreateRequest({
     String? email,
@@ -186,54 +207,64 @@ final class UsersRecord extends _i2.AuthRecord {
     final Map<String, dynamic> result = {};
     if (email != null) {
       result.addAll({
-        UsersRecordFieldsEnum.email.nameInSchema: jsonMap[UsersRecordFieldsEnum.email.nameInSchema],
+        UsersRecordFieldsEnum.email.nameInSchema:
+        jsonMap[UsersRecordFieldsEnum.email.nameInSchema]
       });
     }
     result.addAll({
       UsersRecordFieldsEnum.emailVisibility.nameInSchema:
-          jsonMap[UsersRecordFieldsEnum.emailVisibility.nameInSchema],
+      jsonMap[UsersRecordFieldsEnum.emailVisibility.nameInSchema]
     });
     result.addAll({
-      UsersRecordFieldsEnum.verified.nameInSchema: jsonMap[UsersRecordFieldsEnum.verified.nameInSchema],
+      UsersRecordFieldsEnum.verified.nameInSchema:
+      jsonMap[UsersRecordFieldsEnum.verified.nameInSchema]
     });
     if (name != null) {
       result.addAll({
-        UsersRecordFieldsEnum.name.nameInSchema: jsonMap[UsersRecordFieldsEnum.name.nameInSchema],
+        UsersRecordFieldsEnum.name.nameInSchema:
+        jsonMap[UsersRecordFieldsEnum.name.nameInSchema]
       });
     }
     if (avatar != null) {
       result.addAll({
-        UsersRecordFieldsEnum.avatar.nameInSchema: jsonMap[UsersRecordFieldsEnum.avatar.nameInSchema],
+        UsersRecordFieldsEnum.avatar.nameInSchema:
+        jsonMap[UsersRecordFieldsEnum.avatar.nameInSchema]
       });
     }
     if (username != null) {
       result.addAll({
-        UsersRecordFieldsEnum.username.nameInSchema: jsonMap[UsersRecordFieldsEnum.username.nameInSchema],
+        UsersRecordFieldsEnum.username.nameInSchema:
+        jsonMap[UsersRecordFieldsEnum.username.nameInSchema]
       });
     }
     if (bio != null) {
       result.addAll({
-        UsersRecordFieldsEnum.bio.nameInSchema: jsonMap[UsersRecordFieldsEnum.bio.nameInSchema],
+        UsersRecordFieldsEnum.bio.nameInSchema:
+        jsonMap[UsersRecordFieldsEnum.bio.nameInSchema]
       });
     }
     if (image != null) {
       result.addAll({
-        UsersRecordFieldsEnum.image.nameInSchema: jsonMap[UsersRecordFieldsEnum.image.nameInSchema],
+        UsersRecordFieldsEnum.image.nameInSchema:
+        jsonMap[UsersRecordFieldsEnum.image.nameInSchema]
       });
     }
     if (groups != null) {
       result.addAll({
-        UsersRecordFieldsEnum.groups.nameInSchema: jsonMap[UsersRecordFieldsEnum.groups.nameInSchema],
+        UsersRecordFieldsEnum.groups.nameInSchema:
+        jsonMap[UsersRecordFieldsEnum.groups.nameInSchema]
       });
     }
     if (created != null) {
       result.addAll({
-        UsersRecordFieldsEnum.created.nameInSchema: jsonMap[UsersRecordFieldsEnum.created.nameInSchema],
+        UsersRecordFieldsEnum.created.nameInSchema:
+        jsonMap[UsersRecordFieldsEnum.created.nameInSchema]
       });
     }
     if (updated != null) {
       result.addAll({
-        UsersRecordFieldsEnum.updated.nameInSchema: jsonMap[UsersRecordFieldsEnum.updated.nameInSchema],
+        UsersRecordFieldsEnum.updated.nameInSchema:
+        jsonMap[UsersRecordFieldsEnum.updated.nameInSchema]
       });
     }
     return result;

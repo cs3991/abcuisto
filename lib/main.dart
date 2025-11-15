@@ -2,10 +2,8 @@ import 'package:abcuisto/abcuisto_repository.dart';
 import 'package:abcuisto/entry_page.dart';
 import 'package:abcuisto/login/authentication_cubit.dart';
 import 'package:flutter/material.dart';
-import 'package:pocketbase/pocketbase.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(const ProvidersWidget());
@@ -19,7 +17,6 @@ class ProvidersWidget extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (context) {
         final repo = AbcuistoRepository(url: "https://back.abcuisto.fr");
-        // repo.init();
         return repo;
       },
       child: BlocProvider(

@@ -44,16 +44,21 @@ final class FavorisRecord extends _i2.BaseRecord {
     this.recettes,
     this.created,
     this.updated,
+    this.expand,
   }) : super();
 
-  factory FavorisRecord.fromJson(Map<String, dynamic> json) => _$FavorisRecordFromJson(json);
+  factory FavorisRecord.fromJson(Map<String, dynamic> json) =>
+      _$FavorisRecordFromJson(json);
 
   factory FavorisRecord.fromRecordModel(_i3.RecordModel recordModel) {
     final extendedJsonMap = {
       ...recordModel.data,
       FavorisRecordFieldsEnum.id.nameInSchema: recordModel.id,
-      FavorisRecordFieldsEnum.collectionId.nameInSchema: recordModel.collectionId,
-      FavorisRecordFieldsEnum.collectionName.nameInSchema: recordModel.collectionName,
+      FavorisRecordFieldsEnum.collectionId.nameInSchema:
+      recordModel.collectionId,
+      FavorisRecordFieldsEnum.collectionName.nameInSchema:
+      recordModel.collectionName,
+      'expand': recordModel.expand,
     };
     return FavorisRecord.fromJson(extendedJsonMap);
   }
@@ -70,9 +75,16 @@ final class FavorisRecord extends _i2.BaseRecord {
 
   static const $collectionName = 'favoris';
 
+  final Map<String, dynamic>? expand;
+
   Map<String, dynamic> toJson() => _$FavorisRecordToJson(this);
 
-  FavorisRecord copyWith({String? user, List<String>? recettes, DateTime? created, DateTime? updated}) {
+  FavorisRecord copyWith({
+    String? user,
+    List<String>? recettes,
+    DateTime? created,
+    DateTime? updated,
+  }) {
     return FavorisRecord(
       id: id,
       collectionId: collectionId,
@@ -88,11 +100,15 @@ final class FavorisRecord extends _i2.BaseRecord {
     final thisInJsonMap = toJson();
     final otherInJsonMap = other.toJson();
     final Map<String, dynamic> result = {};
-    final _i4.DeepCollectionEquality deepCollectionEquality = _i4.DeepCollectionEquality();
+    final _i4.DeepCollectionEquality deepCollectionEquality =
+    _i4.DeepCollectionEquality();
     for (final mapEntry in thisInJsonMap.entries) {
       final thisValue = mapEntry.value;
       final otherValue = otherInJsonMap[mapEntry.key];
-      if (!deepCollectionEquality.equals(thisValue, otherValue)) {
+      if (!deepCollectionEquality.equals(
+        thisValue,
+        otherValue,
+      )) {
         result.addAll({mapEntry.key: otherValue});
       }
     }
@@ -100,7 +116,14 @@ final class FavorisRecord extends _i2.BaseRecord {
   }
 
   @override
-  List<Object?> get props => [...super.props, user, recettes, created, updated];
+  List<Object?> get props =>
+      [
+        ...super.props,
+        user,
+        recettes,
+        created,
+        updated,
+      ];
 
   static Map<String, dynamic> forCreateRequest({
     String? user,
@@ -120,22 +143,26 @@ final class FavorisRecord extends _i2.BaseRecord {
     final Map<String, dynamic> result = {};
     if (user != null) {
       result.addAll({
-        FavorisRecordFieldsEnum.user.nameInSchema: jsonMap[FavorisRecordFieldsEnum.user.nameInSchema],
+        FavorisRecordFieldsEnum.user.nameInSchema:
+        jsonMap[FavorisRecordFieldsEnum.user.nameInSchema]
       });
     }
     if (recettes != null) {
       result.addAll({
-        FavorisRecordFieldsEnum.recettes.nameInSchema: jsonMap[FavorisRecordFieldsEnum.recettes.nameInSchema],
+        FavorisRecordFieldsEnum.recettes.nameInSchema:
+        jsonMap[FavorisRecordFieldsEnum.recettes.nameInSchema]
       });
     }
     if (created != null) {
       result.addAll({
-        FavorisRecordFieldsEnum.created.nameInSchema: jsonMap[FavorisRecordFieldsEnum.created.nameInSchema],
+        FavorisRecordFieldsEnum.created.nameInSchema:
+        jsonMap[FavorisRecordFieldsEnum.created.nameInSchema]
       });
     }
     if (updated != null) {
       result.addAll({
-        FavorisRecordFieldsEnum.updated.nameInSchema: jsonMap[FavorisRecordFieldsEnum.updated.nameInSchema],
+        FavorisRecordFieldsEnum.updated.nameInSchema:
+        jsonMap[FavorisRecordFieldsEnum.updated.nameInSchema]
       });
     }
     return result;

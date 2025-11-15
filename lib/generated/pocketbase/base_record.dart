@@ -15,7 +15,11 @@ import 'package:json_annotation/json_annotation.dart';
 import 'date_time_json_methods.dart';
 
 abstract base class BaseRecord extends _i1.Equatable {
-  BaseRecord({required this.id, required this.collectionId, required this.collectionName});
+  BaseRecord({
+    required this.id,
+    required this.collectionId,
+    required this.collectionName,
+  });
 
   final String id;
 
@@ -24,5 +28,10 @@ abstract base class BaseRecord extends _i1.Equatable {
   final String collectionName;
 
   @override
-  List<Object?> get props => [id, collectionId, collectionName];
+  List<Object?> get props =>
+      [
+        id,
+        collectionId,
+        collectionName,
+      ];
 }

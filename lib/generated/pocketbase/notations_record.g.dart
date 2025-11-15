@@ -14,6 +14,7 @@ NotationsRecord _$NotationsRecordFromJson(Map<String, dynamic> json) => Notation
   nbNotes: (json['nbNotes'] as num?)?.toDouble(),
   created: json['created'] == null ? null : DateTime.parse(json['created'] as String),
   updated: json['updated'] == null ? null : DateTime.parse(json['updated'] as String),
+  expand: json['expand'] as Map<String, dynamic>?,
 );
 
 Map<String, dynamic> _$NotationsRecordToJson(NotationsRecord instance) => <String, dynamic>{
@@ -24,4 +25,5 @@ Map<String, dynamic> _$NotationsRecordToJson(NotationsRecord instance) => <Strin
   'nbNotes': instance.nbNotes,
   'created': instance.created?.toIso8601String(),
   'updated': instance.updated?.toIso8601String(),
+  'expand': instance.expand,
 };

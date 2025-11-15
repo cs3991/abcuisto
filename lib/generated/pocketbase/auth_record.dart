@@ -31,5 +31,11 @@ abstract base class AuthRecord extends _i1.BaseRecord {
   final bool verified;
 
   @override
-  List<Object?> get props => [...super.props, email, emailVisibility, verified];
+  List<Object?> get props =>
+      [
+        ...super.props,
+        email,
+        emailVisibility,
+        verified,
+      ];
 }

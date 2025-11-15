@@ -17,10 +17,13 @@ dependencies:
   pocketbase: ^0.23.0+1
   equatable: ^2.0.7
   json_serializable: ^6.11.1
+  json_annotation: ^4.9.0
   collection: ^1.19.1
   bloc: ^9.1.0
   flutter_bloc: ^9.1.1
   shared_preferences: ^2.5.3
+  infinite_scroll_pagination: ^5.1.1
+
 
 dev_dependencies:
   flutter_test:
@@ -28,7 +31,7 @@ dev_dependencies:
 
   flutter_lints: ^6.0.0
   pocketbase_utils: ^0.1.6
-  build_runner: ^2.10.1
+  build_runner: ^2.10.3
 
 flutter:
   uses-material-design: true

@@ -44,16 +44,21 @@ final class NotationsRecord extends _i2.BaseRecord {
     this.nbNotes,
     this.created,
     this.updated,
+    this.expand,
   }) : super();
 
-  factory NotationsRecord.fromJson(Map<String, dynamic> json) => _$NotationsRecordFromJson(json);
+  factory NotationsRecord.fromJson(Map<String, dynamic> json) =>
+      _$NotationsRecordFromJson(json);
 
   factory NotationsRecord.fromRecordModel(_i3.RecordModel recordModel) {
     final extendedJsonMap = {
       ...recordModel.data,
       NotationsRecordFieldsEnum.id.nameInSchema: recordModel.id,
-      NotationsRecordFieldsEnum.collectionId.nameInSchema: recordModel.collectionId,
-      NotationsRecordFieldsEnum.collectionName.nameInSchema: recordModel.collectionName,
+      NotationsRecordFieldsEnum.collectionId.nameInSchema:
+      recordModel.collectionId,
+      NotationsRecordFieldsEnum.collectionName.nameInSchema:
+      recordModel.collectionName,
+      'expand': recordModel.expand,
     };
     return NotationsRecord.fromJson(extendedJsonMap);
   }
@@ -70,9 +75,16 @@ final class NotationsRecord extends _i2.BaseRecord {
 
   static const $collectionName = 'notations';
 
+  final Map<String, dynamic>? expand;
+
   Map<String, dynamic> toJson() => _$NotationsRecordToJson(this);
 
-  NotationsRecord copyWith({double? note, double? nbNotes, DateTime? created, DateTime? updated}) {
+  NotationsRecord copyWith({
+    double? note,
+    double? nbNotes,
+    DateTime? created,
+    DateTime? updated,
+  }) {
     return NotationsRecord(
       id: id,
       collectionId: collectionId,
@@ -88,11 +100,15 @@ final class NotationsRecord extends _i2.BaseRecord {
     final thisInJsonMap = toJson();
     final otherInJsonMap = other.toJson();
     final Map<String, dynamic> result = {};
-    final _i4.DeepCollectionEquality deepCollectionEquality = _i4.DeepCollectionEquality();
+    final _i4.DeepCollectionEquality deepCollectionEquality =
+    _i4.DeepCollectionEquality();
     for (final mapEntry in thisInJsonMap.entries) {
       final thisValue = mapEntry.value;
       final otherValue = otherInJsonMap[mapEntry.key];
-      if (!deepCollectionEquality.equals(thisValue, otherValue)) {
+      if (!deepCollectionEquality.equals(
+        thisValue,
+        otherValue,
+      )) {
         result.addAll({mapEntry.key: otherValue});
       }
     }
@@ -100,7 +116,14 @@ final class NotationsRecord extends _i2.BaseRecord {
   }
 
   @override
-  List<Object?> get props => [...super.props, note, nbNotes, created, updated];
+  List<Object?> get props =>
+      [
+        ...super.props,
+        note,
+        nbNotes,
+        created,
+        updated,
+      ];
 
   static Map<String, dynamic> forCreateRequest({
     double? note,
@@ -120,25 +143,26 @@ final class NotationsRecord extends _i2.BaseRecord {
     final Map<String, dynamic> result = {};
     if (note != null) {
       result.addAll({
-        NotationsRecordFieldsEnum.note.nameInSchema: jsonMap[NotationsRecordFieldsEnum.note.nameInSchema],
+        NotationsRecordFieldsEnum.note.nameInSchema:
+        jsonMap[NotationsRecordFieldsEnum.note.nameInSchema]
       });
     }
     if (nbNotes != null) {
       result.addAll({
         NotationsRecordFieldsEnum.nbNotes.nameInSchema:
-            jsonMap[NotationsRecordFieldsEnum.nbNotes.nameInSchema],
+        jsonMap[NotationsRecordFieldsEnum.nbNotes.nameInSchema]
       });
     }
     if (created != null) {
       result.addAll({
         NotationsRecordFieldsEnum.created.nameInSchema:
-            jsonMap[NotationsRecordFieldsEnum.created.nameInSchema],
+        jsonMap[NotationsRecordFieldsEnum.created.nameInSchema]
       });
     }
     if (updated != null) {
       result.addAll({
         NotationsRecordFieldsEnum.updated.nameInSchema:
-            jsonMap[NotationsRecordFieldsEnum.updated.nameInSchema],
+        jsonMap[NotationsRecordFieldsEnum.updated.nameInSchema]
       });
     }
     return result;

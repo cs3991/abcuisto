@@ -21,6 +21,7 @@ UsersRecord _$UsersRecordFromJson(Map<String, dynamic> json) => UsersRecord(
   groups: (json['groups'] as List<dynamic>?)?.map((e) => e as String).toList(),
   created: json['created'] == null ? null : DateTime.parse(json['created'] as String),
   updated: json['updated'] == null ? null : DateTime.parse(json['updated'] as String),
+  expand: json['expand'] as Map<String, dynamic>?,
 );
 
 Map<String, dynamic> _$UsersRecordToJson(UsersRecord instance) => <String, dynamic>{
@@ -38,4 +39,5 @@ Map<String, dynamic> _$UsersRecordToJson(UsersRecord instance) => <String, dynam
   'groups': instance.groups,
   'created': instance.created?.toIso8601String(),
   'updated': instance.updated?.toIso8601String(),
+  'expand': instance.expand,
 };

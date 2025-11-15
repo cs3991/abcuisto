@@ -42,16 +42,20 @@ final class CguRecord extends _i2.BaseRecord {
     this.cgu,
     this.created,
     this.updated,
+    this.expand,
   }) : super();
 
-  factory CguRecord.fromJson(Map<String, dynamic> json) => _$CguRecordFromJson(json);
+  factory CguRecord.fromJson(Map<String, dynamic> json) =>
+      _$CguRecordFromJson(json);
 
   factory CguRecord.fromRecordModel(_i3.RecordModel recordModel) {
     final extendedJsonMap = {
       ...recordModel.data,
       CguRecordFieldsEnum.id.nameInSchema: recordModel.id,
       CguRecordFieldsEnum.collectionId.nameInSchema: recordModel.collectionId,
-      CguRecordFieldsEnum.collectionName.nameInSchema: recordModel.collectionName,
+      CguRecordFieldsEnum.collectionName.nameInSchema:
+      recordModel.collectionName,
+      'expand': recordModel.expand,
     };
     return CguRecord.fromJson(extendedJsonMap);
   }
@@ -66,9 +70,15 @@ final class CguRecord extends _i2.BaseRecord {
 
   static const $collectionName = 'cgu';
 
+  final Map<String, dynamic>? expand;
+
   Map<String, dynamic> toJson() => _$CguRecordToJson(this);
 
-  CguRecord copyWith({String? cgu, DateTime? created, DateTime? updated}) {
+  CguRecord copyWith({
+    String? cgu,
+    DateTime? created,
+    DateTime? updated,
+  }) {
     return CguRecord(
       id: id,
       collectionId: collectionId,
@@ -83,11 +93,15 @@ final class CguRecord extends _i2.BaseRecord {
     final thisInJsonMap = toJson();
     final otherInJsonMap = other.toJson();
     final Map<String, dynamic> result = {};
-    final _i4.DeepCollectionEquality deepCollectionEquality = _i4.DeepCollectionEquality();
+    final _i4.DeepCollectionEquality deepCollectionEquality =
+    _i4.DeepCollectionEquality();
     for (final mapEntry in thisInJsonMap.entries) {
       final thisValue = mapEntry.value;
       final otherValue = otherInJsonMap[mapEntry.key];
-      if (!deepCollectionEquality.equals(thisValue, otherValue)) {
+      if (!deepCollectionEquality.equals(
+        thisValue,
+        otherValue,
+      )) {
         result.addAll({mapEntry.key: otherValue});
       }
     }
@@ -95,9 +109,19 @@ final class CguRecord extends _i2.BaseRecord {
   }
 
   @override
-  List<Object?> get props => [...super.props, cgu, created, updated];
+  List<Object?> get props =>
+      [
+        ...super.props,
+        cgu,
+        created,
+        updated,
+      ];
 
-  static Map<String, dynamic> forCreateRequest({String? cgu, DateTime? created, DateTime? updated}) {
+  static Map<String, dynamic> forCreateRequest({
+    String? cgu,
+    DateTime? created,
+    DateTime? updated,
+  }) {
     final jsonMap = CguRecord(
       id: '',
       collectionId: $collectionId,
@@ -108,16 +132,21 @@ final class CguRecord extends _i2.BaseRecord {
     ).toJson();
     final Map<String, dynamic> result = {};
     if (cgu != null) {
-      result.addAll({CguRecordFieldsEnum.cgu.nameInSchema: jsonMap[CguRecordFieldsEnum.cgu.nameInSchema]});
+      result.addAll({
+        CguRecordFieldsEnum.cgu.nameInSchema:
+        jsonMap[CguRecordFieldsEnum.cgu.nameInSchema]
+      });
     }
     if (created != null) {
       result.addAll({
-        CguRecordFieldsEnum.created.nameInSchema: jsonMap[CguRecordFieldsEnum.created.nameInSchema],
+        CguRecordFieldsEnum.created.nameInSchema:
+        jsonMap[CguRecordFieldsEnum.created.nameInSchema]
       });
     }
     if (updated != null) {
       result.addAll({
-        CguRecordFieldsEnum.updated.nameInSchema: jsonMap[CguRecordFieldsEnum.updated.nameInSchema],
+        CguRecordFieldsEnum.updated.nameInSchema:
+        jsonMap[CguRecordFieldsEnum.updated.nameInSchema]
       });
     }
     return result;

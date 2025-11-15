@@ -46,16 +46,20 @@ final class BiosRecord extends _i2.BaseRecord {
     this.bio,
     this.created,
     this.updated,
+    this.expand,
   }) : super();
 
-  factory BiosRecord.fromJson(Map<String, dynamic> json) => _$BiosRecordFromJson(json);
+  factory BiosRecord.fromJson(Map<String, dynamic> json) =>
+      _$BiosRecordFromJson(json);
 
   factory BiosRecord.fromRecordModel(_i3.RecordModel recordModel) {
     final extendedJsonMap = {
       ...recordModel.data,
       BiosRecordFieldsEnum.id.nameInSchema: recordModel.id,
       BiosRecordFieldsEnum.collectionId.nameInSchema: recordModel.collectionId,
-      BiosRecordFieldsEnum.collectionName.nameInSchema: recordModel.collectionName,
+      BiosRecordFieldsEnum.collectionName.nameInSchema:
+      recordModel.collectionName,
+      'expand': recordModel.expand,
     };
     return BiosRecord.fromJson(extendedJsonMap);
   }
@@ -78,9 +82,17 @@ final class BiosRecord extends _i2.BaseRecord {
 
   static const $collectionName = 'bios';
 
+  final Map<String, dynamic>? expand;
+
   Map<String, dynamic> toJson() => _$BiosRecordToJson(this);
 
-  BiosRecord copyWith({String? user, String? image, String? bio, DateTime? created, DateTime? updated}) {
+  BiosRecord copyWith({
+    String? user,
+    String? image,
+    String? bio,
+    DateTime? created,
+    DateTime? updated,
+  }) {
     return BiosRecord(
       id: id,
       collectionId: collectionId,
@@ -97,11 +109,15 @@ final class BiosRecord extends _i2.BaseRecord {
     final thisInJsonMap = toJson();
     final otherInJsonMap = other.toJson();
     final Map<String, dynamic> result = {};
-    final _i4.DeepCollectionEquality deepCollectionEquality = _i4.DeepCollectionEquality();
+    final _i4.DeepCollectionEquality deepCollectionEquality =
+    _i4.DeepCollectionEquality();
     for (final mapEntry in thisInJsonMap.entries) {
       final thisValue = mapEntry.value;
       final otherValue = otherInJsonMap[mapEntry.key];
-      if (!deepCollectionEquality.equals(thisValue, otherValue)) {
+      if (!deepCollectionEquality.equals(
+        thisValue,
+        otherValue,
+      )) {
         result.addAll({mapEntry.key: otherValue});
       }
     }
@@ -109,7 +125,15 @@ final class BiosRecord extends _i2.BaseRecord {
   }
 
   @override
-  List<Object?> get props => [...super.props, user, image, bio, created, updated];
+  List<Object?> get props =>
+      [
+        ...super.props,
+        user,
+        image,
+        bio,
+        created,
+        updated,
+      ];
 
   static Map<String, dynamic> forCreateRequest({
     String? user,
@@ -131,25 +155,32 @@ final class BiosRecord extends _i2.BaseRecord {
     final Map<String, dynamic> result = {};
     if (user != null) {
       result.addAll({
-        BiosRecordFieldsEnum.user.nameInSchema: jsonMap[BiosRecordFieldsEnum.user.nameInSchema],
+        BiosRecordFieldsEnum.user.nameInSchema:
+        jsonMap[BiosRecordFieldsEnum.user.nameInSchema]
       });
     }
     if (image != null) {
       result.addAll({
-        BiosRecordFieldsEnum.image.nameInSchema: jsonMap[BiosRecordFieldsEnum.image.nameInSchema],
+        BiosRecordFieldsEnum.image.nameInSchema:
+        jsonMap[BiosRecordFieldsEnum.image.nameInSchema]
       });
     }
     if (bio != null) {
-      result.addAll({BiosRecordFieldsEnum.bio.nameInSchema: jsonMap[BiosRecordFieldsEnum.bio.nameInSchema]});
+      result.addAll({
+        BiosRecordFieldsEnum.bio.nameInSchema:
+        jsonMap[BiosRecordFieldsEnum.bio.nameInSchema]
+      });
     }
     if (created != null) {
       result.addAll({
-        BiosRecordFieldsEnum.created.nameInSchema: jsonMap[BiosRecordFieldsEnum.created.nameInSchema],
+        BiosRecordFieldsEnum.created.nameInSchema:
+        jsonMap[BiosRecordFieldsEnum.created.nameInSchema]
       });
     }
     if (updated != null) {
       result.addAll({
-        BiosRecordFieldsEnum.updated.nameInSchema: jsonMap[BiosRecordFieldsEnum.updated.nameInSchema],
+        BiosRecordFieldsEnum.updated.nameInSchema:
+        jsonMap[BiosRecordFieldsEnum.updated.nameInSchema]
       });
     }
     return result;

@@ -40,8 +40,12 @@ RecettesRecord _$RecettesRecordFromJson(Map<String, dynamic> json) => RecettesRe
   noteId: json['noteId'] as String?,
   groupsIds: (json['groupsIds'] as List<dynamic>?)?.map((e) => e as String).toList(),
   nameWithoutDiacritics: json['nameWithoutDiacritics'] as String?,
+  tags: (json['tags'] as List<dynamic>?)
+      ?.map((e) => $enumDecode(_$RecettesRecordTagsEnumEnumMap, e))
+      .toList(),
   created: json['created'] == null ? null : DateTime.parse(json['created'] as String),
   updated: json['updated'] == null ? null : DateTime.parse(json['updated'] as String),
+  expand: json['expand'] as Map<String, dynamic>?,
 );
 
 Map<String, dynamic> _$RecettesRecordToJson(RecettesRecord instance) => <String, dynamic>{
@@ -66,28 +70,38 @@ Map<String, dynamic> _$RecettesRecordToJson(RecettesRecord instance) => <String,
   'noteId': instance.noteId,
   'groupsIds': instance.groupsIds,
   'nameWithoutDiacritics': instance.nameWithoutDiacritics,
+  'tags': instance.tags?.map((e) => _$RecettesRecordTagsEnumEnumMap[e]!).toList(),
   'created': instance.created?.toIso8601String(),
   'updated': instance.updated?.toIso8601String(),
+  'expand': instance.expand,
 };
 
 const _$RecettesRecordCategorieEnumEnumMap = {
-  RecettesRecordCategorieEnum.aperitif: 'Aperitif',
-  RecettesRecordCategorieEnum.entree: 'Entree',
+  RecettesRecordCategorieEnum.aperitif: 'Apéritif',
+  RecettesRecordCategorieEnum.entree: 'Entrée',
   RecettesRecordCategorieEnum.plat: 'Plat',
   RecettesRecordCategorieEnum.fromage: 'Fromage',
   RecettesRecordCategorieEnum.dessert: 'Dessert',
-  RecettesRecordCategorieEnum.petitDejeuner: 'Petit-dejeuner',
+  RecettesRecordCategorieEnum.petitxdejeuner: 'Petit-déjeuner',
   RecettesRecordCategorieEnum.boisson: 'Boisson',
   RecettesRecordCategorieEnum.sauce: 'Sauce',
 };
 
 const _$RecettesRecordTypeNumberEnumEnumMap = {
   RecettesRecordTypeNumberEnum.personnes: 'Personnes',
-  RecettesRecordTypeNumberEnum.pieces: 'Pieces',
+  RecettesRecordTypeNumberEnum.pieces: 'Pièces',
 };
 
 const _$RecettesRecordPrixEnumEnumMap = {
-  RecettesRecordPrixEnum.eur: 'EUR',
-  RecettesRecordPrixEnum.eureur: 'EUREUR',
-  RecettesRecordPrixEnum.eureureur: 'EUREUREUR',
+  RecettesRecordPrixEnum.x: '€',
+  RecettesRecordPrixEnum.xx: '€€',
+  RecettesRecordPrixEnum.xxx: '€€€',
+};
+
+const _$RecettesRecordTagsEnumEnumMap = {
+  RecettesRecordTagsEnum.thermomix: 'THERMOMIX',
+  RecettesRecordTagsEnum.vegan: 'VEGAN',
+  RecettesRecordTagsEnum.vegetarien: 'VEGETARIEN',
+  RecettesRecordTagsEnum.alcool: 'ALCOOL',
+  RecettesRecordTagsEnum.sansgluten: 'SANSGLUTEN',
 };

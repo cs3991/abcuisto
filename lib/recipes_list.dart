@@ -1,11 +1,14 @@
 import 'package:abcuisto/abcuisto_repository.dart';
+import 'package:abcuisto/generated/pocketbase/notations_record.dart';
 import 'package:abcuisto/generated/pocketbase/recettes_record.dart';
-import 'package:abcuisto/generated/pocketbase/users_record.dart';
 import 'package:flutter/material.dart';
+import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:pocketbase/pocketbase.dart';
 import 'package:provider/provider.dart';
 
 class RecipePage extends StatelessWidget {
+  const RecipePage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -36,40 +39,50 @@ class RecipePage extends StatelessWidget {
   }
 }
 
-class RecipesList extends StatelessWidget {
+class RecipesList extends StatefulWidget {
   const RecipesList({super.key});
 
   @override
+  State<RecipesList> createState() => _RecipesListState();
+}
+
+class _RecipesListState extends State<RecipesList> {
+  static const _pageSize = 25;
+  late final _pagingController = PagingController<int, RecettesRecord>(
+    getNextPageKey: (state) => state.lastPageIsEmpty ? null : state.nextIntPageKey,
+    fetchPage: (pageKey) => context.read<AbcuistoRepository>().getRecipes(page: pageKey, perPage: _pageSize),
+  );
+
+  @override
+  void dispose() {
+    _pagingController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final user = UsersRecord.fromRecordModel(context.read<AbcuistoRepository>().pb.authStore.record!);
-
-    final futureRecipes = context.read<AbcuistoRepository>().getRecipes();
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-      child: Center(
-        child: Column(
-          children: [
-            Expanded(
-              child: FutureBuilder(
-                future: futureRecipes,
-                builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    final recipes = snapshot.data!;
-
-                    return ListView.builder(
-                      itemBuilder: (context, index) => RecipeCard(recipe: recipes[index]),
-                      itemCount: recipes.length,
-                    );
-                  } else {
-                    return CircularProgressIndicator();
-                  }
-                },
-              ),
+    return PagingListener(
+      controller: _pagingController,
+      builder: (context, state, fetchNextPage) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          child: Center(
+            child: Column(
+              children: [
+                Expanded(
+                  child: PagedListView<int, RecettesRecord>(
+                    state: state,
+                    fetchNextPage: fetchNextPage,
+                    builderDelegate: PagedChildBuilderDelegate(
+                      itemBuilder: (context, item, index) => RecipeCard(recipe: item),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }
@@ -88,11 +101,15 @@ class RecipeCard extends StatelessWidget {
         recipe.documents!.first,
       );
     }
+    final note = NotationsRecord.fromRecordModel(recipe.expand!['noteId'][0]).note!;
+    final nbNotes = NotationsRecord.fromRecordModel(recipe.expand!['noteId'][0]).nbNotes!;
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Padding(
         padding: EdgeInsets.symmetric(
-          horizontal: MediaQuery.of(context).size.width > 400 ? (MediaQuery.of(context).size.width - 400) / 2: 0,
+          horizontal: MediaQuery.of(context).size.width > 400
+              ? (MediaQuery.of(context).size.width - 400) / 2
+              : 0,
         ),
 
         child: Card(
@@ -133,13 +150,19 @@ class RecipeCard extends StatelessWidget {
                   children: [
                     IconButton(icon: Icon(Icons.favorite_border_rounded), onPressed: () {}),
                     Text(recipe.tempsPreparation!, style: Theme.of(context).textTheme.labelLarge),
-                    // Row(
-                    //   children: List.generate(
-                    //     5,
-                    //     (index) =>
-                    //         index < recipe.noteId ? Icon(Icons.star_rounded) : Icon(Icons.star_border_rounded),
-                    //   ),
-                    // ),
+                    nbNotes > 0
+                        ? Row(
+                            children: List.generate(
+                              5,
+                              (index) => index < note
+                                  ? Icon(Icons.star_rounded, color: Colors.orange.withValues(alpha: 0.5))
+                                  : Icon(
+                                      Icons.star_border_rounded,
+                                      color: Colors.orange.withValues(alpha: 0.5),
+                                    ),
+                            ),
+                          )
+                        : Text('Aucune note', style: Theme.of(context).textTheme.labelMedium),
                   ],
                 ),
               ),

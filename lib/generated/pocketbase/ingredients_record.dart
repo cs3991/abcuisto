@@ -40,7 +40,7 @@ enum IngredientsRecordTypeEnum {
   @_i1.JsonValue('g')
   g('g'),
   @_i1.JsonValue('L')
-  l('L'),
+  l('l'),
   @_i1.JsonValue('kg')
   kg('kg'),
   @_i1.JsonValue('mg')
@@ -49,14 +49,16 @@ enum IngredientsRecordTypeEnum {
   cL('cL'),
   @_i1.JsonValue('mL')
   mL('mL'),
-  @_i1.JsonValue('piece')
-  piece('piece'),
-  @_i1.JsonValue('cuillere a cafe')
-  cuillereACafe('cuillere a cafe'),
-  @_i1.JsonValue('cuillere a soupe')
-  cuillereASoupe('cuillere a soupe'),
-  @_i1.JsonValue('pincee')
-  pincee('pincee');
+  @_i1.JsonValue('pièce(s)')
+  piecexsx('piecexsx'),
+  @_i1.JsonValue('cuillère à café')
+  cuillerexaxcafe('cuillerexaxcafe'),
+  @_i1.JsonValue('cuillère à soupe')
+  cuillerexaxsoupe('cuillerexaxsoupe'),
+  @_i1.JsonValue('pincée(s)')
+  pinceexsx('pinceexsx'),
+  @_i1.JsonValue('null')
+  nullValue('nullValue');
 
   const IngredientsRecordTypeEnum(this.nameInSchema);
 
@@ -75,16 +77,21 @@ final class IngredientsRecord extends _i2.BaseRecord {
     this.nameWithoutDiacritics,
     this.created,
     this.updated,
+    this.expand,
   }) : super();
 
-  factory IngredientsRecord.fromJson(Map<String, dynamic> json) => _$IngredientsRecordFromJson(json);
+  factory IngredientsRecord.fromJson(Map<String, dynamic> json) =>
+      _$IngredientsRecordFromJson(json);
 
   factory IngredientsRecord.fromRecordModel(_i3.RecordModel recordModel) {
     final extendedJsonMap = {
       ...recordModel.data,
       IngredientsRecordFieldsEnum.id.nameInSchema: recordModel.id,
-      IngredientsRecordFieldsEnum.collectionId.nameInSchema: recordModel.collectionId,
-      IngredientsRecordFieldsEnum.collectionName.nameInSchema: recordModel.collectionName,
+      IngredientsRecordFieldsEnum.collectionId.nameInSchema:
+      recordModel.collectionId,
+      IngredientsRecordFieldsEnum.collectionName.nameInSchema:
+      recordModel.collectionName,
+      'expand': recordModel.expand,
     };
     return IngredientsRecord.fromJson(extendedJsonMap);
   }
@@ -114,6 +121,8 @@ final class IngredientsRecord extends _i2.BaseRecord {
 
   static const $collectionName = 'ingredients';
 
+  final Map<String, dynamic>? expand;
+
   Map<String, dynamic> toJson() => _$IngredientsRecordToJson(this);
 
   IngredientsRecord copyWith({
@@ -131,7 +140,8 @@ final class IngredientsRecord extends _i2.BaseRecord {
       name: name ?? this.name,
       type: type ?? this.type,
       number: number ?? this.number,
-      nameWithoutDiacritics: nameWithoutDiacritics ?? this.nameWithoutDiacritics,
+      nameWithoutDiacritics:
+      nameWithoutDiacritics ?? this.nameWithoutDiacritics,
       created: created ?? this.created,
       updated: updated ?? this.updated,
     );
@@ -141,11 +151,15 @@ final class IngredientsRecord extends _i2.BaseRecord {
     final thisInJsonMap = toJson();
     final otherInJsonMap = other.toJson();
     final Map<String, dynamic> result = {};
-    final _i4.DeepCollectionEquality deepCollectionEquality = _i4.DeepCollectionEquality();
+    final _i4.DeepCollectionEquality deepCollectionEquality =
+    _i4.DeepCollectionEquality();
     for (final mapEntry in thisInJsonMap.entries) {
       final thisValue = mapEntry.value;
       final otherValue = otherInJsonMap[mapEntry.key];
-      if (!deepCollectionEquality.equals(thisValue, otherValue)) {
+      if (!deepCollectionEquality.equals(
+        thisValue,
+        otherValue,
+      )) {
         result.addAll({mapEntry.key: otherValue});
       }
     }
@@ -153,7 +167,16 @@ final class IngredientsRecord extends _i2.BaseRecord {
   }
 
   @override
-  List<Object?> get props => [...super.props, name, type, number, nameWithoutDiacritics, created, updated];
+  List<Object?> get props =>
+      [
+        ...super.props,
+        name,
+        type,
+        number,
+        nameWithoutDiacritics,
+        created,
+        updated,
+      ];
 
   static Map<String, dynamic> forCreateRequest({
     String? name,
@@ -177,36 +200,38 @@ final class IngredientsRecord extends _i2.BaseRecord {
     final Map<String, dynamic> result = {};
     if (name != null) {
       result.addAll({
-        IngredientsRecordFieldsEnum.name.nameInSchema: jsonMap[IngredientsRecordFieldsEnum.name.nameInSchema],
+        IngredientsRecordFieldsEnum.name.nameInSchema:
+        jsonMap[IngredientsRecordFieldsEnum.name.nameInSchema]
       });
     }
     if (type != null) {
       result.addAll({
-        IngredientsRecordFieldsEnum.type.nameInSchema: jsonMap[IngredientsRecordFieldsEnum.type.nameInSchema],
+        IngredientsRecordFieldsEnum.type.nameInSchema:
+        jsonMap[IngredientsRecordFieldsEnum.type.nameInSchema]
       });
     }
     if (number != null) {
       result.addAll({
         IngredientsRecordFieldsEnum.number.nameInSchema:
-            jsonMap[IngredientsRecordFieldsEnum.number.nameInSchema],
+        jsonMap[IngredientsRecordFieldsEnum.number.nameInSchema]
       });
     }
     if (nameWithoutDiacritics != null) {
       result.addAll({
-        IngredientsRecordFieldsEnum.nameWithoutDiacritics.nameInSchema:
-            jsonMap[IngredientsRecordFieldsEnum.nameWithoutDiacritics.nameInSchema],
+        IngredientsRecordFieldsEnum.nameWithoutDiacritics.nameInSchema: jsonMap[
+        IngredientsRecordFieldsEnum.nameWithoutDiacritics.nameInSchema]
       });
     }
     if (created != null) {
       result.addAll({
         IngredientsRecordFieldsEnum.created.nameInSchema:
-            jsonMap[IngredientsRecordFieldsEnum.created.nameInSchema],
+        jsonMap[IngredientsRecordFieldsEnum.created.nameInSchema]
       });
     }
     if (updated != null) {
       result.addAll({
         IngredientsRecordFieldsEnum.updated.nameInSchema:
-            jsonMap[IngredientsRecordFieldsEnum.updated.nameInSchema],
+        jsonMap[IngredientsRecordFieldsEnum.updated.nameInSchema]
       });
     }
     return result;

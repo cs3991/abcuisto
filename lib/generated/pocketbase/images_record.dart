@@ -44,16 +44,21 @@ final class ImagesRecord extends _i2.BaseRecord {
     this.image,
     this.created,
     this.updated,
+    this.expand,
   }) : super();
 
-  factory ImagesRecord.fromJson(Map<String, dynamic> json) => _$ImagesRecordFromJson(json);
+  factory ImagesRecord.fromJson(Map<String, dynamic> json) =>
+      _$ImagesRecordFromJson(json);
 
   factory ImagesRecord.fromRecordModel(_i3.RecordModel recordModel) {
     final extendedJsonMap = {
       ...recordModel.data,
       ImagesRecordFieldsEnum.id.nameInSchema: recordModel.id,
-      ImagesRecordFieldsEnum.collectionId.nameInSchema: recordModel.collectionId,
-      ImagesRecordFieldsEnum.collectionName.nameInSchema: recordModel.collectionName,
+      ImagesRecordFieldsEnum.collectionId.nameInSchema:
+      recordModel.collectionId,
+      ImagesRecordFieldsEnum.collectionName.nameInSchema:
+      recordModel.collectionName,
+      'expand': recordModel.expand,
     };
     return ImagesRecord.fromJson(extendedJsonMap);
   }
@@ -74,9 +79,16 @@ final class ImagesRecord extends _i2.BaseRecord {
 
   static const $collectionName = 'images';
 
+  final Map<String, dynamic>? expand;
+
   Map<String, dynamic> toJson() => _$ImagesRecordToJson(this);
 
-  ImagesRecord copyWith({String? nom, String? image, DateTime? created, DateTime? updated}) {
+  ImagesRecord copyWith({
+    String? nom,
+    String? image,
+    DateTime? created,
+    DateTime? updated,
+  }) {
     return ImagesRecord(
       id: id,
       collectionId: collectionId,
@@ -92,11 +104,15 @@ final class ImagesRecord extends _i2.BaseRecord {
     final thisInJsonMap = toJson();
     final otherInJsonMap = other.toJson();
     final Map<String, dynamic> result = {};
-    final _i4.DeepCollectionEquality deepCollectionEquality = _i4.DeepCollectionEquality();
+    final _i4.DeepCollectionEquality deepCollectionEquality =
+    _i4.DeepCollectionEquality();
     for (final mapEntry in thisInJsonMap.entries) {
       final thisValue = mapEntry.value;
       final otherValue = otherInJsonMap[mapEntry.key];
-      if (!deepCollectionEquality.equals(thisValue, otherValue)) {
+      if (!deepCollectionEquality.equals(
+        thisValue,
+        otherValue,
+      )) {
         result.addAll({mapEntry.key: otherValue});
       }
     }
@@ -104,7 +120,14 @@ final class ImagesRecord extends _i2.BaseRecord {
   }
 
   @override
-  List<Object?> get props => [...super.props, nom, image, created, updated];
+  List<Object?> get props =>
+      [
+        ...super.props,
+        nom,
+        image,
+        created,
+        updated,
+      ];
 
   static Map<String, dynamic> forCreateRequest({
     String? nom,
@@ -124,22 +147,26 @@ final class ImagesRecord extends _i2.BaseRecord {
     final Map<String, dynamic> result = {};
     if (nom != null) {
       result.addAll({
-        ImagesRecordFieldsEnum.nom.nameInSchema: jsonMap[ImagesRecordFieldsEnum.nom.nameInSchema],
+        ImagesRecordFieldsEnum.nom.nameInSchema:
+        jsonMap[ImagesRecordFieldsEnum.nom.nameInSchema]
       });
     }
     if (image != null) {
       result.addAll({
-        ImagesRecordFieldsEnum.image.nameInSchema: jsonMap[ImagesRecordFieldsEnum.image.nameInSchema],
+        ImagesRecordFieldsEnum.image.nameInSchema:
+        jsonMap[ImagesRecordFieldsEnum.image.nameInSchema]
       });
     }
     if (created != null) {
       result.addAll({
-        ImagesRecordFieldsEnum.created.nameInSchema: jsonMap[ImagesRecordFieldsEnum.created.nameInSchema],
+        ImagesRecordFieldsEnum.created.nameInSchema:
+        jsonMap[ImagesRecordFieldsEnum.created.nameInSchema]
       });
     }
     if (updated != null) {
       result.addAll({
-        ImagesRecordFieldsEnum.updated.nameInSchema: jsonMap[ImagesRecordFieldsEnum.updated.nameInSchema],
+        ImagesRecordFieldsEnum.updated.nameInSchema:
+        jsonMap[ImagesRecordFieldsEnum.updated.nameInSchema]
       });
     }
     return result;

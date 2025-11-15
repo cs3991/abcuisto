@@ -15,10 +15,8 @@ class EntryPage extends StatelessWidget {
         if (state is AuthenticationInitial) {
           context.read<AuthenticationCubit>().initialize();
           return Scaffold(
-            body: Expanded(
-              child: Center(
-                child: CircularProgressIndicator(),
-              ),
+            body: Center(
+              child: CircularProgressIndicator(),
             ),
           );
         } else if (state is AuthenticationLoggedOut) {

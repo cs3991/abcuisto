@@ -50,16 +50,21 @@ final class CommentairesRecord extends _i2.BaseRecord {
     this.note,
     this.created,
     this.updated,
+    this.expand,
   }) : super();
 
-  factory CommentairesRecord.fromJson(Map<String, dynamic> json) => _$CommentairesRecordFromJson(json);
+  factory CommentairesRecord.fromJson(Map<String, dynamic> json) =>
+      _$CommentairesRecordFromJson(json);
 
   factory CommentairesRecord.fromRecordModel(_i3.RecordModel recordModel) {
     final extendedJsonMap = {
       ...recordModel.data,
       CommentairesRecordFieldsEnum.id.nameInSchema: recordModel.id,
-      CommentairesRecordFieldsEnum.collectionId.nameInSchema: recordModel.collectionId,
-      CommentairesRecordFieldsEnum.collectionName.nameInSchema: recordModel.collectionName,
+      CommentairesRecordFieldsEnum.collectionId.nameInSchema:
+      recordModel.collectionId,
+      CommentairesRecordFieldsEnum.collectionName.nameInSchema:
+      recordModel.collectionName,
+      'expand': recordModel.expand,
     };
     return CommentairesRecord.fromJson(extendedJsonMap);
   }
@@ -85,6 +90,8 @@ final class CommentairesRecord extends _i2.BaseRecord {
   static const $collectionId = 'pbc_2384889026';
 
   static const $collectionName = 'commentaires';
+
+  final Map<String, dynamic>? expand;
 
   Map<String, dynamic> toJson() => _$CommentairesRecordToJson(this);
 
@@ -115,11 +122,15 @@ final class CommentairesRecord extends _i2.BaseRecord {
     final thisInJsonMap = toJson();
     final otherInJsonMap = other.toJson();
     final Map<String, dynamic> result = {};
-    final _i4.DeepCollectionEquality deepCollectionEquality = _i4.DeepCollectionEquality();
+    final _i4.DeepCollectionEquality deepCollectionEquality =
+    _i4.DeepCollectionEquality();
     for (final mapEntry in thisInJsonMap.entries) {
       final thisValue = mapEntry.value;
       final otherValue = otherInJsonMap[mapEntry.key];
-      if (!deepCollectionEquality.equals(thisValue, otherValue)) {
+      if (!deepCollectionEquality.equals(
+        thisValue,
+        otherValue,
+      )) {
         result.addAll({mapEntry.key: otherValue});
       }
     }
@@ -127,7 +138,17 @@ final class CommentairesRecord extends _i2.BaseRecord {
   }
 
   @override
-  List<Object?> get props => [...super.props, recette, user, commentaire, username, note, created, updated];
+  List<Object?> get props =>
+      [
+        ...super.props,
+        recette,
+        user,
+        commentaire,
+        username,
+        note,
+        created,
+        updated,
+      ];
 
   static Map<String, dynamic> forCreateRequest({
     String? recette,
@@ -154,43 +175,43 @@ final class CommentairesRecord extends _i2.BaseRecord {
     if (recette != null) {
       result.addAll({
         CommentairesRecordFieldsEnum.recette.nameInSchema:
-            jsonMap[CommentairesRecordFieldsEnum.recette.nameInSchema],
+        jsonMap[CommentairesRecordFieldsEnum.recette.nameInSchema]
       });
     }
     if (user != null) {
       result.addAll({
         CommentairesRecordFieldsEnum.user.nameInSchema:
-            jsonMap[CommentairesRecordFieldsEnum.user.nameInSchema],
+        jsonMap[CommentairesRecordFieldsEnum.user.nameInSchema]
       });
     }
     if (commentaire != null) {
       result.addAll({
         CommentairesRecordFieldsEnum.commentaire.nameInSchema:
-            jsonMap[CommentairesRecordFieldsEnum.commentaire.nameInSchema],
+        jsonMap[CommentairesRecordFieldsEnum.commentaire.nameInSchema]
       });
     }
     if (username != null) {
       result.addAll({
         CommentairesRecordFieldsEnum.username.nameInSchema:
-            jsonMap[CommentairesRecordFieldsEnum.username.nameInSchema],
+        jsonMap[CommentairesRecordFieldsEnum.username.nameInSchema]
       });
     }
     if (note != null) {
       result.addAll({
         CommentairesRecordFieldsEnum.note.nameInSchema:
-            jsonMap[CommentairesRecordFieldsEnum.note.nameInSchema],
+        jsonMap[CommentairesRecordFieldsEnum.note.nameInSchema]
       });
     }
     if (created != null) {
       result.addAll({
         CommentairesRecordFieldsEnum.created.nameInSchema:
-            jsonMap[CommentairesRecordFieldsEnum.created.nameInSchema],
+        jsonMap[CommentairesRecordFieldsEnum.created.nameInSchema]
       });
     }
     if (updated != null) {
       result.addAll({
         CommentairesRecordFieldsEnum.updated.nameInSchema:
-            jsonMap[CommentairesRecordFieldsEnum.updated.nameInSchema],
+        jsonMap[CommentairesRecordFieldsEnum.updated.nameInSchema]
       });
     }
     return result;

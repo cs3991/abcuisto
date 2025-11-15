@@ -48,16 +48,21 @@ final class GroupsRecord extends _i2.BaseRecord {
     required this.canEdit,
     this.created,
     this.updated,
+    this.expand,
   }) : super();
 
-  factory GroupsRecord.fromJson(Map<String, dynamic> json) => _$GroupsRecordFromJson(json);
+  factory GroupsRecord.fromJson(Map<String, dynamic> json) =>
+      _$GroupsRecordFromJson(json);
 
   factory GroupsRecord.fromRecordModel(_i3.RecordModel recordModel) {
     final extendedJsonMap = {
       ...recordModel.data,
       GroupsRecordFieldsEnum.id.nameInSchema: recordModel.id,
-      GroupsRecordFieldsEnum.collectionId.nameInSchema: recordModel.collectionId,
-      GroupsRecordFieldsEnum.collectionName.nameInSchema: recordModel.collectionName,
+      GroupsRecordFieldsEnum.collectionId.nameInSchema:
+      recordModel.collectionId,
+      GroupsRecordFieldsEnum.collectionName.nameInSchema:
+      recordModel.collectionName,
+      'expand': recordModel.expand,
     };
     return GroupsRecord.fromJson(extendedJsonMap);
   }
@@ -86,6 +91,8 @@ final class GroupsRecord extends _i2.BaseRecord {
 
   static const $collectionName = 'groups';
 
+  final Map<String, dynamic>? expand;
+
   Map<String, dynamic> toJson() => _$GroupsRecordToJson(this);
 
   GroupsRecord copyWith({
@@ -113,11 +120,15 @@ final class GroupsRecord extends _i2.BaseRecord {
     final thisInJsonMap = toJson();
     final otherInJsonMap = other.toJson();
     final Map<String, dynamic> result = {};
-    final _i4.DeepCollectionEquality deepCollectionEquality = _i4.DeepCollectionEquality();
+    final _i4.DeepCollectionEquality deepCollectionEquality =
+    _i4.DeepCollectionEquality();
     for (final mapEntry in thisInJsonMap.entries) {
       final thisValue = mapEntry.value;
       final otherValue = otherInJsonMap[mapEntry.key];
-      if (!deepCollectionEquality.equals(thisValue, otherValue)) {
+      if (!deepCollectionEquality.equals(
+        thisValue,
+        otherValue,
+      )) {
         result.addAll({mapEntry.key: otherValue});
       }
     }
@@ -125,7 +136,16 @@ final class GroupsRecord extends _i2.BaseRecord {
   }
 
   @override
-  List<Object?> get props => [...super.props, owner, name, link, canEdit, created, updated];
+  List<Object?> get props =>
+      [
+        ...super.props,
+        owner,
+        name,
+        link,
+        canEdit,
+        created,
+        updated,
+      ];
 
   static Map<String, dynamic> forCreateRequest({
     String? owner,
@@ -149,30 +169,36 @@ final class GroupsRecord extends _i2.BaseRecord {
     final Map<String, dynamic> result = {};
     if (owner != null) {
       result.addAll({
-        GroupsRecordFieldsEnum.owner.nameInSchema: jsonMap[GroupsRecordFieldsEnum.owner.nameInSchema],
+        GroupsRecordFieldsEnum.owner.nameInSchema:
+        jsonMap[GroupsRecordFieldsEnum.owner.nameInSchema]
       });
     }
     if (name != null) {
       result.addAll({
-        GroupsRecordFieldsEnum.name.nameInSchema: jsonMap[GroupsRecordFieldsEnum.name.nameInSchema],
+        GroupsRecordFieldsEnum.name.nameInSchema:
+        jsonMap[GroupsRecordFieldsEnum.name.nameInSchema]
       });
     }
     if (link != null) {
       result.addAll({
-        GroupsRecordFieldsEnum.link.nameInSchema: jsonMap[GroupsRecordFieldsEnum.link.nameInSchema],
+        GroupsRecordFieldsEnum.link.nameInSchema:
+        jsonMap[GroupsRecordFieldsEnum.link.nameInSchema]
       });
     }
     result.addAll({
-      GroupsRecordFieldsEnum.canEdit.nameInSchema: jsonMap[GroupsRecordFieldsEnum.canEdit.nameInSchema],
+      GroupsRecordFieldsEnum.canEdit.nameInSchema:
+      jsonMap[GroupsRecordFieldsEnum.canEdit.nameInSchema]
     });
     if (created != null) {
       result.addAll({
-        GroupsRecordFieldsEnum.created.nameInSchema: jsonMap[GroupsRecordFieldsEnum.created.nameInSchema],
+        GroupsRecordFieldsEnum.created.nameInSchema:
+        jsonMap[GroupsRecordFieldsEnum.created.nameInSchema]
       });
     }
     if (updated != null) {
       result.addAll({
-        GroupsRecordFieldsEnum.updated.nameInSchema: jsonMap[GroupsRecordFieldsEnum.updated.nameInSchema],
+        GroupsRecordFieldsEnum.updated.nameInSchema:
+        jsonMap[GroupsRecordFieldsEnum.updated.nameInSchema]
       });
     }
     return result;

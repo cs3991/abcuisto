@@ -20,6 +20,7 @@ IngredientsRecord _$IngredientsRecordFromJson(Map<String, dynamic> json) => Ingr
   nameWithoutDiacritics: json['nameWithoutDiacritics'] as String?,
   created: json['created'] == null ? null : DateTime.parse(json['created'] as String),
   updated: json['updated'] == null ? null : DateTime.parse(json['updated'] as String),
+  expand: json['expand'] as Map<String, dynamic>?,
 );
 
 Map<String, dynamic> _$IngredientsRecordToJson(IngredientsRecord instance) => <String, dynamic>{
@@ -32,6 +33,7 @@ Map<String, dynamic> _$IngredientsRecordToJson(IngredientsRecord instance) => <S
   'nameWithoutDiacritics': instance.nameWithoutDiacritics,
   'created': instance.created?.toIso8601String(),
   'updated': instance.updated?.toIso8601String(),
+  'expand': instance.expand,
 };
 
 const _$IngredientsRecordTypeEnumEnumMap = {
@@ -41,8 +43,9 @@ const _$IngredientsRecordTypeEnumEnumMap = {
   IngredientsRecordTypeEnum.mg: 'mg',
   IngredientsRecordTypeEnum.cL: 'cL',
   IngredientsRecordTypeEnum.mL: 'mL',
-  IngredientsRecordTypeEnum.piece: 'piece',
-  IngredientsRecordTypeEnum.cuillereACafe: 'cuillere a cafe',
-  IngredientsRecordTypeEnum.cuillereASoupe: 'cuillere a soupe',
-  IngredientsRecordTypeEnum.pincee: 'pincee',
+  IngredientsRecordTypeEnum.piecexsx: 'pièce(s)',
+  IngredientsRecordTypeEnum.cuillerexaxcafe: 'cuillère à café',
+  IngredientsRecordTypeEnum.cuillerexaxsoupe: 'cuillère à soupe',
+  IngredientsRecordTypeEnum.pinceexsx: 'pincée(s)',
+  IngredientsRecordTypeEnum.nullValue: 'null',
 };

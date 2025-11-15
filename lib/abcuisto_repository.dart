@@ -25,7 +25,6 @@ class AbcuistoRepository extends ChangeNotifier {
     notifyListeners();
   }
 
-
   Future<void> login(String username, String password) async {
     await pb.collection('users').authWithPassword(username, password);
     fileToken = await pb.files.getToken();
@@ -37,12 +36,8 @@ class AbcuistoRepository extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<List<RecettesRecord>> getRecipes({page, perPage}) async {
-    page = page ?? 1;
-    perPage = perPage ?? 50;
-    final response = await pb.collection('recettes').getList(page: page, perPage: perPage, expand: "images");
+  Future<List<RecettesRecord>> getRecipes({int page = 1, int perPage = 50}) async {
+    final response = await pb.collection('recettes').getList(page: page, perPage: perPage, expand: "noteId");
     return response.items.map((e) => RecettesRecord.fromRecordModel(e)).toList();
   }
 }
-
-

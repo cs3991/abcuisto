@@ -25,7 +25,7 @@ enum CategoriesRecordFieldsEnum {
   collectionId('collectionId'),
   collectionName('collectionName'),
   name('name'),
-  orderIndex('orderIndex'),
+  indexValue('index'),
   ingredientsIds('ingredientsIds'),
   created('created'),
   updated('updated');
@@ -42,20 +42,25 @@ final class CategoriesRecord extends _i2.BaseRecord {
     required super.collectionId,
     required super.collectionName,
     this.name,
-    this.orderIndex,
+    this.indexValue,
     this.ingredientsIds,
     this.created,
     this.updated,
+    this.expand,
   }) : super();
 
-  factory CategoriesRecord.fromJson(Map<String, dynamic> json) => _$CategoriesRecordFromJson(json);
+  factory CategoriesRecord.fromJson(Map<String, dynamic> json) =>
+      _$CategoriesRecordFromJson(json);
 
   factory CategoriesRecord.fromRecordModel(_i3.RecordModel recordModel) {
     final extendedJsonMap = {
       ...recordModel.data,
       CategoriesRecordFieldsEnum.id.nameInSchema: recordModel.id,
-      CategoriesRecordFieldsEnum.collectionId.nameInSchema: recordModel.collectionId,
-      CategoriesRecordFieldsEnum.collectionName.nameInSchema: recordModel.collectionName,
+      CategoriesRecordFieldsEnum.collectionId.nameInSchema:
+      recordModel.collectionId,
+      CategoriesRecordFieldsEnum.collectionName.nameInSchema:
+      recordModel.collectionName,
+      'expand': recordModel.expand,
     };
     return CategoriesRecord.fromJson(extendedJsonMap);
   }
@@ -66,7 +71,8 @@ final class CategoriesRecord extends _i2.BaseRecord {
 
   static const nameMaxValue = 0;
 
-  final double? orderIndex;
+  @_i1.JsonKey(name: 'index')
+  final double? indexValue;
 
   final List<String>? ingredientsIds;
 
@@ -78,11 +84,13 @@ final class CategoriesRecord extends _i2.BaseRecord {
 
   static const $collectionName = 'categories';
 
+  final Map<String, dynamic>? expand;
+
   Map<String, dynamic> toJson() => _$CategoriesRecordToJson(this);
 
   CategoriesRecord copyWith({
     String? name,
-    double? orderIndex,
+    double? indexValue,
     List<String>? ingredientsIds,
     DateTime? created,
     DateTime? updated,
@@ -92,7 +100,7 @@ final class CategoriesRecord extends _i2.BaseRecord {
       collectionId: collectionId,
       collectionName: collectionName,
       name: name ?? this.name,
-      orderIndex: orderIndex ?? this.orderIndex,
+      indexValue: indexValue ?? this.indexValue,
       ingredientsIds: ingredientsIds ?? this.ingredientsIds,
       created: created ?? this.created,
       updated: updated ?? this.updated,
@@ -103,11 +111,15 @@ final class CategoriesRecord extends _i2.BaseRecord {
     final thisInJsonMap = toJson();
     final otherInJsonMap = other.toJson();
     final Map<String, dynamic> result = {};
-    final _i4.DeepCollectionEquality deepCollectionEquality = _i4.DeepCollectionEquality();
+    final _i4.DeepCollectionEquality deepCollectionEquality =
+    _i4.DeepCollectionEquality();
     for (final mapEntry in thisInJsonMap.entries) {
       final thisValue = mapEntry.value;
       final otherValue = otherInJsonMap[mapEntry.key];
-      if (!deepCollectionEquality.equals(thisValue, otherValue)) {
+      if (!deepCollectionEquality.equals(
+        thisValue,
+        otherValue,
+      )) {
         result.addAll({mapEntry.key: otherValue});
       }
     }
@@ -115,11 +127,19 @@ final class CategoriesRecord extends _i2.BaseRecord {
   }
 
   @override
-  List<Object?> get props => [...super.props, name, orderIndex, ingredientsIds, created, updated];
+  List<Object?> get props =>
+      [
+        ...super.props,
+        name,
+        indexValue,
+        ingredientsIds,
+        created,
+        updated,
+      ];
 
   static Map<String, dynamic> forCreateRequest({
     String? name,
-    double? orderIndex,
+    double? indexValue,
     List<String>? ingredientsIds,
     DateTime? created,
     DateTime? updated,
@@ -129,7 +149,7 @@ final class CategoriesRecord extends _i2.BaseRecord {
       collectionId: $collectionId,
       collectionName: $collectionName,
       name: name,
-      orderIndex: orderIndex,
+      indexValue: indexValue,
       ingredientsIds: ingredientsIds,
       created: created,
       updated: updated,
@@ -137,31 +157,32 @@ final class CategoriesRecord extends _i2.BaseRecord {
     final Map<String, dynamic> result = {};
     if (name != null) {
       result.addAll({
-        CategoriesRecordFieldsEnum.name.nameInSchema: jsonMap[CategoriesRecordFieldsEnum.name.nameInSchema],
+        CategoriesRecordFieldsEnum.name.nameInSchema:
+        jsonMap[CategoriesRecordFieldsEnum.name.nameInSchema]
       });
     }
-    if (orderIndex != null) {
+    if (indexValue != null) {
       result.addAll({
-        CategoriesRecordFieldsEnum.orderIndex.nameInSchema:
-            jsonMap[CategoriesRecordFieldsEnum.orderIndex.nameInSchema],
+        CategoriesRecordFieldsEnum.indexValue.nameInSchema:
+        jsonMap[CategoriesRecordFieldsEnum.indexValue.nameInSchema]
       });
     }
     if (ingredientsIds != null) {
       result.addAll({
         CategoriesRecordFieldsEnum.ingredientsIds.nameInSchema:
-            jsonMap[CategoriesRecordFieldsEnum.ingredientsIds.nameInSchema],
+        jsonMap[CategoriesRecordFieldsEnum.ingredientsIds.nameInSchema]
       });
     }
     if (created != null) {
       result.addAll({
         CategoriesRecordFieldsEnum.created.nameInSchema:
-            jsonMap[CategoriesRecordFieldsEnum.created.nameInSchema],
+        jsonMap[CategoriesRecordFieldsEnum.created.nameInSchema]
       });
     }
     if (updated != null) {
       result.addAll({
         CategoriesRecordFieldsEnum.updated.nameInSchema:
-            jsonMap[CategoriesRecordFieldsEnum.updated.nameInSchema],
+        jsonMap[CategoriesRecordFieldsEnum.updated.nameInSchema]
       });
     }
     return result;

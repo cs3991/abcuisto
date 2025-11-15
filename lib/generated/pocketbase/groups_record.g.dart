@@ -16,6 +16,7 @@ GroupsRecord _$GroupsRecordFromJson(Map<String, dynamic> json) => GroupsRecord(
   canEdit: json['canEdit'] as bool,
   created: json['created'] == null ? null : DateTime.parse(json['created'] as String),
   updated: json['updated'] == null ? null : DateTime.parse(json['updated'] as String),
+  expand: json['expand'] as Map<String, dynamic>?,
 );
 
 Map<String, dynamic> _$GroupsRecordToJson(GroupsRecord instance) => <String, dynamic>{
@@ -28,4 +29,5 @@ Map<String, dynamic> _$GroupsRecordToJson(GroupsRecord instance) => <String, dyn
   'canEdit': instance.canEdit,
   'created': instance.created?.toIso8601String(),
   'updated': instance.updated?.toIso8601String(),
+  'expand': instance.expand,
 };
