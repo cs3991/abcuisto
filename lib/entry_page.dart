@@ -1,5 +1,5 @@
 import 'package:abcuisto/login/authentication_cubit.dart';
-import 'package:abcuisto/recipes_list.dart';
+import 'package:abcuisto/recipe/recipes_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 

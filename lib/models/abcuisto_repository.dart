@@ -1,4 +1,5 @@
 import 'package:abcuisto/generated/pocketbase/recettes_record.dart';
+import 'package:abcuisto/models/recipe.dart';
 import 'package:flutter/foundation.dart';
 import 'package:pocketbase/pocketbase.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -36,8 +37,10 @@ class AbcuistoRepository extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<List<RecettesRecord>> getRecipes({int page = 1, int perPage = 50}) async {
-    final response = await pb.collection('recettes').getList(page: page, perPage: perPage, expand: "noteId");
-    return response.items.map((e) => RecettesRecord.fromRecordModel(e)).toList();
+  Future<List<Recipe>> getRecipes({int page = 1, int perPage = 50}) async {
+    final response = await pb
+        .collection('recettes')
+        .getList(page: page, perPage: perPage, expand: 'categoriesIds.ingredientsIds, noteId, groupsIds');
+    return response.items.map((e) => Recipe.fromRecord(RecettesRecord.fromRecordModel(e), pb)).toList();
   }
 }
