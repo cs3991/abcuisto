@@ -127,6 +127,19 @@ class RecipeDetails extends StatelessWidget {
                       Text("Instructions", style: Theme.of(context).textTheme.titleMedium),
                       SizedBox(height: 8),
                       InstructionsView(recipe: recipe),
+                      SizedBox(height: 12),
+                      Text("Commentaires", style: Theme.of(context).textTheme.titleMedium),
+                      SizedBox(height: 12),
+                      Row(
+                        children: [
+                          RatingStars(note: recipe.note, size: 32),
+                          SizedBox(width: 12),
+                          Text(
+                            recipe.note?.toStringAsPrecision(2) ?? '',
+                            style: Theme.of(context).textTheme.headlineMedium,
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
@@ -220,12 +233,12 @@ class InstructionsView extends StatelessWidget {
             Padding(
               padding: EdgeInsets.only(left: (iconSize - borderWidth) / 2, top: 6, bottom: 6),
               child: Container(
-                child: Padding(padding: const EdgeInsets.only(left: 8), child: Text(instruction)),
                 decoration: BoxDecoration(
                   border: Border(
                     left: BorderSide(color: Theme.of(context).colorScheme.primary, width: borderWidth),
                   ),
                 ),
+                child: Padding(padding: const EdgeInsets.only(left: 8), child: Text(instruction)),
               ),
             ),
           ],

@@ -176,23 +176,7 @@ class RecipeCard extends StatelessWidget {
                     .of(context)
                     .textTheme
                     .labelLarge),
-                recipe.note != null
-                    ? Row(
-                  children: List.generate(
-                    5,
-                        (index) =>
-                    index < recipe.note!
-                        ? Icon(Icons.star_rounded, color: Colors.orange.withValues(alpha: 0.5))
-                        : Icon(
-                      Icons.star_border_rounded,
-                      color: Colors.orange.withValues(alpha: 0.5),
-                    ),
-                  ),
-                )
-                    : Text('Aucune note', style: Theme
-                    .of(context)
-                    .textTheme
-                    .labelMedium),
+                RatingStars(note: recipe.note),
               ],
             ),
           ),
@@ -220,5 +204,34 @@ class NoImageBuilder extends StatelessWidget {
             .withAlpha(50),
       ),
     );
+  }
+}
+
+class RatingStars extends StatelessWidget {
+  final double? note;
+  final double size;
+
+  const RatingStars({super.key, required this.note, this.size = 24});
+
+  @override
+  Widget build(BuildContext context) {
+    return note != null
+        ? Row(
+      children: List.generate(
+        5,
+            (index) =>
+        index < note!
+            ? Icon(Icons.star_rounded, color: Colors.orange.withValues(alpha: 0.5), size: size)
+            : Icon(
+          Icons.star_border_rounded,
+          color: Colors.orange.withValues(alpha: 0.5),
+          size: size,
+        ),
+      ),
+    )
+        : Text('Aucune note', style: Theme
+        .of(context)
+        .textTheme
+        .labelMedium);
   }
 }
