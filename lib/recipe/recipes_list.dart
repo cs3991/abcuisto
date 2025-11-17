@@ -1,5 +1,6 @@
 import 'package:abcuisto/models/abcuisto_repository.dart';
 import 'package:abcuisto/models/recipe.dart';
+import 'package:abcuisto/recipe/recipe_cubit.dart';
 import 'package:abcuisto/recipe/recipe_details.dart';
 import 'package:flutter/material.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
@@ -93,8 +94,12 @@ class _RecipesListState extends State<RecipesList> {
                                 onTap: () {
                                   Navigator.push(
                                     context,
-                                    MaterialPageRoute(builder: (context) => RecipeDetailsPage(recipe: item)),
-                                  );
+                                MaterialPageRoute(
+                                  builder: (context) {
+                                    context.read<RecipeCubit>().focusRecipe(item);
+                                    return RecipeDetailsPage();
+                                  },
+                                ));
                                 },
                                 child: RecipeCard(recipe: item),
                               ),

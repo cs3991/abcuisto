@@ -1,33 +1,46 @@
+import 'package:abcuisto/recipe/recipe_cubit.dart';
 import 'package:abcuisto/recipe/recipes_list.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../models/recipe.dart';
 
 class RecipeDetailsPage extends StatelessWidget {
-  final Recipe recipe;
+  // final Recipe recipe;
 
-  const RecipeDetailsPage({super.key, required this.recipe});
+  const RecipeDetailsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: 65,
-        title: Text(recipe.name ?? ''),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            child: IconButton(icon: Icon(Icons.person_rounded), onPressed: () {}),
-          ),
-        ],
-      ),
-      body: RecipeDetails(recipe: recipe),
+    return BlocBuilder<RecipeCubit, RecipeState>(
+      builder: (context, state) {
+        if (state is RecipeInitial || state is RecipeLoading) {
+          return Center(child: CircularProgressIndicator());
+        }
+        if (state is RecipeLoaded) {
+          final recipe = state.recipe;
+          return Scaffold(
+            appBar: AppBar(
+              toolbarHeight: 65,
+              title: Text(recipe.name ?? ''),
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  child: IconButton(icon: Icon(Icons.person_rounded), onPressed: () {}),
+                ),
+              ],
+            ),
+            body: RecipeDetails(recipe: state.recipe),
+          );
+        }
+        return Text("Unexpected Error");
+      },
     );
   }
 }
 
 class RecipeDetails extends StatelessWidget {
-  final Recipe recipe;
+  final RecipeFull recipe;
 
   const RecipeDetails({super.key, required this.recipe});
 
@@ -58,19 +71,19 @@ class RecipeDetails extends StatelessWidget {
             borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
             child: recipe.images.isNotEmpty
                 ? ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: recipe.images.length,
-                    itemBuilder: (context, i) {
-                      return Image.network(
-                        recipe.images[i].toString(),
-                        height: 400,
-                        width: width,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, _, _) => NoImageBuilder(),
-                        // loadingBuilder: (context, _, _) => NoImageBuilder(),
-                      );
-                    },
-                  )
+              scrollDirection: Axis.horizontal,
+              itemCount: recipe.images.length,
+              itemBuilder: (context, i) {
+                return Image.network(
+                  recipe.images[i].toString(),
+                  height: 400,
+                  width: width,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, _, _) => NoImageBuilder(),
+                  // loadingBuilder: (context, _, _) => NoImageBuilder(),
+                );
+              },
+            )
                 : NoImageBuilder(),
           ),
         ),
@@ -96,27 +109,27 @@ class RecipeDetails extends StatelessWidget {
                     children: [
                       recipe.prepTime != null
                           ? Text(
-                              'Préparation : ${recipe.prepTimeFormatted!}',
-                              style: Theme.of(
-                                context,
-                              ).textTheme.labelMedium?.copyWith(color: Theme.of(context).colorScheme.primary),
-                            )
+                        'Préparation : ${recipe.prepTimeFormatted!}',
+                        style: Theme.of(
+                          context,
+                        ).textTheme.labelMedium?.copyWith(color: Theme.of(context).colorScheme.primary),
+                      )
                           : Container(),
                       recipe.cookTime != null
                           ? Text(
-                              'Cuisson : ${recipe.cookTimeFormatted!}',
-                              style: Theme.of(
-                                context,
-                              ).textTheme.labelMedium?.copyWith(color: Theme.of(context).colorScheme.primary),
-                            )
+                        'Cuisson : ${recipe.cookTimeFormatted!}',
+                        style: Theme.of(
+                          context,
+                        ).textTheme.labelMedium?.copyWith(color: Theme.of(context).colorScheme.primary),
+                      )
                           : Container(),
                       recipe.restTime != null
                           ? Text(
-                              'Repos : ${recipe.restTimeFormatted!}',
-                              style: Theme.of(
-                                context,
-                              ).textTheme.labelMedium?.copyWith(color: Theme.of(context).colorScheme.primary),
-                            )
+                        'Repos : ${recipe.restTimeFormatted!}',
+                        style: Theme.of(
+                          context,
+                        ).textTheme.labelMedium?.copyWith(color: Theme.of(context).colorScheme.primary),
+                      )
                           : Container(),
                       SizedBox(height: 4),
                       Text(recipe.name, style: Theme.of(context).textTheme.headlineMedium),
@@ -153,7 +166,7 @@ class RecipeDetails extends StatelessWidget {
 }
 
 class IngredientView extends StatelessWidget {
-  final Recipe recipe;
+  final RecipeFull recipe;
 
   const IngredientView({super.key, required this.recipe});
 
@@ -195,7 +208,7 @@ class IngredientView extends StatelessWidget {
 }
 
 class InstructionsView extends StatelessWidget {
-  final Recipe recipe;
+  final RecipeFull recipe;
   final double iconSize = 22;
   final double borderWidth = 2;
 

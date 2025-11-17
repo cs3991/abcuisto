@@ -40,7 +40,14 @@ class AbcuistoRepository extends ChangeNotifier {
   Future<List<Recipe>> getRecipes({int page = 1, int perPage = 50}) async {
     final response = await pb
         .collection('recettes')
-        .getList(page: page, perPage: perPage, expand: 'categoriesIds.ingredientsIds, noteId, groupsIds');
+        .getList(page: page, perPage: perPage, expand: 'noteId');
     return response.items.map((e) => Recipe.fromRecord(RecettesRecord.fromRecordModel(e), pb)).toList();
+  }
+
+  Future<RecipeFull> getRecipe(String id) async {
+    final record = await pb.collection('recettes').getOne(id,
+      expand: 'categoriesIds.ingredientsIds, noteId, groupsIds',
+    );
+    return RecipeFull.fromRecord(RecettesRecord.fromRecordModel(record), pb);
   }
 }
