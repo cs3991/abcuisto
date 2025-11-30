@@ -41,7 +41,9 @@ class AbcuistoRepository extends ChangeNotifier {
   Future<List<Recipe>> getRecipes({int page = 1, int perPage = 50, String? searchPattern}) async {
     String filter = '';
     if (searchPattern != null && searchPattern.isNotEmpty) {
-      filter = 'nameWithoutDiacritics ~ "${removeDiacritics(searchPattern)}"';
+      final sanitized = removeDiacritics(searchPattern).toLowerCase().replaceAll(RegExp(r"\W"), '').trim();
+      filter =
+          '(nameWithoutDiacritics ?~ "$sanitized" || categoriesIds.ingredientsIds.nameWithoutDiacritics ?~ "$sanitized")';
     }
     final response = await pb
         .collection('recettes')
