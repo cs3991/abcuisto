@@ -2,9 +2,12 @@ import 'package:abcuisto/models/recipe.dart';
 import 'package:abcuisto/recipe/filter_cubit.dart';
 import 'package:abcuisto/recipe/recipe_cubit.dart';
 import 'package:abcuisto/recipe/recipe_details.dart';
+import 'package:abcuisto/recipe/search_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
+
+import 'filter_page.dart';
 
 class RecipePage extends StatefulWidget {
   RecipePage({super.key});
@@ -18,32 +21,7 @@ class _RecipePageState extends State<RecipePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: 65,
-        leading: IconButton(onPressed: () {}, icon: Icon(Icons.filter_list_rounded)),
-        title: TextField(
-          decoration: InputDecoration(
-            hintText: 'Rechercher une recette',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
-            constraints: BoxConstraints(maxHeight: 50),
-            isDense: false,
-            filled: true,
-            fillColor: Theme.of(context).colorScheme.surfaceContainer,
-            suffixIcon: Icon(Icons.search_rounded, color: Theme.of(context).colorScheme.outline),
-          ),
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-          onChanged: (t) => context.read<FilterCubit>().updateSearchPattern(t),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            child: IconButton(icon: Icon(Icons.person_rounded), onPressed: () {}),
-          ),
-        ],
-      ),
-      body: RecipesList(),
-    );
+    return Scaffold(appBar: SearchAppBar(), body: RecipesList());
   }
 }
 
@@ -64,6 +42,20 @@ class _RecipesListState extends State<RecipesList> {
           child: Center(
             child: Column(
               children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: FilterChip(
+                        label: Text('Filtres'),
+                        onSelected: (_) {
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => FilterPage()));
+                        },
+                      ),
+                    ),
+                  ],
+                ),
                 Expanded(
                   child: PagedListView<int, Recipe>(
                     state: state.pagingState,

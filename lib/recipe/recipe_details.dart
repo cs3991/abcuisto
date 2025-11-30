@@ -132,16 +132,34 @@ class RecipeDetails extends StatelessWidget {
                       )
                           : Container(),
                       SizedBox(height: 4),
-                      Text(recipe.name, style: Theme.of(context).textTheme.headlineMedium),
+                      Text(recipe.name, style: Theme
+                          .of(context)
+                          .textTheme
+                          .headlineMedium),
                       SizedBox(height: 12),
-                      Text("Ingrédients", style: Theme.of(context).textTheme.titleMedium),
+                      Text("Ingrédients", style: Theme
+                          .of(context)
+                          .textTheme
+                          .titleMedium),
                       IngredientView(recipe: recipe),
                       SizedBox(height: 12),
-                      Text("Instructions", style: Theme.of(context).textTheme.titleMedium),
+                      Text("Instructions", style: Theme
+                          .of(context)
+                          .textTheme
+                          .titleMedium),
                       SizedBox(height: 8),
                       InstructionsView(recipe: recipe),
                       SizedBox(height: 12),
-                      Text("Commentaires", style: Theme.of(context).textTheme.titleMedium),
+                      Text("Recette créée par ${recipe.creatorName} le ${recipe.createdTimeFormatted}",
+                          style: Theme
+                              .of(context)
+                              .textTheme
+                              .labelMedium),
+                      SizedBox(height: 12),
+                      Text("Commentaires", style: Theme
+                          .of(context)
+                          .textTheme
+                          .titleMedium),
                       SizedBox(height: 12),
                       Row(
                         children: [
@@ -149,7 +167,10 @@ class RecipeDetails extends StatelessWidget {
                           SizedBox(width: 12),
                           Text(
                             recipe.note?.toStringAsPrecision(2) ?? '',
-                            style: Theme.of(context).textTheme.headlineMedium,
+                            style: Theme
+                                .of(context)
+                                .textTheme
+                                .headlineMedium,
                           ),
                         ],
                       ),

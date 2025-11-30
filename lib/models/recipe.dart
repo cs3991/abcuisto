@@ -14,40 +14,24 @@ class Recipe {
   final Duration? restTime;
   final double? note;
   final RecettesRecord record;
-
-  // final Map<String, List<Ingredient>> ingredients;
-  // final Iterable<String> instructions;
-  // final List<Comment> comments;
+  final String creatorName;
+  final DateTime createdDate;
 
   Recipe({
     required this.images,
     required this.name,
-    // required this.ingredients,
-    // required this.instructions,
-    // required this.comments,
     this.prepTime,
     this.cookTime,
     this.restTime,
     this.note,
     required this.record,
+    required this.creatorName,
+    required this.createdDate,
   });
 
   factory Recipe.fromRecord(RecettesRecord recipe, PocketBase pb) {
     final notationRecord = NotationsRecord.fromRecordModel(recipe.expand!['noteId'][0]);
 
-    // final List<CategoriesRecord> categoriesRecord = recipe.expand!['categoriesIds']
-    //     .map<CategoriesRecord>((e) => CategoriesRecord.fromRecordModel(e))
-    //     .toList();
-
-    // Construction de la map { catégorie : [ingredients] }
-    // final ingredients = <String, List<Ingredient>>{};
-    // for (final category in categoriesRecord) {
-    //   final ingrRecords = category.expand!['ingredientsIds'] ?? [];
-    //
-    //   ingredients[category.name!] = ingrRecords
-    //       .map<Ingredient>((e) => Ingredient.fromRecordModel(IngredientsRecord.fromRecordModel(e)))
-    //       .toList();
-    // }
 
     // Durées (peuvent être nulles)
     Duration? parseDuration(String? value) {
@@ -67,6 +51,8 @@ class Recipe {
       note: notationRecord.nbNotes != 0 ? notationRecord.note : null,
       // ingredients: ingredients,
       record: recipe,
+      creatorName: recipe.createurPseudo ?? 'Anonyme',
+      createdDate: recipe.created!,
     );
   }
 
@@ -79,6 +65,13 @@ class Recipe {
   Duration get totalTime => (prepTime ?? Duration()) + (cookTime ?? Duration()) + (restTime ?? Duration());
 
   String? get totalTimeFormatted => _printDuration(totalTime);
+
+  String get createdTimeFormatted {
+    final day = createdDate.day.toString().padLeft(2, '0');
+    final month = createdDate.month.toString().padLeft(2, '0');
+    final year = createdDate.year.toString();
+    return '$day/$month/$year';
+  }
 
   String? _printDuration(Duration? duration) {
     if (duration == null) {
@@ -108,6 +101,8 @@ class RecipeFull extends Recipe {
     required super.record,
     required this.ingredients,
     required this.instructions,
+    required super.creatorName,
+    required super.createdDate,
   });
 
   factory RecipeFull.fromRecord(RecettesRecord recipe, PocketBase pb) {
@@ -134,6 +129,8 @@ class RecipeFull extends Recipe {
       restTime: baseRecipe.restTime,
       note: baseRecipe.note,
       record: baseRecipe.record,
+      creatorName: baseRecipe.creatorName,
+      createdDate: baseRecipe.createdDate,
     );
   }
 }
