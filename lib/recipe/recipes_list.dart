@@ -1,5 +1,5 @@
 import 'package:abcuisto/models/recipe.dart';
-import 'package:abcuisto/recipe/filter_cubit.dart';
+import 'package:abcuisto/recipe/filters/filter_cubit.dart';
 import 'package:abcuisto/recipe/recipe_cubit.dart';
 import 'package:abcuisto/recipe/recipe_details.dart';
 import 'package:abcuisto/recipe/search_app_bar.dart';
@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 
-import 'filter_page.dart';
+import 'filters/filter_page.dart';
 
 class RecipePage extends StatefulWidget {
   RecipePage({super.key});
@@ -42,19 +42,34 @@ class _RecipesListState extends State<RecipesList> {
           child: Center(
             child: Column(
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: FilterChip(
-                        label: Text('Filtres'),
-                        onSelected: (_) {
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => FilterPage()));
-                        },
-                      ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: SizedBox(
+                    height: 40,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: [
+                        FilterChip(
+                          label: Text('Filtres'),
+                          onSelected: (_) {
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => FilterPage()));
+                          },
+                        ),
+                        const SizedBox(width: 4),
+                        ...state.selectedCategories.map(
+                          (category) => Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                            child: InputChip(
+                              label: Text(category),
+                              onDeleted: () {
+                                context.read<FilterCubit>().updateSelectedCategories(category, false);
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
                 Expanded(
                   child: PagedListView<int, Recipe>(

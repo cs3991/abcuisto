@@ -38,13 +38,20 @@ class AbcuistoRepository extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<List<Recipe>> getRecipes({int page = 1, int perPage = 50, String? searchPattern}) async {
+  Future<List<Recipe>> getRecipes(
+      {int page = 1, int perPage = 50, String? searchPattern, List<String>? categories}) async {
     String filter = '';
     if (searchPattern != null && searchPattern.isNotEmpty) {
-      final sanitized = removeDiacritics(searchPattern).toLowerCase().replaceAll(RegExp(r"\W"), '').trim();
+      final sanitized = removeDiacritics(searchPattern).toLowerCase().replaceAll(
+          RegExp(r"[^a-zA-Z0-9\s']"), '').trim();
       filter =
-          '(nameWithoutDiacritics ?~ "$sanitized" || categoriesIds.ingredientsIds.nameWithoutDiacritics ?~ "$sanitized")';
+      '(nameWithoutDiacritics ?~ "$sanitized" || categoriesIds.ingredientsIds.nameWithoutDiacritics ?~ "$sanitized")';
     }
+    if (categories != null && categories.isNotEmpty) {
+      final categoryFilters = categories.map((c) => 'categorie ?= "$c"').join(' || ');
+      filter = filter.isEmpty ? '($categoryFilters)' : '$filter && ($categoryFilters)';
+    }
+    print('Filter: $filter');
     final response = await pb
         .collection('recettes')
         .getList(page: page, perPage: perPage, expand: 'noteId', filter: filter);

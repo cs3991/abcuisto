@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'filter_cubit.dart';
+import 'filters/filter_cubit.dart';
 
 class SearchAppBar extends StatelessWidget implements PreferredSizeWidget {
   const SearchAppBar({super.key});

@@ -2,16 +2,25 @@ import 'package:abcuisto/models/recipe.dart';
 import 'package:bloc/bloc.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 
-import '../models/abcuisto_repository.dart';
+import '../../models/abcuisto_repository.dart';
 
 class FilterState {
   final PagingState<int, Recipe> pagingState;
   final String? searchPattern;
+  final List<String> selectedCategories;
 
-  FilterState(this.pagingState, {this.searchPattern});
+  FilterState(this.pagingState, {this.searchPattern, this.selectedCategories = const []});
 
-  FilterState copyWith({PagingState<int, Recipe>? pagingState, String? searchPattern}) {
-    return FilterState(pagingState ?? this.pagingState, searchPattern: searchPattern ?? this.searchPattern);
+  FilterState copyWith({
+    PagingState<int, Recipe>? pagingState,
+    String? searchPattern,
+    List<String>? selectedCategories,
+  }) {
+    return FilterState(
+      pagingState ?? this.pagingState,
+      searchPattern: searchPattern ?? this.searchPattern,
+      selectedCategories: selectedCategories ?? this.selectedCategories,
+    );
   }
 }
 
@@ -31,6 +40,7 @@ class FilterCubit extends Cubit<FilterState> {
         page: newKey,
         perPage: perPage,
         searchPattern: state.searchPattern,
+        categories: state.selectedCategories,
       );
       final isLastPage = newItems.isEmpty;
 
@@ -53,5 +63,15 @@ class FilterCubit extends Cubit<FilterState> {
 
   void updateSearchPattern(String? pattern) {
     emit(state.copyWith(pagingState: PagingState<int, Recipe>(), searchPattern: pattern));
+  }
+
+  void updateSelectedCategories(String category, bool isSelected) {
+    final updatedCategories = List<String>.from(state.selectedCategories);
+    if (isSelected) {
+      updatedCategories.add(category);
+    } else {
+      updatedCategories.remove(category);
+    }
+    emit(state.copyWith(pagingState: PagingState<int, Recipe>(), selectedCategories: updatedCategories));
   }
 }
