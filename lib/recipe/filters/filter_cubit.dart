@@ -7,19 +7,23 @@ import '../../models/abcuisto_repository.dart';
 class FilterState {
   final PagingState<int, Recipe> pagingState;
   final String? searchPattern;
-  final List<String> selectedCategories;
+  final List<String> filteredCategories;
+  final String? filteredCreatorName;
 
-  FilterState(this.pagingState, {this.searchPattern, this.selectedCategories = const []});
+  FilterState(this.pagingState,
+      {this.searchPattern, this.filteredCategories = const [], this.filteredCreatorName});
 
   FilterState copyWith({
     PagingState<int, Recipe>? pagingState,
     String? searchPattern,
-    List<String>? selectedCategories,
+    List<String>? filteredCategories,
+    String? filteredCreatorName,
   }) {
     return FilterState(
       pagingState ?? this.pagingState,
       searchPattern: searchPattern ?? this.searchPattern,
-      selectedCategories: selectedCategories ?? this.selectedCategories,
+      filteredCategories: filteredCategories ?? this.filteredCategories,
+      filteredCreatorName: filteredCreatorName ?? this.filteredCreatorName,
     );
   }
 }
@@ -40,7 +44,8 @@ class FilterCubit extends Cubit<FilterState> {
         page: newKey,
         perPage: perPage,
         searchPattern: state.searchPattern,
-        categories: state.selectedCategories,
+        categories: state.filteredCategories,
+        filterCreatorName: state.filteredCreatorName,
       );
       final isLastPage = newItems.isEmpty;
 
@@ -55,6 +60,7 @@ class FilterCubit extends Cubit<FilterState> {
         ),
       );
     } catch (error) {
+      print('Error fetching recipes: $error');
       emit(state.copyWith(pagingState: state.pagingState.copyWith(error: error, isLoading: false)));
     }
 
@@ -65,13 +71,19 @@ class FilterCubit extends Cubit<FilterState> {
     emit(state.copyWith(pagingState: PagingState<int, Recipe>(), searchPattern: pattern));
   }
 
-  void updateSelectedCategories(String category, bool isSelected) {
-    final updatedCategories = List<String>.from(state.selectedCategories);
+  void updateFilteredCategories(String category, bool isSelected) {
+    final updatedCategories = List<String>.from(state.filteredCategories);
     if (isSelected) {
       updatedCategories.add(category);
     } else {
       updatedCategories.remove(category);
     }
-    emit(state.copyWith(pagingState: PagingState<int, Recipe>(), selectedCategories: updatedCategories));
+    emit(state.copyWith(pagingState: PagingState<int, Recipe>(), filteredCategories: updatedCategories));
   }
+
+  void updateFilteredCreatorName(String? name) {
+    name ??= '';
+    emit(state.copyWith(pagingState: PagingState<int, Recipe>(), filteredCreatorName: name));
+  }
+
 }

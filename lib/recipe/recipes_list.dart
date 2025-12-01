@@ -55,18 +55,31 @@ class _RecipesListState extends State<RecipesList> {
                             Navigator.push(context, MaterialPageRoute(builder: (context) => FilterPage()));
                           },
                         ),
-                        const SizedBox(width: 4),
-                        ...state.selectedCategories.map(
+                        const SizedBox(width: 8),
+                        ...state.filteredCategories.map(
                           (category) => Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 2.0),
                             child: InputChip(
                               label: Text(category),
                               onDeleted: () {
-                                context.read<FilterCubit>().updateSelectedCategories(category, false);
+                                context.read<FilterCubit>().updateFilteredCategories(category, false);
                               },
                             ),
                           ),
                         ),
+                        ...state.filteredCreatorName != null && state.filteredCreatorName!.isNotEmpty
+                            ? [
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                                  child: InputChip(
+                                    label: Text('Créé par ${state.filteredCreatorName}'),
+                                    onDeleted: () {
+                                      context.read<FilterCubit>().updateFilteredCreatorName(null);
+                                    },
+                                  ),
+                                ),
+                              ]
+                            : [],
                       ],
                     ),
                   ),

@@ -38,8 +38,9 @@ class AbcuistoRepository extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<List<Recipe>> getRecipes(
-      {int page = 1, int perPage = 50, String? searchPattern, List<String>? categories}) async {
+
+  Future<List<Recipe>> getRecipes({int page = 1, int perPage = 50, String? searchPattern, List<
+      String>? categories, String? filterCreatorName}) async {
     String filter = '';
     if (searchPattern != null && searchPattern.isNotEmpty) {
       final sanitized = removeDiacritics(searchPattern).toLowerCase().replaceAll(
@@ -50,6 +51,12 @@ class AbcuistoRepository extends ChangeNotifier {
     if (categories != null && categories.isNotEmpty) {
       final categoryFilters = categories.map((c) => 'categorie ?= "$c"').join(' || ');
       filter = filter.isEmpty ? '($categoryFilters)' : '$filter && ($categoryFilters)';
+    }
+    if (filterCreatorName != null && filterCreatorName.isNotEmpty) {
+      final sanitizedCreator = filterCreatorName.replaceAll('"', r'\"');
+      filter = filter.isEmpty
+          ? '(createur_pseudo ~ "$sanitizedCreator")'
+          : '$filter && (createur_pseudo ~ "$sanitizedCreator")';
     }
     print('Filter: $filter');
     final response = await pb

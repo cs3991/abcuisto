@@ -4,14 +4,23 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'filters/filter_cubit.dart';
 
 class SearchAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const SearchAppBar({super.key});
+  SearchAppBar({super.key});
+
+  final TextEditingController searchBarController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
+    searchBarController.value = context.select(
+      (FilterCubit cubit) => TextEditingValue(
+        text: cubit.state.searchPattern ?? '',
+        selection: TextSelection.collapsed(offset: cubit.state.searchPattern?.length ?? 0),
+      ),
+    );
     return AppBar(
       toolbarHeight: 65,
-      // leading: IconButton(onPressed: () {}, icon: Icon(Icons.filter_list_rounded)),
+
       title: TextField(
+        controller: searchBarController,
         decoration: InputDecoration(
           hintText: 'Rechercher une recette',
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
