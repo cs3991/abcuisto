@@ -6,6 +6,22 @@ import 'package:pocketbase/pocketbase.dart';
 
 import 'ingredient.dart';
 
+enum Category {
+  appetizer('aperitif', 'Apéritif'),
+  starter('entree', 'Entrée'),
+  mainCourse('plat', 'Plat'),
+  cheese('fromage', 'Fromage'),
+  dessert('dessert', 'Dessert'),
+  breakfast('petitxdejeuner', 'Petit-déjeuner'),
+  drink('boisson', 'Boisson'),
+  sauce('sauce', 'Sauce');
+
+  final String displayName;
+  final String label;
+
+  const Category(this.label, this.displayName);
+}
+
 class Recipe {
   final List<Uri> images;
   final String name;
@@ -16,6 +32,8 @@ class Recipe {
   final RecettesRecord record;
   final String creatorName;
   final DateTime createdDate;
+  final Category? category;
+  final List<String> cookware;
 
   Recipe({
     required this.images,
@@ -27,11 +45,12 @@ class Recipe {
     required this.record,
     required this.creatorName,
     required this.createdDate,
+    required this.category,
+    required this.cookware,
   });
 
   factory Recipe.fromRecord(RecettesRecord recipe, PocketBase pb) {
     final notationRecord = NotationsRecord.fromRecordModel(recipe.expand!['noteId'][0]);
-
 
     // Durées (peuvent être nulles)
     Duration? parseDuration(String? value) {
@@ -53,6 +72,10 @@ class Recipe {
       record: recipe,
       creatorName: recipe.createurPseudo ?? 'Anonyme',
       createdDate: recipe.created!,
+      category: Category.values.firstWhere((c) => c.label == recipe.categorie?.nameInSchema),
+      cookware: recipe.ustensiles == "" || recipe.ustensiles == null
+          ? List.empty()
+          : recipe.ustensiles!.split(";").toList(),
     );
   }
 
@@ -103,6 +126,8 @@ class RecipeFull extends Recipe {
     required this.instructions,
     required super.creatorName,
     required super.createdDate,
+    required super.category,
+    required super.cookware,
   });
 
   factory RecipeFull.fromRecord(RecettesRecord recipe, PocketBase pb) {
@@ -131,6 +156,8 @@ class RecipeFull extends Recipe {
       record: baseRecipe.record,
       creatorName: baseRecipe.creatorName,
       createdDate: baseRecipe.createdDate,
+      category: baseRecipe.category,
+      cookware: baseRecipe.cookware,
     );
   }
 }

@@ -110,25 +110,46 @@ class RecipeDetails extends StatelessWidget {
                       recipe.prepTime != null
                           ? Text(
                         'Préparation : ${recipe.prepTimeFormatted!}',
-                        style: Theme.of(
+                        style: Theme
+                            .of(
                           context,
-                        ).textTheme.labelMedium?.copyWith(color: Theme.of(context).colorScheme.primary),
+                        )
+                            .textTheme
+                            .labelMedium
+                            ?.copyWith(color: Theme
+                            .of(context)
+                            .colorScheme
+                            .primary),
                       )
                           : Container(),
                       recipe.cookTime != null
                           ? Text(
                         'Cuisson : ${recipe.cookTimeFormatted!}',
-                        style: Theme.of(
+                        style: Theme
+                            .of(
                           context,
-                        ).textTheme.labelMedium?.copyWith(color: Theme.of(context).colorScheme.primary),
+                        )
+                            .textTheme
+                            .labelMedium
+                            ?.copyWith(color: Theme
+                            .of(context)
+                            .colorScheme
+                            .primary),
                       )
                           : Container(),
                       recipe.restTime != null
                           ? Text(
                         'Repos : ${recipe.restTimeFormatted!}',
-                        style: Theme.of(
+                        style: Theme
+                            .of(
                           context,
-                        ).textTheme.labelMedium?.copyWith(color: Theme.of(context).colorScheme.primary),
+                        )
+                            .textTheme
+                            .labelMedium
+                            ?.copyWith(color: Theme
+                            .of(context)
+                            .colorScheme
+                            .primary),
                       )
                           : Container(),
                       SizedBox(height: 4),
@@ -136,6 +157,11 @@ class RecipeDetails extends StatelessWidget {
                           .of(context)
                           .textTheme
                           .headlineMedium),
+                      SizedBox(height: 4),
+                      Text(recipe.category?.displayName ?? '', style: Theme
+                          .of(context)
+                          .textTheme
+                          .bodySmall),
                       SizedBox(height: 12),
                       Text("Ingrédients", style: Theme
                           .of(context)
@@ -150,11 +176,34 @@ class RecipeDetails extends StatelessWidget {
                       SizedBox(height: 8),
                       InstructionsView(recipe: recipe),
                       SizedBox(height: 12),
-                      Text("Recette créée par ${recipe.creatorName} le ${recipe.createdTimeFormatted}",
-                          style: Theme
-                              .of(context)
-                              .textTheme
-                              .labelMedium),
+                      Text(
+                        "Recette créée par ${recipe.creatorName} le ${recipe.createdTimeFormatted}",
+                        style: Theme
+                            .of(context)
+                            .textTheme
+                            .labelMedium,
+                      ),
+                      SizedBox(height: 12),
+                      Text("Ustensiles", style: Theme
+                          .of(context)
+                          .textTheme
+                          .titleMedium),
+                      SizedBox(
+                        height: 40,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: recipe.cookware.length,
+                          itemBuilder: (context, index) {
+                            final cookware = recipe.cookware[index];
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8.0),
+                              child: Chip(
+                                label: Text(cookware),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
                       SizedBox(height: 12),
                       Text("Commentaires", style: Theme
                           .of(context)
