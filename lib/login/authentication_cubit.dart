@@ -7,8 +7,15 @@ import 'package:meta/meta.dart';
 abstract class AuthenticationState {}
 
 class AuthenticationInitial extends AuthenticationState {}
-class AuthenticationLoggedIn extends AuthenticationState {}
+
+class AuthenticationLoggedIn extends AuthenticationState {
+  final String username;
+
+  AuthenticationLoggedIn({required this.username});
+}
+
 class AuthenticationLoggedOut extends AuthenticationState {}
+
 class AuthenticationLoading extends AuthenticationState {}
 
 class AuthenticationCubit extends Cubit<AuthenticationState> {
@@ -23,7 +30,7 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
   Future<void> logIn(String username, String password) async {
     emit(AuthenticationLoading());
     await repository.login(username, password);
-    emit(AuthenticationLoggedIn());
+    emit(AuthenticationLoggedIn(username: repository.pb.authStore.record!.get('name')));
   }
 
   void logOut() {
@@ -34,7 +41,7 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
 
   void checkAuthentication() {
     if (repository.pb.authStore.isValid) {
-      emit(AuthenticationLoggedIn());
+      emit(AuthenticationLoggedIn(username: repository.pb.authStore.record!.get('name')));
     } else {
       emit(AuthenticationLoggedOut());
     }
