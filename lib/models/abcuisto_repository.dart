@@ -38,15 +38,21 @@ class AbcuistoRepository extends ChangeNotifier {
     notifyListeners();
   }
 
-
-  Future<List<Recipe>> getRecipes({int page = 1, int perPage = 50, String? searchPattern, List<
-      String>? categories, String? filterCreatorName}) async {
+  Future<List<Recipe>> getRecipes({
+    int page = 1,
+    int perPage = 50,
+    String? searchPattern,
+    List<String>? categories,
+    String? filterCreatorName,
+    int? filterMaxHours,
+  }) async {
     String filter = '';
     if (searchPattern != null && searchPattern.isNotEmpty) {
-      final sanitized = removeDiacritics(searchPattern).toLowerCase().replaceAll(
-          RegExp(r"[^a-zA-Z0-9\s']"), '').trim();
+      final sanitized = removeDiacritics(
+        searchPattern,
+      ).toLowerCase().replaceAll(RegExp(r"[^a-zA-Z0-9\s']"), '').trim();
       filter =
-      '(nameWithoutDiacritics ?~ "$sanitized" || categoriesIds.ingredientsIds.nameWithoutDiacritics ?~ "$sanitized")';
+          '(nameWithoutDiacritics ?~ "$sanitized" || categoriesIds.ingredientsIds.nameWithoutDiacritics ?~ "$sanitized")';
     }
     if (categories != null && categories.isNotEmpty) {
       final categoryFilters = categories.map((c) => 'categorie ?= "$c"').join(' || ');
@@ -57,6 +63,10 @@ class AbcuistoRepository extends ChangeNotifier {
       filter = filter.isEmpty
           ? '(createur_pseudo ~ "$sanitizedCreator")'
           : '$filter && (createur_pseudo ~ "$sanitizedCreator")';
+    }
+    if (filterMaxHours != null && filterMaxHours < 24) {
+      final timeFilter = 'tempsTotal < "${filterMaxHours.toString().padLeft(2, '0')}h00"';
+      filter = filter.isEmpty ? timeFilter : '$filter && $timeFilter';
     }
     print('Filter: $filter');
     final response = await pb

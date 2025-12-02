@@ -80,6 +80,19 @@ class _RecipesListState extends State<RecipesList> {
                                 ),
                               ]
                             : [],
+                        ...state.filteredMaxTime != null && state.filteredMaxTime! < 24
+                            ? [
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                                  child: InputChip(
+                                    label: Text('Moins de ${state.filteredMaxTime}h'),
+                                    onDeleted: () {
+                                      context.read<FilterCubit>().updateFilteredMaxTime(null);
+                                    },
+                                  ),
+                                ),
+                              ]
+                            : [],
                       ],
                     ),
                   ),

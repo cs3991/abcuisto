@@ -9,21 +9,29 @@ class FilterState {
   final String? searchPattern;
   final List<String> filteredCategories;
   final String? filteredCreatorName;
+  final int? filteredMaxTime;
 
-  FilterState(this.pagingState,
-      {this.searchPattern, this.filteredCategories = const [], this.filteredCreatorName});
+  FilterState(
+    this.pagingState, {
+    this.searchPattern,
+    this.filteredCategories = const [],
+    this.filteredCreatorName,
+    this.filteredMaxTime,
+  });
 
   FilterState copyWith({
     PagingState<int, Recipe>? pagingState,
     String? searchPattern,
     List<String>? filteredCategories,
     String? filteredCreatorName,
+    int? filteredMaxTime,
   }) {
     return FilterState(
       pagingState ?? this.pagingState,
       searchPattern: searchPattern ?? this.searchPattern,
       filteredCategories: filteredCategories ?? this.filteredCategories,
       filteredCreatorName: filteredCreatorName ?? this.filteredCreatorName,
+      filteredMaxTime: filteredMaxTime ?? this.filteredMaxTime,
     );
   }
 }
@@ -46,6 +54,7 @@ class FilterCubit extends Cubit<FilterState> {
         searchPattern: state.searchPattern,
         categories: state.filteredCategories,
         filterCreatorName: state.filteredCreatorName,
+        filterMaxHours: state.filteredMaxTime,
       );
       final isLastPage = newItems.isEmpty;
 
@@ -86,4 +95,8 @@ class FilterCubit extends Cubit<FilterState> {
     emit(state.copyWith(pagingState: PagingState<int, Recipe>(), filteredCreatorName: name));
   }
 
+  void updateFilteredMaxTime(int? maxHours) {
+    maxHours ??= 24;
+    emit(state.copyWith(pagingState: PagingState<int, Recipe>(), filteredMaxTime: maxHours));
+  }
 }

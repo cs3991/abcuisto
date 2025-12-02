@@ -25,6 +25,7 @@ class FilterPage extends StatefulWidget {
 class _FilterPageState extends State<FilterPage> {
   final TextEditingController creatorController = TextEditingController();
   bool isCreatorSelf = false;
+  int totalTimeValue = 24;
 
   @override
   Widget build(BuildContext context) {
@@ -34,6 +35,7 @@ class _FilterPageState extends State<FilterPage> {
         selection: TextSelection.collapsed(offset: cubit.state.filteredCreatorName?.length ?? 0),
       ),
     );
+    totalTimeValue = context.select((FilterCubit cubit) => cubit.state.filteredMaxTime ?? 24);
     return Scaffold(
       appBar: SearchAppBar(),
       body: Padding(
@@ -58,7 +60,7 @@ class _FilterPageState extends State<FilterPage> {
               }).toList(),
             ),
             SizedBox(height: 16),
-            Text('Créée par', style: Theme.of(context).textTheme.titleMedium),
+            Text('Créé par', style: Theme.of(context).textTheme.titleMedium),
             SizedBox(height: 8),
             SegmentedButton(
               segments: [
@@ -86,19 +88,69 @@ class _FilterPageState extends State<FilterPage> {
               controller: creatorController,
               decoration: InputDecoration(
                 hintText: "Nom du créateur...",
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide.none,
+                ),
                 isDense: true,
                 filled: true,
                 enabled: !isCreatorSelf,
-                // fillColor: Theme.of(context).colorScheme.surfaceContainer,
+                fillColor: Theme.of(context).colorScheme.surfaceContainer,
               ),
               onChanged: (text) {
                 context.read<FilterCubit>().updateFilteredCreatorName(text);
               },
             ),
+            SizedBox(height: 16),
+            BlocBuilder<FilterCubit, FilterState>(
+              builder: (context, state) {
+                final text = state.filteredMaxTime == 24 || state.filteredMaxTime == null
+                    ? "Pas de limite"
+                    : "${state.filteredMaxTime}h";
+                return Text('Temps total maximum : $text', style: Theme.of(context).textTheme.titleMedium);
+              },
+            ),
+            MaxTimeSlider(totalTimeValue: totalTimeValue),
           ],
         ),
       ),
+    );
+  }
+}
+
+class MaxTimeSlider extends StatefulWidget {
+  final int totalTimeValue;
+
+  const MaxTimeSlider({super.key, required this.totalTimeValue});
+
+  @override
+  State<MaxTimeSlider> createState() => _MaxTimeSliderState(totalTimeValue: totalTimeValue);
+}
+
+class _MaxTimeSliderState extends State<MaxTimeSlider> {
+  int totalTimeValue;
+
+  _MaxTimeSliderState({required this.totalTimeValue});
+
+  @override
+  Widget build(BuildContext context) {
+    return Slider(
+      value: totalTimeValue.toDouble(),
+      min: 1,
+      max: 24,
+      onChanged: (value) {
+        setState(() {
+          totalTimeValue = value.round();
+        });
+      },
+      label: totalTimeValue == 24 ? "Pas de limite" : "${totalTimeValue}h",
+      divisions: 23,
+      semanticFormatterCallback: (value) => totalTimeValue == 24 ? "Pas de limite" : "${totalTimeValue}h",
+      onChangeEnd: (value) {
+        totalTimeValue == 24
+            ? context.read<FilterCubit>().updateFilteredMaxTime(null)
+            : context.read<FilterCubit>().updateFilteredMaxTime(totalTimeValue);
+      },
     );
   }
 }
