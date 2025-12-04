@@ -1,3 +1,4 @@
+import 'package:abcuisto/login/authentication_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -11,7 +12,7 @@ class SearchAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     searchBarController.value = context.select(
-      (FilterCubit cubit) => TextEditingValue(
+          (FilterCubit cubit) => TextEditingValue(
         text: cubit.state.searchPattern ?? '',
         selection: TextSelection.collapsed(offset: cubit.state.searchPattern?.length ?? 0),
       ),
@@ -36,7 +37,9 @@ class SearchAppBar extends StatelessWidget implements PreferredSizeWidget {
       actions: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          child: IconButton(icon: Icon(Icons.person_rounded), onPressed: () {}),
+          child: IconButton(icon: Icon(Icons.person_rounded), onPressed: () {
+            context.read<AuthenticationCubit>().logOut();
+          }),
         ),
       ],
     );

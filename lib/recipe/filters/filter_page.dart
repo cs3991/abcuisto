@@ -18,6 +18,8 @@ class FilterPage extends StatefulWidget {
     "Sauce",
   ];
 
+  static const List<String> tags = ["Végétarien", "Végan", "Alcoolisé", "Sans gluten", "Thermomix"];
+
   @override
   State<FilterPage> createState() => _FilterPageState();
 }
@@ -111,6 +113,40 @@ class _FilterPageState extends State<FilterPage> {
               },
             ),
             MaxTimeSlider(totalTimeValue: totalTimeValue),
+            SizedBox(height: 16),
+            ExpansionTile(
+              initiallyExpanded: true,
+              title: Text('Caractéristiques', style: Theme.of(context).textTheme.titleMedium),
+              children: FilterPage.tags.map((tag) {
+                final isSelected = false;
+                // context.select(
+                // (FilterCubit cubit) => cubit.state.filteredCategories.contains(tags),
+                // );
+                return CheckboxListTile(
+                  title: Text(tag),
+                  value: isSelected,
+                  onChanged: (selected) {
+                    // context.read<FilterCubit>().updateFilteredCategories(tag, selected ?? false);
+                  },
+                );
+              }).toList(),
+            ),
+            SizedBox(height: 16),
+            Text('Ingrédients', style: Theme.of(context).textTheme.titleMedium),
+            SizedBox(height: 8),
+            TextField(
+              decoration: InputDecoration(
+                hintText: "Ajouter des ingrédients...",
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide.none,
+                ),
+                isDense: true,
+                filled: true,
+                fillColor: Theme.of(context).colorScheme.surfaceContainer,
+              ),
+            ),
+            SizedBox(height: 24),
           ],
         ),
       ),
