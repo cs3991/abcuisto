@@ -3,8 +3,6 @@ import 'package:abcuisto/recipe/recipes_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'login/login_page.dart';
-
 class EntryPage extends StatelessWidget {
   const EntryPage({super.key});
 
@@ -19,9 +17,9 @@ class EntryPage extends StatelessWidget {
               child: CircularProgressIndicator(),
             ),
           );
-        } else if (state is AuthenticationLoggedOut) {
-          return LoginPage();
-        } else if (state is AuthenticationLoggedIn){
+          // } else if (state is AuthenticationLoggedOut) {
+          //   return LoginPage();
+        } else if (state is AuthenticationLoggedIn || state is AuthenticationLoggedOut) {
           return RecipePage();
         }
         else {

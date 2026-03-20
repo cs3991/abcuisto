@@ -1,4 +1,5 @@
 import 'package:abcuisto/login/authentication_cubit.dart';
+import 'package:abcuisto/login/login_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -37,9 +38,18 @@ class SearchAppBar extends StatelessWidget implements PreferredSizeWidget {
       actions: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          child: IconButton(icon: Icon(Icons.person_rounded), onPressed: () {
-            context.read<AuthenticationCubit>().logOut();
-          }),
+          child: IconButton(
+            icon: Icon(Icons.person_rounded),
+            onPressed: () {
+              // context.read<AuthenticationCubit>().logOut();
+              if (context.read<AuthenticationCubit>().state is AuthenticationLoggedOut ||
+                  context.read<AuthenticationCubit>().state is AuthenticationInitial) {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => LoginPage()));
+              } else if (context.read<AuthenticationCubit>() is AuthenticationLoggedIn) {
+                print('Logged in');
+              }
+            },
+          ),
         ),
       ],
     );

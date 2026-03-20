@@ -6,6 +6,7 @@ import 'package:abcuisto/recipe/search_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
+import 'package:pocketbase/pocketbase.dart';
 
 import 'filters/filter_page.dart';
 
@@ -91,8 +92,20 @@ class _RecipesListState extends State<RecipesList> {
                                     },
                                   ),
                                 ),
-                              ]
+                        ]
                             : [],
+                        ...state.filteredTags.map(
+                              (tag) =>
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                                child: InputChip(
+                                  label: Text(tag),
+                                  onDeleted: () {
+                                    context.read<FilterCubit>().updateFilteredTags(tag, false);
+                                  },
+                                ),
+                              ),
+                        )
                       ],
                     ),
                   ),
@@ -102,32 +115,79 @@ class _RecipesListState extends State<RecipesList> {
                     state: state.pagingState,
                     fetchNextPage: context.read<FilterCubit>().fetchNextPage,
                     builderDelegate: PagedChildBuilderDelegate(
-                      itemBuilder: (context, item, index) => Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: MediaQuery.of(context).size.width > 400
-                                ? (MediaQuery.of(context).size.width - 400) / 2
-                                : 0,
-                          ),
-
-                          child: InkWell(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) {
-                                    context.read<RecipeCubit>().focusRecipe(item);
-                                    return RecipeDetailsPage();
-                                  },
+                      firstPageErrorIndicatorBuilder: (context) {
+                        final state = context
+                            .read<FilterCubit>()
+                            .state;
+                        if (state.pagingState.error is ClientException) {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.signal_wifi_connected_no_internet_4_rounded,
+                                color: Theme
+                                    .of(context)
+                                    .colorScheme
+                                    .onSurface
+                                    .withAlpha(100),
+                                size: 60,
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
+                                child: Text(
+                                  "Connexion au serveur impossible.\nVérifiez la connexion internet.",
+                                  style: Theme
+                                      .of(context)
+                                      .textTheme
+                                      .bodyMedium,
+                                  textAlign: TextAlign.center,
                                 ),
-                              );
-                            },
-                            child: RecipeCard(recipe: item),
+                              ),
+                              OutlinedButton(
+                                onPressed: () => context.read<FilterCubit>().update(),
+                                child: Text("Réessayer"),
+                              ),
+                            ],
+                          );
+                        } else {
+                          return Text('Erreur cheloue');
+                        }
+                      },
+                      itemBuilder: (context, item, index) =>
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: MediaQuery
+                                    .of(context)
+                                    .size
+                                    .width > 400
+                                    ? (MediaQuery
+                                    .of(context)
+                                    .size
+                                    .width - 400) / 2
+                                    : 0,
+                              ),
+
+                              child: InkWell(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) {
+                                        context.read<RecipeCubit>().focusRecipe(item);
+                                        return RecipeDetailsPage();
+                                      },
+                                    ),
+                                  );
+                                },
+                                child: RecipeCard(recipe: item),
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
                     ),
+                    keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                   ),
                 ),
               ],
@@ -156,7 +216,6 @@ class RecipeCard extends StatelessWidget {
     // final note = NotationsRecord.fromRecordModel(recipe.expand!['noteId'][0]).note!;
     // final nbNotes = NotationsRecord.fromRecordModel(recipe.expand!['noteId'][0]).nbNotes!;
     return Card(
-      elevation: 4,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -164,17 +223,26 @@ class RecipeCard extends StatelessWidget {
             clipBehavior: Clip.antiAlias,
             borderRadius: const BorderRadius.all(Radius.circular(12)),
             child: Container(
-              width: MediaQuery.of(context).size.width,
-              decoration: BoxDecoration(color: Theme.of(context).colorScheme.secondaryContainer),
+              width: MediaQuery
+                  .of(context)
+                  .size
+                  .width,
+              decoration: BoxDecoration(color: Theme
+                  .of(context)
+                  .colorScheme
+                  .secondaryContainer),
               child: recipe.images.isNotEmpty
                   ? Image.network(
-                      recipe.images.first.toString(),
-                      height: 300,
-                      width: MediaQuery.of(context).size.width,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, _, _) => NoImageBuilder(),
-                    )
-                  : NoImageBuilder(),
+                recipe.images.first.toString(),
+                height: 200,
+                width: MediaQuery
+                    .of(context)
+                    .size
+                    .width,
+                fit: BoxFit.cover,
+                errorBuilder: (context, _, _) => NoImageBuilder(height: 200),
+              )
+                  : NoImageBuilder(height: 200),
             ),
           ),
           Padding(
@@ -199,17 +267,23 @@ class RecipeCard extends StatelessWidget {
 }
 
 class NoImageBuilder extends StatelessWidget {
-  const NoImageBuilder({super.key});
+  const NoImageBuilder({super.key, required this.height});
+
+  final double height;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 300,
+      height: height,
       width: 400,
       child: Icon(
         Icons.no_photography_rounded,
         size: 70,
-        color: Theme.of(context).colorScheme.onSecondaryContainer.withAlpha(50),
+        color: Theme
+            .of(context)
+            .colorScheme
+            .onSecondaryContainer
+            .withAlpha(50),
       ),
     );
   }

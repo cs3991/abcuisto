@@ -50,7 +50,7 @@ class _FilterPageState extends State<FilterPage> {
               title: Text('Catégories', style: Theme.of(context).textTheme.titleMedium),
               children: FilterPage.categories.map((category) {
                 final isSelected = context.select(
-                      (FilterCubit cubit) => cubit.state.filteredCategories.contains(category),
+                  (FilterCubit cubit) => cubit.state.filteredCategories.contains(category),
                 );
                 return CheckboxListTile(
                   title: Text(category),
@@ -114,22 +114,23 @@ class _FilterPageState extends State<FilterPage> {
             ),
             MaxTimeSlider(totalTimeValue: totalTimeValue),
             SizedBox(height: 16),
-            ExpansionTile(
-              initiallyExpanded: true,
-              title: Text('Caractéristiques', style: Theme.of(context).textTheme.titleMedium),
-              children: FilterPage.tags.map((tag) {
-                final isSelected = false;
-                // context.select(
-                // (FilterCubit cubit) => cubit.state.filteredCategories.contains(tags),
-                // );
-                return CheckboxListTile(
-                  title: Text(tag),
-                  value: isSelected,
-                  onChanged: (selected) {
-                    // context.read<FilterCubit>().updateFilteredCategories(tag, selected ?? false);
-                  },
+            BlocBuilder<FilterCubit, FilterState>(
+              builder: (context, state) {
+                return ExpansionTile(
+                  initiallyExpanded: true,
+                  title: Text('Caractéristiques', style: Theme.of(context).textTheme.titleMedium),
+                  children: FilterPage.tags.map((tag) {
+                    final isSelected = state.filteredTags.contains(tag);
+                    return CheckboxListTile(
+                      title: Text(tag),
+                      value: isSelected,
+                      onChanged: (selected) {
+                        context.read<FilterCubit>().updateFilteredTags(tag, selected ?? false);
+                      },
+                    );
+                  }).toList(),
                 );
-              }).toList(),
+              },
             ),
             SizedBox(height: 16),
             Text('Ingrédients', style: Theme.of(context).textTheme.titleMedium),

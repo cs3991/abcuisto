@@ -79,12 +79,12 @@ class RecipeDetails extends StatelessWidget {
                   height: 400,
                   width: width,
                   fit: BoxFit.cover,
-                  errorBuilder: (context, _, _) => NoImageBuilder(),
+                  errorBuilder: (context, _, _) => NoImageBuilder(height: 400),
                   // loadingBuilder: (context, _, _) => NoImageBuilder(),
                 );
               },
             )
-                : NoImageBuilder(),
+                : NoImageBuilder(height: 400),
           ),
         ),
         ListView(

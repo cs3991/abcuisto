@@ -45,6 +45,7 @@ class AbcuistoRepository extends ChangeNotifier {
     List<String>? categories,
     String? filterCreatorName,
     int? filterMaxHours,
+    List<String>? tags,
   }) async {
     String filter = '';
     if (searchPattern != null && searchPattern.isNotEmpty) {
@@ -67,6 +68,15 @@ class AbcuistoRepository extends ChangeNotifier {
     if (filterMaxHours != null && filterMaxHours < 24) {
       final timeFilter = 'tempsTotal < "${filterMaxHours.toString().padLeft(2, '0')}h00"';
       filter = filter.isEmpty ? timeFilter : '$filter && $timeFilter';
+    }
+    if (tags != null && tags.isNotEmpty) {
+      final tagsFilter = tags
+          .map((t) {
+            if (t == 'Alcoolisé') t = 'Alcool';
+            return 'tags ?~ "${removeDiacritics(t.toUpperCase())}"';
+          })
+          .join(' && ');
+      filter = filter.isEmpty ? '($tagsFilter)' : '$filter && ($tagsFilter)';
     }
     print('Filter: $filter');
     final response = await pb
