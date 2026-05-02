@@ -47,4 +47,11 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
     }
   }
 
+  Future<void> sendPasswordReset(String email) async {
+    // todo: call pocketbase for password reset
+  }
+
+  void signUp(String email, String password, String username) {
+    // todo: call pocketbase for signup
+  }
 }

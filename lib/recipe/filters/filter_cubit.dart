@@ -73,8 +73,10 @@ class FilterCubit extends Cubit<FilterState> {
           ),
         ),
       );
-    } catch (error) {
+    } catch (error, stackTrace) {
       print('Error fetching recipes: $error');
+      // print stack trace for debugging
+      print(stackTrace);
       emit(state.copyWith(pagingState: state.pagingState.copyWith(error: error, isLoading: false)));
     }
 

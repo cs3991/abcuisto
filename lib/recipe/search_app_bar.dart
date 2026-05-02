@@ -13,7 +13,7 @@ class SearchAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     searchBarController.value = context.select(
-          (FilterCubit cubit) => TextEditingValue(
+      (FilterCubit cubit) => TextEditingValue(
         text: cubit.state.searchPattern ?? '',
         selection: TextSelection.collapsed(offset: cubit.state.searchPattern?.length ?? 0),
       ),
@@ -38,16 +38,20 @@ class SearchAppBar extends StatelessWidget implements PreferredSizeWidget {
       actions: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          child: IconButton(
-            icon: Icon(Icons.person_rounded),
-            onPressed: () {
-              // context.read<AuthenticationCubit>().logOut();
-              if (context.read<AuthenticationCubit>().state is AuthenticationLoggedOut ||
-                  context.read<AuthenticationCubit>().state is AuthenticationInitial) {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => LoginPage()));
-              } else if (context.read<AuthenticationCubit>() is AuthenticationLoggedIn) {
-                print('Logged in');
-              }
+          child: BlocBuilder<AuthenticationCubit, AuthenticationState>(
+            builder: (context, state) {
+              return IconButton(
+                icon: Icon(state is AuthenticationLoggedIn ? Icons.person_rounded : Icons.person_off_rounded),
+                onPressed: () {
+                  // context.read<AuthenticationCubit>().logOut();
+                  if (state is AuthenticationLoggedOut || state is AuthenticationInitial) {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => LoginPage()));
+                  } else if (state is AuthenticationLoggedIn) {
+                    // show dialog to access profile or logout
+                    _showProfilePopup(context);
+                  }
+                },
+              );
             },
           ),
         ),
@@ -57,4 +61,33 @@ class SearchAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+}
+
+void _showProfilePopup(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (context) {
+      final state = context.read<AuthenticationCubit>().state as AuthenticationLoggedIn;
+      return AlertDialog(
+        title: Icon(Icons.person_rounded, size: 48),
+        content: Text(state.username, textAlign: TextAlign.center),
+        actions: [
+          TextButton(
+            onPressed: () {
+              // Navigate to profile page
+              Navigator.pop(context);
+            },
+            child: Text('Voir le profil'),
+          ),
+          TextButton(
+            onPressed: () {
+              context.read<AuthenticationCubit>().logOut();
+              Navigator.pop(context);
+            },
+            child: Text('Se déconnecter'),
+          ),
+        ],
+      );
+    },
+  );
 }

@@ -1,4 +1,6 @@
+import 'package:abcuisto/login/authentication_cubit.dart';
 import 'package:abcuisto/models/recipe.dart';
+import 'package:abcuisto/recipe/add_recipe/add_recipe_page.dart';
 import 'package:abcuisto/recipe/filters/filter_cubit.dart';
 import 'package:abcuisto/recipe/recipe_cubit.dart';
 import 'package:abcuisto/recipe/recipe_details.dart';
@@ -22,8 +24,26 @@ class _RecipePageState extends State<RecipePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(appBar: SearchAppBar(), body: RecipesList());
+    return Scaffold(
+      appBar: SearchAppBar(),
+      body: RecipesList(),
+      floatingActionButton: BlocBuilder<AuthenticationCubit, AuthenticationState>(
+        builder: (context, state) {
+          if (state is AuthenticationLoggedIn) {
+            return FloatingActionButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const AddRecipePage()));
+              },
+              child: const Icon(Icons.add),
+            );
+          }
+          return const SizedBox.shrink();
+        },
+      ),
+    );
   }
+}
+
 }
 
 class RecipesList extends StatefulWidget {
@@ -58,7 +78,7 @@ class _RecipesListState extends State<RecipesList> {
                         ),
                         const SizedBox(width: 8),
                         ...state.filteredCategories.map(
-                          (category) => Padding(
+                              (category) => Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 2.0),
                             child: InputChip(
                               label: Text(category),
@@ -70,28 +90,28 @@ class _RecipesListState extends State<RecipesList> {
                         ),
                         ...state.filteredCreatorName != null && state.filteredCreatorName!.isNotEmpty
                             ? [
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 2.0),
-                                  child: InputChip(
-                                    label: Text('Créé par ${state.filteredCreatorName}'),
-                                    onDeleted: () {
-                                      context.read<FilterCubit>().updateFilteredCreatorName(null);
-                                    },
-                                  ),
-                                ),
-                              ]
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                            child: InputChip(
+                              label: Text('Créé par ${state.filteredCreatorName}'),
+                              onDeleted: () {
+                                context.read<FilterCubit>().updateFilteredCreatorName(null);
+                              },
+                            ),
+                          ),
+                        ]
                             : [],
                         ...state.filteredMaxTime != null && state.filteredMaxTime! < 24
                             ? [
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 2.0),
-                                  child: InputChip(
-                                    label: Text('Moins de ${state.filteredMaxTime}h'),
-                                    onDeleted: () {
-                                      context.read<FilterCubit>().updateFilteredMaxTime(null);
-                                    },
-                                  ),
-                                ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                            child: InputChip(
+                              label: Text('Moins de ${state.filteredMaxTime}h'),
+                              onDeleted: () {
+                                context.read<FilterCubit>().updateFilteredMaxTime(null);
+                              },
+                            ),
+                          ),
                         ]
                             : [],
                         ...state.filteredTags.map(
@@ -299,13 +319,13 @@ class RatingStars extends StatelessWidget {
   Widget build(BuildContext context) {
     return note != null
         ? Row(
-            children: List.generate(
-              5,
-              (index) => index < note!
-                  ? Icon(Icons.star_rounded, color: Colors.orange.withValues(alpha: 0.5), size: size)
-                  : Icon(Icons.star_border_rounded, color: Colors.orange.withValues(alpha: 0.5), size: size),
-            ),
-          )
+      children: List.generate(
+        5,
+            (index) => index < note!
+            ? Icon(Icons.star_rounded, color: Colors.orange.withValues(alpha: 0.5), size: size)
+            : Icon(Icons.star_border_rounded, color: Colors.orange.withValues(alpha: 0.5), size: size),
+      ),
+    )
         : Text('Aucune note', style: Theme.of(context).textTheme.labelMedium);
   }
 }
