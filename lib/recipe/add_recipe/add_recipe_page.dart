@@ -3,6 +3,9 @@ import 'dart:io';
 import 'package:abcuisto/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:transparent_pointer/transparent_pointer.dart';
+
+import '../recipes_list.dart' show NoImageBuilder;
 
 class AddRecipePage extends StatelessWidget {
   const AddRecipePage({super.key});
@@ -72,203 +75,150 @@ class _CreateRecipeBodyState extends State<CreateRecipeBody> {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        Container(
-          height: 400,
-          width: width,
-          decoration: BoxDecoration(
-            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
-            boxShadow: [
-              BoxShadow(
-                offset: const Offset(1, 1),
-                blurRadius: 5,
-                color: Colors.black.withValues(alpha: 0.25),
+        _ImageCarousel(imagePaths: _photoPaths),
+        TransparentPointer(
+          child: ListView(
+            children: [
+              Container(height: 350, width: MediaQuery
+                  .of(context)
+                  .size
+                  .width, color: Colors.transparent),
+              Padding(
+                padding: const EdgeInsets.only(left: 16, right: 16, top: 0, bottom: 16),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Theme
+                        .of(context)
+                        .colorScheme
+                        .surfaceContainerLow,
+                    border: Border.all(
+                      color: Theme
+                          .of(context)
+                          .colorScheme
+                          .outline
+                          .withValues(alpha: 0.3),
+                      width: 1,
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 16),
+
+                        /// --- NAME ---
+                        RoundedTextField(hintText: 'Nom de la recette', controller: _nameController),
+
+                        const SizedBox(height: 16),
+
+                        /// --- CATEGORY ---
+                        const SectionTitle(title: "Catégorie de la recette"),
+                        const SizedBox(height: 8),
+                        const DropdownPlaceholder(),
+
+                        const SizedBox(height: 16),
+
+                        /// --- TIMES ---
+                        Row(
+                          children: [
+                            Expanded(
+                              child: RoundedTextField(
+                                hintText: 'Temps de préparation',
+                                controller: _prepTimeController,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: RoundedTextField(
+                                  hintText: 'Temps de cuisson', controller: _cookTimeController),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 8),
+
+                        RoundedTextField(hintText: 'Temps de repos', controller: _restTimeController),
+
+                        const SizedBox(height: 16),
+
+                        /// --- VISIBILITY ---
+                        const SectionTitle(title: "Visible pour quels groupes ?"),
+                        const SizedBox(height: 8),
+                        const DropdownPlaceholder(),
+
+                        const SizedBox(height: 16),
+
+                        /// --- CHARACTERISTICS ---
+                        const SectionTitle(title: "Caractéristiques"),
+                        const SizedBox(height: 8),
+                        const DropdownPlaceholder(),
+
+                        const SizedBox(height: 16),
+
+                        /// --- SERVINGS ---
+                        Row(
+                          children: [
+                            Expanded(
+                              child: RoundedTextField(
+                                hintText: 'Pour combien ?',
+                                controller: _servingsController,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Expanded(child: DropdownPlaceholder()),
+                          ],
+                        ),
+
+                        const SizedBox(height: 24),
+
+                        /// --- INGREDIENTS ---
+                        const SectionTitle(title: "Ingrédients"),
+                        const SizedBox(height: 8),
+
+                        ..._categories.map((cat) => IngredientCategoryWidget(category: cat)),
+
+                        TextButton.icon(
+                          onPressed: () {},
+                          icon: const Icon(Icons.add),
+                          label: const Text("Ajouter une catégorie d'ingrédients"),
+                        ),
+
+                        const SizedBox(height: 24),
+
+                        /// --- UTENSILS ---
+                        const SectionTitle(title: "Ustensiles"),
+                        const SizedBox(height: 8),
+
+                        RoundedTextField(
+                          hintText: 'Ex: fouet, casserole...',
+                          controller: _utensilsController,
+                        ),
+
+                        const SizedBox(height: 24),
+
+                        /// --- STEPS ---
+                        const SectionTitle(title: "Étapes"),
+                        const SizedBox(height: 8),
+
+                        ..._buildSteps(),
+
+                        TextButton.icon(
+                          onPressed: () {},
+                          icon: const Icon(Icons.add),
+                          label: const Text("Ajouter une étape"),
+                        ),
+
+                        const SizedBox(height: 32),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ],
-            color: Theme.of(context).colorScheme.secondaryContainer,
           ),
-          child: ClipRRect(
-            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
-            child: SizedBox(
-              height: 400,
-              width: 400,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: _photoPaths.isEmpty ? 1 : _photoPaths.length + 1,
-                itemBuilder: (context, i) {
-                  if (i < _photoPaths.length) {
-                    final path = _photoPaths[i];
-                    return SizedBox(
-                      width: width,
-                      child: Image.file(File(path), fit: BoxFit.cover),
-                    );
-                  } else {
-                    return SizedBox(
-                      width: width,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.no_photography_rounded,
-                            size: 70,
-                            color: Theme.of(context).colorScheme.onSecondaryContainer.withAlpha(50),
-                          ),
-                          Center(
-                            child: TextButton.icon(
-                              onPressed: () {},
-                              icon: const Icon(Icons.add),
-                              label: const Text("Ajouter une photo"),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-                },
-              ),
-            ),
-          ),
-        ),
-        ListView(
-          children: [
-            GestureDetector(
-              child: Container(
-                height: 350,
-                width: MediaQuery.of(context).size.width,
-                color: Colors.transparent,
-              ),
-              onTap: () {
-                print("Open image picker");
-                // Todo: open image picker
-                ImagePicker().pickImage(source: ImageSource.gallery).then((pickedFile) {
-                  if (pickedFile != null) {
-                    setState(() {
-                      _photoPaths.add(pickedFile.path);
-                    });
-                  }
-                });
-              },
-            ),
-            Padding(
-              padding: const EdgeInsets.only(left: 16, right: 16, top: 0, bottom: 16),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerLow,
-                  border: Border.all(
-                    color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
-                    width: 1,
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 16),
-
-                      /// --- NAME ---
-                      RoundedTextField(hintText: 'Nom de la recette', controller: _nameController),
-
-                      const SizedBox(height: 16),
-
-                      /// --- CATEGORY ---
-                      const SectionTitle(title: "Catégorie de la recette"),
-                      const SizedBox(height: 8),
-                      const DropdownPlaceholder(),
-
-                      const SizedBox(height: 16),
-
-                      /// --- TIMES ---
-                      Row(
-                        children: [
-                          Expanded(
-                            child: RoundedTextField(hintText: 'Préparation', controller: _prepTimeController),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: RoundedTextField(hintText: 'Cuisson', controller: _cookTimeController),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 8),
-
-                      RoundedTextField(hintText: 'Repos', controller: _restTimeController),
-
-                      const SizedBox(height: 16),
-
-                      /// --- VISIBILITY ---
-                      const SectionTitle(title: "Visible pour quels groupes ?"),
-                      const SizedBox(height: 8),
-                      const DropdownPlaceholder(),
-
-                      const SizedBox(height: 16),
-
-                      /// --- CHARACTERISTICS ---
-                      const SectionTitle(title: "Caractéristiques"),
-                      const SizedBox(height: 8),
-                      const DropdownPlaceholder(),
-
-                      const SizedBox(height: 16),
-
-                      /// --- SERVINGS ---
-                      Row(
-                        children: [
-                          Expanded(
-                            child: RoundedTextField(
-                              hintText: 'Pour combien ?',
-                              controller: _servingsController,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          const Expanded(child: DropdownPlaceholder()),
-                        ],
-                      ),
-
-                      const SizedBox(height: 24),
-
-                      /// --- INGREDIENTS ---
-                      const SectionTitle(title: "Ingrédients"),
-                      const SizedBox(height: 8),
-
-                      ..._categories.map((cat) => IngredientCategoryWidget(category: cat)),
-
-                      TextButton.icon(
-                        onPressed: () {},
-                        icon: const Icon(Icons.add),
-                        label: const Text("Ajouter une catégorie d'ingrédients"),
-                      ),
-
-                      const SizedBox(height: 24),
-
-                      /// --- UTENSILS ---
-                      const SectionTitle(title: "Ustensiles"),
-                      const SizedBox(height: 8),
-
-                      RoundedTextField(hintText: 'Ex: fouet, casserole...', controller: _utensilsController),
-
-                      const SizedBox(height: 24),
-
-                      /// --- STEPS ---
-                      const SectionTitle(title: "Étapes"),
-                      const SizedBox(height: 8),
-
-                      ..._buildSteps(),
-
-                      TextButton.icon(
-                        onPressed: () {},
-                        icon: const Icon(Icons.add),
-                        label: const Text("Ajouter une étape"),
-                      ),
-
-                      const SizedBox(height: 32),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
         ),
       ],
     );
@@ -394,6 +344,174 @@ class StepField extends StatelessWidget {
           child: RoundedTextField(hintText: "Étape $index", controller: controller, maxLines: 3),
         ),
       ],
+    );
+  }
+}
+
+class _ImageCarousel extends StatefulWidget {
+  final List<String> imagePaths;
+
+  const _ImageCarousel({required this.imagePaths});
+
+  @override
+  State<_ImageCarousel> createState() => _ImageCarouselState();
+}
+
+class _ImageCarouselState extends State<_ImageCarousel> {
+  final ImagePicker _picker = ImagePicker();
+
+  final PageController _controller = PageController();
+  int _currentIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery
+        .of(context)
+        .size
+        .width;
+
+    return Stack(
+      children: [
+        Container(
+          height: 400,
+          width: width,
+          decoration: BoxDecoration(
+            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
+            boxShadow: [
+              BoxShadow(
+                offset: const Offset(1, 1),
+                blurRadius: 5,
+                color: Colors.black.withValues(alpha: 0.25),
+              ),
+            ],
+            color: Theme
+                .of(context)
+                .colorScheme
+                .secondaryContainer,
+          ),
+          child: ClipRRect(
+            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
+            child: PageView.builder(
+              controller: _controller,
+              itemCount: widget.imagePaths.isEmpty ? 1 : widget.imagePaths.length,
+              onPageChanged: (index) {
+                setState(() {
+                  _currentIndex = index;
+                });
+              },
+              itemBuilder: (context, i) {
+                if (widget.imagePaths.isEmpty) {
+                  return NoImageBuilder(height: 400);
+                }
+                return Image.file(
+                  File(widget.imagePaths[i].toString()),
+                  fit: BoxFit.cover,
+                  // errorBuilder: (_, __, ___) => NoImageBuilder(height: 400),
+                );
+              },
+            ),
+          ),
+        ),
+
+        // Buttons to add, edit, or remove images
+        Positioned(
+          top: 16,
+          left: 0,
+          right: 0,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildButton(Icons.add_rounded, 'Ajouter', () {
+                _picker.pickImage(source: ImageSource.gallery).then((pickedFile) {
+                  if (pickedFile != null) {
+                    setState(() {
+                      widget.imagePaths.insert(_currentIndex + 1, pickedFile.path);
+                      _currentIndex = _currentIndex + 1;
+                      _controller.animateToPage(
+                        _currentIndex,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                      );
+                    });
+                  }
+                });
+              }),
+              const SizedBox(width: 8),
+              _buildButton(Icons.edit_rounded, 'Modifier', () {
+                if (widget.imagePaths.isNotEmpty) {
+                  _picker.pickImage(source: ImageSource.gallery).then((pickedFile) {
+                    if (pickedFile != null) {
+                      setState(() {
+                        widget.imagePaths[_currentIndex] = pickedFile.path;
+                      });
+                    }
+                  });
+                }
+              }),
+              const SizedBox(width: 8),
+              _buildButton(Icons.delete_rounded, 'Supprimer', () {
+                if (widget.imagePaths.isNotEmpty) {
+                  setState(() {
+                    widget.imagePaths.removeAt(_currentIndex);
+                    if (_currentIndex >= widget.imagePaths.length) {
+                      _currentIndex = widget.imagePaths.length - 1;
+                    }
+                    _controller.animateToPage(
+                      _currentIndex,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    );
+                  });
+                }
+              }),
+            ],
+          ),
+        ),
+
+        // Indicators
+        Positioned(
+          top: 335,
+          left: 0,
+          right: 0,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(widget.imagePaths.length, (i) {
+              return Container(
+                width: _currentIndex == i ? 16 : 10,
+                height: 10,
+                margin: const EdgeInsets.symmetric(horizontal: 2),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(5),
+                  color: _currentIndex == i
+                      ? Theme
+                      .of(context)
+                      .colorScheme
+                      .primary
+                      : Theme
+                      .of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.5),
+                ),
+              );
+            }),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildButton(IconData icon, String label, VoidCallback onPressed) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme
+            .of(context)
+            .colorScheme
+            .onPrimary
+            .withValues(alpha: 0.8),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: TextButton.icon(onPressed: onPressed, icon: Icon(icon), label: Text(label)),
     );
   }
 }
