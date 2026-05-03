@@ -7,6 +7,7 @@ class RoundedTextField extends StatelessWidget {
   final Widget? suffixIcon;
   final TextInputType? keyboardType;
   final List<String>? autofillHints;
+  final int? maxLines;
 
   const RoundedTextField({
     super.key,
@@ -16,6 +17,7 @@ class RoundedTextField extends StatelessWidget {
     this.suffixIcon,
     this.keyboardType,
     this.autofillHints,
+    this.maxLines,
   });
 
   @override
@@ -25,6 +27,7 @@ class RoundedTextField extends StatelessWidget {
       obscureText: obscureText,
       keyboardType: keyboardType,
       autofillHints: autofillHints,
+      maxLines: maxLines,
       decoration: InputDecoration(
         hintText: hintText,
         filled: true,

@@ -3,6 +3,7 @@ import 'package:abcuisto/login/login_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../login/profile_modal.dart';
 import 'filters/filter_cubit.dart';
 
 class SearchAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -41,14 +42,13 @@ class SearchAppBar extends StatelessWidget implements PreferredSizeWidget {
           child: BlocBuilder<AuthenticationCubit, AuthenticationState>(
             builder: (context, state) {
               return IconButton(
-                icon: Icon(state is AuthenticationLoggedIn ? Icons.person_rounded : Icons.person_off_rounded),
+                icon: Icon(state is AuthenticationLoggedIn ? Icons.person_rounded : Icons.login_rounded),
+                tooltip: state is AuthenticationLoggedIn ? "Connecté" : "Se connecter",
                 onPressed: () {
-                  // context.read<AuthenticationCubit>().logOut();
                   if (state is AuthenticationLoggedOut || state is AuthenticationInitial) {
                     Navigator.push(context, MaterialPageRoute(builder: (context) => LoginPage()));
                   } else if (state is AuthenticationLoggedIn) {
-                    // show dialog to access profile or logout
-                    _showProfilePopup(context);
+                    showProfilePopup(context);
                   }
                 },
               );
@@ -61,33 +61,4 @@ class SearchAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
-}
-
-void _showProfilePopup(BuildContext context) {
-  showDialog(
-    context: context,
-    builder: (context) {
-      final state = context.read<AuthenticationCubit>().state as AuthenticationLoggedIn;
-      return AlertDialog(
-        title: Icon(Icons.person_rounded, size: 48),
-        content: Text(state.username, textAlign: TextAlign.center),
-        actions: [
-          TextButton(
-            onPressed: () {
-              // Navigate to profile page
-              Navigator.pop(context);
-            },
-            child: Text('Voir le profil'),
-          ),
-          TextButton(
-            onPressed: () {
-              context.read<AuthenticationCubit>().logOut();
-              Navigator.pop(context);
-            },
-            child: Text('Se déconnecter'),
-          ),
-        ],
-      );
-    },
-  );
 }

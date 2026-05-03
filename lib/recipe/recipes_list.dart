@@ -31,6 +31,14 @@ class _RecipePageState extends State<RecipePage> {
         builder: (context, state) {
           if (state is AuthenticationLoggedIn) {
             return FloatingActionButton(
+              backgroundColor: Theme
+                  .of(context)
+                  .colorScheme
+                  .primary,
+              foregroundColor: Theme
+                  .of(context)
+                  .colorScheme
+                  .onPrimary,
               onPressed: () {
                 Navigator.push(context, MaterialPageRoute(builder: (context) => const AddRecipePage()));
               },
@@ -44,7 +52,6 @@ class _RecipePageState extends State<RecipePage> {
   }
 }
 
-}
 
 class RecipesList extends StatefulWidget {
   const RecipesList({super.key});

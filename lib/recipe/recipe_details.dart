@@ -1,8 +1,13 @@
+import 'dart:math';
+
 import 'package:abcuisto/recipe/recipe_cubit.dart';
 import 'package:abcuisto/recipe/recipes_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../login/authentication_cubit.dart';
+import '../login/login_page.dart';
+import '../login/profile_modal.dart';
 import '../models/recipe.dart';
 
 class RecipeDetailsPage extends StatelessWidget {
@@ -26,7 +31,26 @@ class RecipeDetailsPage extends StatelessWidget {
               actions: [
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  child: IconButton(icon: Icon(Icons.person_rounded), onPressed: () {}),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    child: BlocBuilder<AuthenticationCubit, AuthenticationState>(
+                      builder: (context, state) {
+                        return IconButton(
+                          icon: Icon(
+                            state is AuthenticationLoggedIn ? Icons.person_rounded : Icons.login_rounded,
+                          ),
+                          tooltip: state is AuthenticationLoggedIn ? "Connecté" : "Se connecter",
+                          onPressed: () {
+                            if (state is AuthenticationLoggedOut || state is AuthenticationInitial) {
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => LoginPage()));
+                            } else if (state is AuthenticationLoggedIn) {
+                              showProfilePopup(context);
+                            }
+                          },
+                        );
+                      },
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -39,16 +63,22 @@ class RecipeDetailsPage extends StatelessWidget {
   }
 }
 
-class RecipeDetails extends StatelessWidget {
+class RecipeDetails extends StatefulWidget {
   final RecipeFull recipe;
 
-  const RecipeDetails({super.key, required this.recipe});
+  RecipeDetails({super.key, required this.recipe});
+
+  @override
+  State<RecipeDetails> createState() => _RecipeDetailsState();
+}
+
+class _RecipeDetailsState extends State<RecipeDetails> {
+  var imageSelected = 0;
+
+  final ScrollController imageScrollController = ScrollController(initialScrollOffset: 0);
 
   @override
   Widget build(BuildContext context) {
-    // List<Uri>? images = recipe.documents!
-    //     .map((e) => context.read<AbcuistoRepository>().pb.files.getURL(RecordModel(recipe.toJson()), e))
-    //     .toList();
     final width = MediaQuery.of(context).size.width;
     return Stack(
       clipBehavior: Clip.none,
@@ -69,27 +99,93 @@ class RecipeDetails extends StatelessWidget {
           ),
           child: ClipRRect(
             borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
-            child: recipe.images.isNotEmpty
+            child: widget.recipe.images.isNotEmpty
                 ? ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: recipe.images.length,
-              itemBuilder: (context, i) {
-                return Image.network(
-                  recipe.images[i].toString(),
-                  height: 400,
-                  width: width,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, _, _) => NoImageBuilder(height: 400),
-                  // loadingBuilder: (context, _, _) => NoImageBuilder(),
-                );
-              },
-            )
+                    scrollDirection: Axis.horizontal,
+                    itemCount: widget.recipe.images.length,
+                    controller: imageScrollController,
+                    itemBuilder: (context, i) {
+                      return Image.network(
+                        widget.recipe.images[i].toString(),
+                        height: 400,
+                        width: width,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, _, _) => NoImageBuilder(height: 400),
+                        // loadingBuilder: (context, _, _) => NoImageBuilder(),
+                      );
+                    },
+                  )
                 : NoImageBuilder(height: 400),
           ),
         ),
         ListView(
           children: [
-            Container(height: 350, width: MediaQuery.of(context).size.width, color: Colors.transparent),
+            GestureDetector(
+              child: Container(
+                height: 350,
+                width: MediaQuery.of(context).size.width,
+                color: Colors.transparent,
+                child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(widget.recipe.images.length, (i) {
+                      return Container(
+                        width: 12,
+                        height: 12,
+                        margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: imageSelected == i
+                              ? Theme.of(context).colorScheme.primary
+                              : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                        ),
+                      );
+                    }),
+                  ),
+                ),
+              ),
+              onHorizontalDragUpdate: widget.recipe.images.isNotEmpty
+                  ? (dragUpdateDetails) {
+                      var newScrollOffset = imageScrollController.offset - dragUpdateDetails.delta.dx;
+                      if (newScrollOffset < 0) {
+                        newScrollOffset = 0;
+                      } else if (newScrollOffset > imageScrollController.position.maxScrollExtent) {
+                        newScrollOffset = imageScrollController.position.maxScrollExtent;
+                      }
+                      imageScrollController.jumpTo(newScrollOffset);
+                    }
+                  : null,
+              onHorizontalDragEnd: widget.recipe.images.isNotEmpty
+                  ? (dragEndDetails) {
+                      var previousImageSelected = imageSelected;
+                      var velocity = dragEndDetails.primaryVelocity ?? 0;
+                      var newImageSelected = ((imageScrollController.offset - velocity * 0.2) / width)
+                          .round();
+                      // Only one image can be changed on drag end, even if the user dragged very fast
+                      if (newImageSelected - previousImageSelected > 1) {
+                        newImageSelected = previousImageSelected + 1;
+                      } else if (newImageSelected - previousImageSelected < -1) {
+                        newImageSelected = previousImageSelected - 1;
+                      }
+                      // saturate to avoid selecting an image that doesn't exist
+                      newImageSelected = max(0, min(widget.recipe.images.length - 1, newImageSelected));
+                      var newOffset = newImageSelected * width;
+                      // var offset = imageScrollController.offset;
+                      // var offsetWithVelocity = offset + max(-velocity * 0.2, width / 2.1) ;
+                      // var newOffset = offsetWithVelocity - (offsetWithVelocity + width / 2).remainder(width) + width / 2;
+
+                      setState(() {
+                        imageSelected = (newOffset / width).round();
+                      });
+                      imageScrollController.animateTo(
+                        newOffset,
+                        duration: Duration(milliseconds: 300),
+                        curve: Curves.linearToEaseOut,
+                      );
+                    }
+                  : null,
+            ),
             Padding(
               padding: const EdgeInsets.only(left: 16, right: 16, top: 0, bottom: 16),
               child: Container(
@@ -107,119 +203,75 @@ class RecipeDetails extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      recipe.prepTime != null
+                      widget.recipe.prepTime != null
                           ? Text(
-                        'Préparation : ${recipe.prepTimeFormatted!}',
-                        style: Theme
-                            .of(
-                          context,
-                        )
-                            .textTheme
-                            .labelMedium
-                            ?.copyWith(color: Theme
-                            .of(context)
-                            .colorScheme
-                            .primary),
-                      )
+                              'Préparation : ${widget.recipe.prepTimeFormatted!}',
+                              style: Theme.of(
+                                context,
+                              ).textTheme.labelMedium?.copyWith(color: Theme.of(context).colorScheme.primary),
+                            )
                           : Container(),
-                      recipe.cookTime != null
+                      widget.recipe.cookTime != null
                           ? Text(
-                        'Cuisson : ${recipe.cookTimeFormatted!}',
-                        style: Theme
-                            .of(
-                          context,
-                        )
-                            .textTheme
-                            .labelMedium
-                            ?.copyWith(color: Theme
-                            .of(context)
-                            .colorScheme
-                            .primary),
-                      )
+                              'Cuisson : ${widget.recipe.cookTimeFormatted!}',
+                              style: Theme.of(
+                                context,
+                              ).textTheme.labelMedium?.copyWith(color: Theme.of(context).colorScheme.primary),
+                            )
                           : Container(),
-                      recipe.restTime != null
+                      widget.recipe.restTime != null
                           ? Text(
-                        'Repos : ${recipe.restTimeFormatted!}',
-                        style: Theme
-                            .of(
-                          context,
-                        )
-                            .textTheme
-                            .labelMedium
-                            ?.copyWith(color: Theme
-                            .of(context)
-                            .colorScheme
-                            .primary),
-                      )
+                              'Repos : ${widget.recipe.restTimeFormatted!}',
+                              style: Theme.of(
+                                context,
+                              ).textTheme.labelMedium?.copyWith(color: Theme.of(context).colorScheme.primary),
+                            )
                           : Container(),
                       SizedBox(height: 4),
-                      Text(recipe.name, style: Theme
-                          .of(context)
-                          .textTheme
-                          .headlineMedium),
+                      Text(widget.recipe.name, style: Theme.of(context).textTheme.headlineMedium),
                       SizedBox(height: 4),
-                      Text(recipe.category?.displayName ?? '', style: Theme
-                          .of(context)
-                          .textTheme
-                          .bodySmall),
-                      SizedBox(height: 12),
-                      Text("Ingrédients", style: Theme
-                          .of(context)
-                          .textTheme
-                          .titleMedium),
-                      IngredientView(recipe: recipe),
-                      SizedBox(height: 12),
-                      Text("Instructions", style: Theme
-                          .of(context)
-                          .textTheme
-                          .titleMedium),
-                      SizedBox(height: 8),
-                      InstructionsView(recipe: recipe),
-                      SizedBox(height: 12),
                       Text(
-                        "Recette créée par ${recipe.creatorName} le ${recipe.createdTimeFormatted}",
-                        style: Theme
-                            .of(context)
-                            .textTheme
-                            .labelMedium,
+                        widget.recipe.category?.displayName ?? '',
+                        style: Theme.of(context).textTheme.bodySmall,
                       ),
                       SizedBox(height: 12),
-                      Text("Ustensiles", style: Theme
-                          .of(context)
-                          .textTheme
-                          .titleMedium),
+                      Text("Ingrédients", style: Theme.of(context).textTheme.titleMedium),
+                      IngredientView(recipe: widget.recipe),
+                      SizedBox(height: 12),
+                      Text("Instructions", style: Theme.of(context).textTheme.titleMedium),
+                      SizedBox(height: 8),
+                      InstructionsView(recipe: widget.recipe),
+                      SizedBox(height: 12),
+                      Text(
+                        "Recette créée par ${widget.recipe.creatorName} le ${widget.recipe.createdTimeFormatted}",
+                        style: Theme.of(context).textTheme.labelMedium,
+                      ),
+                      SizedBox(height: 12),
+                      Text("Ustensiles", style: Theme.of(context).textTheme.titleMedium),
                       SizedBox(
                         height: 40,
                         child: ListView.builder(
                           scrollDirection: Axis.horizontal,
-                          itemCount: recipe.cookware.length,
+                          itemCount: widget.recipe.cookware.length,
                           itemBuilder: (context, index) {
-                            final cookware = recipe.cookware[index];
+                            final cookware = widget.recipe.cookware[index];
                             return Padding(
                               padding: const EdgeInsets.only(right: 8.0),
-                              child: Chip(
-                                label: Text(cookware),
-                              ),
+                              child: Chip(label: Text(cookware)),
                             );
                           },
                         ),
                       ),
                       SizedBox(height: 12),
-                      Text("Commentaires", style: Theme
-                          .of(context)
-                          .textTheme
-                          .titleMedium),
+                      Text("Commentaires", style: Theme.of(context).textTheme.titleMedium),
                       SizedBox(height: 12),
                       Row(
                         children: [
-                          RatingStars(note: recipe.note, size: 32),
+                          RatingStars(note: widget.recipe.note, size: 32),
                           SizedBox(width: 12),
                           Text(
-                            recipe.note?.toStringAsPrecision(2) ?? '',
-                            style: Theme
-                                .of(context)
-                                .textTheme
-                                .headlineMedium,
+                            widget.recipe.note?.toStringAsPrecision(2) ?? '',
+                            style: Theme.of(context).textTheme.headlineMedium,
                           ),
                         ],
                       ),
