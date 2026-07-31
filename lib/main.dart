@@ -21,7 +21,7 @@ class ProvidersWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (context) {
-        final repo = AbcuistoRepository(url: "https://back.abcuisto.fr");
+        final repo = AbcuistoRepository(url: "http://localhost:7066");
         return repo;
       },
       child: MultiBlocProvider(
