@@ -15,53 +15,90 @@ class AbcuistoRepository extends ChangeNotifier {
   final String url;
   late final PocketBase pb;
   SharedPreferences? prefs;
-  String? fileToken;
+  String? authToken;
+  String? authEmail;
   bool initialized = false;
 
   AbcuistoRepository({required this.url});
 
+  bool get isAuthenticated => authToken?.isNotEmpty ?? false;
+
   Future<void> init() async {
     prefs = await SharedPreferences.getInstance();
+    authToken = prefs!.getString('api_auth_token');
+    authEmail = prefs!.getString('api_auth_email');
 
-    final store = AsyncAuthStore(
-      save: (String data) async => prefs!.setString('pb_auth', data),
-      initial: prefs!.getString('pb_auth'),
-    );
+    final store = AsyncAuthStore(save: (String data) async => prefs!.setString('pb_auth', data), initial: prefs!.getString('pb_auth'));
 
     pb = PocketBase(url, authStore: store);
     initialized = true;
     notifyListeners();
   }
 
-  Future<void> login(String username, String password) async {
-    await pb.collection('users').authWithPassword(username, password);
-    fileToken = await pb.files.getToken();
+  Future<void> login(String email, String password) async {
+    final response = await http.post(
+      Uri.parse('$url/api/auth/login'),
+      headers: const {'Content-Type': 'application/json'},
+      body: jsonEncode({'email': email, 'password': password}),
+    );
+
+    dynamic responseBody;
+    try {
+      responseBody = jsonDecode(response.body);
+    } on FormatException {
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        throw const AuthenticationException('Réponse invalide du serveur.');
+      }
+    }
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      final message = responseBody is Map<String, dynamic> ? responseBody['message'] ?? responseBody['error'] : null;
+      throw AuthenticationException(message is String && message.isNotEmpty ? message : 'Échec de la connexion (${response.statusCode}).');
+    }
+
+    if (responseBody is! Map<String, dynamic> || responseBody['token'] is! String || (responseBody['token'] as String).isEmpty) {
+      throw const AuthenticationException('Réponse invalide du serveur : token manquant.');
+    }
+
+    final token = responseBody['token'] as String;
+    final preferences = prefs;
+    if (preferences == null) {
+      throw StateError('Repository must be initialized before login.');
+    }
+    if (!await preferences.setString('api_auth_token', token) || !await preferences.setString('api_auth_email', email)) {
+      await preferences.remove('api_auth_token');
+      await preferences.remove('api_auth_email');
+      throw const AuthenticationException('Impossible de sauvegarder la session.');
+    }
+
+    authToken = token;
+    authEmail = email;
     notifyListeners();
   }
 
-  void logout() {
+  Future<void> logout() async {
     pb.authStore.clear();
+    final preferences = prefs;
+    if (preferences != null) {
+      await preferences.remove('api_auth_token');
+      await preferences.remove('api_auth_email');
+    }
+    authToken = null;
+    authEmail = null;
     notifyListeners();
   }
 
   Future<List<Recipe>> getRecipesFiltered(Filters filters) async {
     final res = await http.post(
-        Uri.parse(url + '/api/recipes/filters'),
-        headers: const {
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode(filters.toJson())
+      Uri.parse(url + '/api/recipes/filters'),
+      headers: const {'Content-Type': 'application/json'},
+      body: jsonEncode(filters.toJson()),
     );
     return jsonDecode(res.body)['recipes'].map<Recipe>((e) => Recipe.fromJson(e)).toList();
   }
 
   Future<RecipeFull> getRecipe(String id) async {
-    final record = await http.get(
-      Uri.parse(url + '/api/recipes/$id'),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    );
+    final record = await http.get(Uri.parse(url + '/api/recipes/$id'), headers: {'Content-Type': 'application/json'});
     return RecipeFull.fromJson(jsonDecode(record.body));
   }
 
@@ -85,10 +122,7 @@ class AbcuistoRepository extends ChangeNotifier {
     String? ingredientsCategoryId;
 
     if (ingredients.isNotEmpty) {
-      final categoryResult = await pb.collection('categories').create(body: {
-        'name': '$name-ingredients',
-        'visible': true,
-      });
+      final categoryResult = await pb.collection('categories').create(body: {'name': '$name-ingredients', 'visible': true});
       ingredientsCategoryId = categoryResult.id;
 
       for (final ingredient in ingredients) {
@@ -97,27 +131,26 @@ class AbcuistoRepository extends ChangeNotifier {
         final ingredientName = ingredient['name'] ?? '';
 
         if (ingredientName.isNotEmpty) {
-          final ingredientResult = await pb.collection('ingredients').create(body: {
-            'name': ingredientName,
-            'number': quantity,
-            'type': type,
-            'nameWithoutDiacritics': ingredientName.toLowerCase().replaceAll(RegExp(r'[^\w\s]'), ''),
-          });
+          final ingredientResult = await pb
+              .collection('ingredients')
+              .create(
+                body: {
+                  'name': ingredientName,
+                  'number': quantity,
+                  'type': type,
+                  'nameWithoutDiacritics': ingredientName.toLowerCase().replaceAll(RegExp(r'[^\w\s]'), ''),
+                },
+              );
           ingredientIds.add(ingredientResult.id);
         }
       }
 
       if (ingredientIds.isNotEmpty) {
-        await pb.collection('categories').update(categoryResult.id, body: {
-          'ingredientsIds': ingredientIds,
-        });
+        await pb.collection('categories').update(categoryResult.id, body: {'ingredientsIds': ingredientIds});
       }
     }
 
-    final notationResult = await pb.collection('notations').create(body: {
-      'note': 0,
-      'nbNotes': 0,
-    });
+    final notationResult = await pb.collection('notations').create(body: {'note': 0, 'nbNotes': 0});
 
     final body = <String, dynamic>{
       'nom': name,
@@ -143,4 +176,13 @@ class AbcuistoRepository extends ChangeNotifier {
     await pb.collection('recettes').create(body: body);
     notifyListeners();
   }
+}
+
+class AuthenticationException implements Exception {
+  final String message;
+
+  const AuthenticationException(this.message);
+
+  @override
+  String toString() => message;
 }

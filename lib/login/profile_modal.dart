@@ -21,8 +21,8 @@ void showProfilePopup(BuildContext context) {
           //   child: Text('Voir le profil'),
           // ),
           TextButton(
-            onPressed: () {
-              context.read<AuthenticationCubit>().logOut();
+            onPressed: () async {
+              await context.read<AuthenticationCubit>().logOut();
               context.read<FilterCubit>().update();
               Navigator.pop(context);
             },

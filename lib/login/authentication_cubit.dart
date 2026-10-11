@@ -16,6 +16,12 @@ class AuthenticationLoggedIn extends AuthenticationState {
 
 class AuthenticationLoggedOut extends AuthenticationState {}
 
+class AuthenticationFailure extends AuthenticationLoggedOut {
+  final String message;
+
+  AuthenticationFailure({required this.message});
+}
+
 class AuthenticationLoading extends AuthenticationState {}
 
 class AuthenticationCubit extends Cubit<AuthenticationState> {
@@ -27,21 +33,27 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
     checkAuthentication();
   }
 
-  Future<void> logIn(String username, String password) async {
+  Future<bool> logIn(String email, String password) async {
     emit(AuthenticationLoading());
-    await repository.login(username, password);
-    emit(AuthenticationLoggedIn(username: repository.pb.authStore.record!.get('name')));
+    try {
+      await repository.login(email, password);
+      emit(AuthenticationLoggedIn(username: repository.authEmail ?? email));
+      return true;
+    } on Exception catch (error) {
+      emit(AuthenticationFailure(message: error.toString()));
+      return false;
+    }
   }
 
-  void logOut() {
+  Future<void> logOut() async {
     emit(AuthenticationLoading());
-    repository.logout();
+    await repository.logout();
     emit(AuthenticationLoggedOut());
   }
 
   void checkAuthentication() {
-    if (repository.pb.authStore.isValid) {
-      emit(AuthenticationLoggedIn(username: repository.pb.authStore.record!.get('name')));
+    if (repository.isAuthenticated) {
+      emit(AuthenticationLoggedIn(username: repository.authEmail ?? ''));
     } else {
       emit(AuthenticationLoggedOut());
     }

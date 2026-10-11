@@ -26,6 +26,8 @@ class _LoginPageState extends State<LoginPage> {
       listener: (context, state) {
         if (state is AuthenticationLoggedIn) {
           Navigator.pop(context);
+        } else if (state is AuthenticationFailure) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
         }
       },
       child: Scaffold(
@@ -43,12 +45,7 @@ class _LoginPageState extends State<LoginPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: <Widget>[
-                        Image(
-                          image: const AssetImage("assets/logo.png"),
-                          width: 100,
-                          height: 100,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
+                        Image(image: const AssetImage("assets/logo.png"), width: 100, height: 100, color: Theme.of(context).colorScheme.primary),
                       ],
                     ),
 
@@ -100,10 +97,7 @@ class _LoginPageState extends State<LoginPage> {
                       children: [
                         TextButton(
                           onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => ForgotPasswordPage()),
-                            );
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => ForgotPasswordPage()));
                           },
                           child: const Text("Mot de passe oublié ?"),
                         ),
@@ -116,12 +110,11 @@ class _LoginPageState extends State<LoginPage> {
                     SizedBox(
                       width: double.infinity,
                       child: FilledButton(
-                        onPressed: () {
-                          context.read<AuthenticationCubit>().logIn(
-                            emailController.text,
-                            passwordController.text,
-                          );
-                          context.read<FilterCubit>().update();
+                        onPressed: () async {
+                          final loggedIn = await context.read<AuthenticationCubit>().logIn(emailController.text, passwordController.text);
+                          if (loggedIn && context.mounted) {
+                            context.read<FilterCubit>().update();
+                          }
                         },
                         child: const Text("Connexion"),
                       ),
@@ -142,10 +135,7 @@ class _LoginPageState extends State<LoginPage> {
                             },
                             child: Text(
                               "S'inscrire",
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.primary,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold),
                             ),
                           ),
                         ),
