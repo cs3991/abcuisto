@@ -1,10 +1,15 @@
+import 'dart:convert';
+
 import 'package:abcuisto/generated/pocketbase/recettes_record.dart';
 import 'package:abcuisto/models/recipe.dart';
 import 'package:abcuisto/recipe/add_recipe/enum_extensions.dart';
 import 'package:diacritic/diacritic.dart';
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 import 'package:pocketbase/pocketbase.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../recipe/filters/filters.dart';
 
 class AbcuistoRepository extends ChangeNotifier {
   final String url;
@@ -39,58 +44,25 @@ class AbcuistoRepository extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<List<Recipe>> getRecipes({
-    int page = 1,
-    int perPage = 50,
-    String? searchPattern,
-    List<String>? categories,
-    String? filterCreatorName,
-    int? filterMaxHours,
-    List<String>? tags,
-  }) async {
-    String filter = '';
-    if (searchPattern != null && searchPattern.isNotEmpty) {
-      final sanitized = removeDiacritics(
-        searchPattern,
-      ).toLowerCase().replaceAll(RegExp(r"[^a-zA-Z0-9\s']"), '').trim();
-      filter =
-          '(nameWithoutDiacritics ?~ "$sanitized" || categoriesIds.ingredientsIds.nameWithoutDiacritics ?~ "$sanitized")';
-    }
-    if (categories != null && categories.isNotEmpty) {
-      final categoryFilters = categories.map((c) => 'categorie ?= "$c"').join(' || ');
-      filter = filter.isEmpty ? '($categoryFilters)' : '$filter && ($categoryFilters)';
-    }
-    if (filterCreatorName != null && filterCreatorName.isNotEmpty) {
-      final sanitizedCreator = filterCreatorName.replaceAll('"', r'\"');
-      filter = filter.isEmpty
-          ? '(createur_pseudo ~ "$sanitizedCreator")'
-          : '$filter && (createur_pseudo ~ "$sanitizedCreator")';
-    }
-    if (filterMaxHours != null && filterMaxHours < 24) {
-      final timeFilter = 'tempsTotal < "${filterMaxHours.toString().padLeft(2, '0')}h00"';
-      filter = filter.isEmpty ? timeFilter : '$filter && $timeFilter';
-    }
-    if (tags != null && tags.isNotEmpty) {
-      final tagsFilter = tags
-          .map((t) {
-            if (t == 'Alcoolisé') t = 'Alcool';
-            return 'tags ?~ "${removeDiacritics(t.toUpperCase())}"';
-          })
-          .join(' && ');
-      filter = filter.isEmpty ? '($tagsFilter)' : '$filter && ($tagsFilter)';
-    }
-    print('Filter: $filter');
-    final response = await pb
-        .collection('recettes')
-        .getList(page: page, perPage: perPage, expand: 'noteId', filter: filter);
-    return response.items.map((e) => Recipe.fromRecord(RecettesRecord.fromRecordModel(e), pb)).toList();
+  Future<List<Recipe>> getRecipesFiltered(Filters filters) async {
+    final res = await http.post(
+        Uri.parse(url + '/api/recipes/filters'),
+        headers: const {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(filters.toJson())
+    );
+    return jsonDecode(res.body)['recipes'].map<Recipe>((e) => Recipe.fromJson(e)).toList();
   }
 
   Future<RecipeFull> getRecipe(String id) async {
-    final record = await pb
-        .collection('recettes')
-        .getOne(id, expand: 'categoriesIds.ingredientsIds, noteId, groupsIds');
-    return RecipeFull.fromRecord(RecettesRecord.fromRecordModel(record), pb);
+    final record = await http.get(
+      Uri.parse(url + '/api/recipes/$id'),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    );
+    return RecipeFull.fromJson(jsonDecode(record.body));
   }
 
   Future<void> createRecipe({

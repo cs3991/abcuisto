@@ -29,7 +29,6 @@ class Recipe {
   final Duration? cookTime;
   final Duration? restTime;
   final double? note;
-  final RecettesRecord record;
   final String creatorName;
   final DateTime createdDate;
   final Category? category;
@@ -42,40 +41,20 @@ class Recipe {
     this.cookTime,
     this.restTime,
     this.note,
-    required this.record,
     required this.creatorName,
     required this.createdDate,
     required this.category,
     required this.cookware,
   });
 
-  factory Recipe.fromRecord(RecettesRecord recipe, PocketBase pb) {
-    final notationRecord = NotationsRecord.fromRecordModel(recipe.expand!['noteId'][0]);
-
-    // Durées (peuvent être nulles)
-    Duration? parseDuration(String? value) {
-      if (value == null || !value.contains('h')) return null;
-      final parts = value.split('h');
-      return Duration(hours: int.parse(parts[0]), minutes: int.parse(parts[1]));
-    }
-
+  factory Recipe.fromJson(Map<String, dynamic> recipe) {
     return Recipe(
-      name: recipe.nom!,
-      images: recipe.documents!.map((e) => pb.files.getUrl(RecordModel(recipe.toJson()), e)).toList(),
-      // instructions: recipe.steps!.split('£').map((e) => e.replaceAll('¤', '\n')),
-      prepTime: parseDuration(recipe.tempsPreparation),
-      cookTime: parseDuration(recipe.tempsCuisson),
-      // restTime: parseDuration(recipe.tempsRepos),
-      restTime: null,
-      note: notationRecord.nbNotes != 0 ? notationRecord.note : null,
-      // ingredients: ingredients,
-      record: recipe,
-      creatorName: recipe.createurPseudo ?? 'Anonyme',
-      createdDate: recipe.created!,
-      category: Category.values.firstWhere((c) => c.label == recipe.categorie?.nameInSchema),
-      cookware: recipe.ustensiles == "" || recipe.ustensiles == null
-          ? List.empty()
-          : recipe.ustensiles!.split(";").toList(),
+      images: recipe['documents'].map<Uri>((doc) => Uri.parse('http://localhost:7066/images/$doc')).toList() as List<Uri>,
+      name: recipe['name'],
+      creatorName: '',
+      createdDate: new DateTime.now(),
+      category: null,
+      cookware: [],
     );
   }
 
@@ -85,7 +64,10 @@ class Recipe {
 
   String? get restTimeFormatted => _printDuration(restTime);
 
-  Duration get totalTime => (prepTime ?? Duration()) + (cookTime ?? Duration()) + (restTime ?? Duration());
+  Duration get totalTime =>
+      (prepTime ?? Duration()) +
+      (cookTime ?? Duration()) +
+      (restTime ?? Duration());
 
   String? get totalTimeFormatted => _printDuration(totalTime);
 
@@ -121,7 +103,6 @@ class RecipeFull extends Recipe {
     super.cookTime,
     super.restTime,
     super.note,
-    required super.record,
     required this.ingredients,
     required this.instructions,
     required super.creatorName,
@@ -130,30 +111,38 @@ class RecipeFull extends Recipe {
     required super.cookware,
   });
 
-  factory RecipeFull.fromRecord(RecettesRecord recipe, PocketBase pb) {
-    final baseRecipe = Recipe.fromRecord(recipe, pb);
-    final List<CategoriesRecord> categoriesRecord = recipe.expand!['categoriesIds']
+  factory RecipeFull.fromJson(Map<String, dynamic> recipe) {
+    final baseRecipe = Recipe.fromJson(recipe);
+    /*
+    final List<CategoriesRecord> categoriesRecord = recipe
+        .expand!['categoriesIds']
         .map<CategoriesRecord>((e) => CategoriesRecord.fromRecordModel(e))
         .toList();
+        */
     // Construction de la map { catégorie : [ingredients] }
     final ingredients = <String, List<Ingredient>>{};
+    /*
     for (final category in categoriesRecord) {
       final ingrRecords = category.expand!['ingredientsIds'] ?? [];
 
       ingredients[category.name!] = ingrRecords
-          .map<Ingredient>((e) => Ingredient.fromRecordModel(IngredientsRecord.fromRecordModel(e)))
+          .map<Ingredient>(
+            (e) => Ingredient.fromRecordModel(
+              IngredientsRecord.fromRecordModel(e),
+            ),
+          )
           .toList();
     }
+    */
     return RecipeFull(
       images: baseRecipe.images,
       name: baseRecipe.name,
       ingredients: ingredients,
-      instructions: recipe.steps!.split('£').map((e) => e.replaceAll('¤', '\n')),
+      instructions: [],
       prepTime: baseRecipe.prepTime,
       cookTime: baseRecipe.cookTime,
       restTime: baseRecipe.restTime,
       note: baseRecipe.note,
-      record: baseRecipe.record,
       creatorName: baseRecipe.creatorName,
       createdDate: baseRecipe.createdDate,
       category: baseRecipe.category,

@@ -1,8 +1,11 @@
+import 'dart:convert';
+
 import 'package:abcuisto/models/recipe.dart';
 import 'package:bloc/bloc.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 
 import '../../models/abcuisto_repository.dart';
+import 'filters.dart';
 
 class FilterState {
   final PagingState<int, Recipe> pagingState;
@@ -52,15 +55,18 @@ class FilterCubit extends Cubit<FilterState> {
 
     try {
       final newKey = (state.pagingState.keys?.last ?? 0) + 1;
-      final newItems = await repository.getRecipes(
+      final newItems = await repository.getRecipesFiltered(new Filters(
+        searchText: '',
+        totalTime: 0,
+        tags: [],
+        ingredients: [],
+        ingredientsToExclude: [],
+        creator: '',
+        categories: [],
+        groups: [],
+        ids: [],
         page: newKey,
-        perPage: perPage,
-        searchPattern: state.searchPattern,
-        categories: state.filteredCategories,
-        filterCreatorName: state.filteredCreatorName,
-        filterMaxHours: state.filteredMaxTime,
-        tags: state.filteredTags,
-      );
+      ));
       final isLastPage = newItems.isEmpty;
 
       emit(
