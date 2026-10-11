@@ -15,8 +15,8 @@ class SearchAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     searchBarController.value = context.select(
       (FilterCubit cubit) => TextEditingValue(
-        text: cubit.state.searchPattern ?? '',
-        selection: TextSelection.collapsed(offset: cubit.state.searchPattern?.length ?? 0),
+        text: cubit.state.filter.searchText ?? '',
+        selection: TextSelection.collapsed(offset: cubit.state.filter.searchText?.length ?? 0),
       ),
     );
     return AppBar(

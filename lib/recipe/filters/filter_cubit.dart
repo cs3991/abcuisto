@@ -1,4 +1,3 @@
-import 'dart:convert';
 
 import 'package:abcuisto/models/recipe.dart';
 import 'package:bloc/bloc.dart';
@@ -9,37 +8,12 @@ import 'filters.dart';
 
 class FilterState {
   final PagingState<int, Recipe> pagingState;
-  final String? searchPattern;
-  final List<String> filteredCategories;
-  final String? filteredCreatorName;
-  final int? filteredMaxTime;
-  final List<String> filteredTags;
+  final Filters filter;
 
-  FilterState(
-    this.pagingState, {
-    this.searchPattern,
-    this.filteredCategories = const [],
-    this.filteredCreatorName,
-    this.filteredMaxTime,
-    this.filteredTags = const [],
-  });
+  FilterState(this.pagingState, {required this.filter});
 
-  FilterState copyWith({
-    PagingState<int, Recipe>? pagingState,
-    String? searchPattern,
-    List<String>? filteredCategories,
-    String? filteredCreatorName,
-    int? filteredMaxTime,
-    List<String>? filteredTags,
-  }) {
-    return FilterState(
-      pagingState ?? this.pagingState,
-      searchPattern: searchPattern ?? this.searchPattern,
-      filteredCategories: filteredCategories ?? this.filteredCategories,
-      filteredCreatorName: filteredCreatorName ?? this.filteredCreatorName,
-      filteredMaxTime: filteredMaxTime ?? this.filteredMaxTime,
-      filteredTags: filteredTags ?? this.filteredTags,
-    );
+  FilterState copyWith({PagingState<int, Recipe>? pagingState, Filters? filter}) {
+    return FilterState(pagingState ?? this.pagingState, filter: filter ?? this.filter);
   }
 }
 
@@ -47,7 +21,13 @@ class FilterCubit extends Cubit<FilterState> {
   final AbcuistoRepository repository;
   static const int perPage = 10;
 
-  FilterCubit(this.repository) : super(FilterState(PagingState<int, Recipe>()));
+  FilterCubit(this.repository)
+    : super(
+        FilterState(
+          PagingState<int, Recipe>(),
+          filter: Filters(searchText: '', tags: [], ingredients: [], ingredientsToExclude: [], creator: '', categories: [], groups: [], ids: []),
+        ),
+      );
 
   Future<void> fetchNextPage() async {
     if (state.pagingState.isLoading) return;
@@ -55,18 +35,7 @@ class FilterCubit extends Cubit<FilterState> {
 
     try {
       final newKey = (state.pagingState.keys?.last ?? 0) + 1;
-      final newItems = await repository.getRecipesFiltered(Filters(
-        searchText: '',
-        // totalTime: 0,
-        tags: [],
-        ingredients: [],
-        ingredientsToExclude: [],
-        creator: '',
-        categories: [],
-        groups: [],
-        ids: [],
-        page: newKey,
-      ));
+      final newItems = await repository.getRecipesFiltered(state.filter.copyWith(page: newKey));
       final isLastPage = newItems.isEmpty;
 
       emit(
@@ -90,37 +59,61 @@ class FilterCubit extends Cubit<FilterState> {
   }
 
   void updateSearchPattern(String? pattern) {
-    emit(state.copyWith(pagingState: PagingState<int, Recipe>(), searchPattern: pattern));
+    emit(
+      state.copyWith(
+        pagingState: PagingState<int, Recipe>(),
+        filter: state.filter.copyWith(searchText: pattern ?? ''),
+      ),
+    );
   }
 
   void updateFilteredCategories(String category, bool isSelected) {
-    final updatedCategories = List<String>.from(state.filteredCategories);
+    final updatedCategories = List<String>.from(state.filter.categories ?? []);
     if (isSelected && !updatedCategories.contains(category)) {
       updatedCategories.add(category);
     } else if (!isSelected && updatedCategories.contains(category)) {
       updatedCategories.remove(category);
     }
-    emit(state.copyWith(pagingState: PagingState<int, Recipe>(), filteredCategories: updatedCategories));
+    emit(
+      state.copyWith(
+        pagingState: PagingState<int, Recipe>(),
+        filter: state.filter.copyWith(categories: updatedCategories),
+      ),
+    );
   }
 
   void updateFilteredCreatorName(String? name) {
     name ??= '';
-    emit(state.copyWith(pagingState: PagingState<int, Recipe>(), filteredCreatorName: name));
+    emit(
+      state.copyWith(
+        pagingState: PagingState<int, Recipe>(),
+        filter: state.filter.copyWith(creator: name),
+      ),
+    );
   }
 
   void updateFilteredMaxTime(int? maxHours) {
-    maxHours ??= 24;
-    emit(state.copyWith(pagingState: PagingState<int, Recipe>(), filteredMaxTime: maxHours));
+    emit(
+      state.copyWith(
+        pagingState: PagingState<int, Recipe>(),
+        filter: state.filter.copyWith(totalTime: maxHours == 24 ? null : maxHours, clearTotalTime: maxHours == null || maxHours == 24),
+      ),
+    );
   }
 
   void updateFilteredTags(String tag, bool isSelected) {
-    final updatedTags = List<String>.from(state.filteredTags);
+    final updatedTags = List<String>.from(state.filter.tags ?? []);
     if (isSelected && !updatedTags.contains(tag)) {
       updatedTags.add(tag);
     } else if (!isSelected && updatedTags.contains(tag)) {
       updatedTags.remove(tag);
     }
-    emit(state.copyWith(pagingState: PagingState<int, Recipe>(), filteredTags: updatedTags));
+    emit(
+      state.copyWith(
+        pagingState: PagingState<int, Recipe>(),
+        filter: state.filter.copyWith(tags: updatedTags),
+      ),
+    );
   }
 
   void update() {

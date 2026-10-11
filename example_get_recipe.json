@@ -1,0 +1,127 @@
+{
+    "id": "13238f76-61fb-43d7-8408-25a43c85e4bc",
+    "name": "Pâte sucrée",
+    "preparationTime": 15,
+    "cookingTime": null,
+    "waitingTime": null,
+    "totalTime": 15,
+    "creator": "b5e2c5bd-a31f-40da-a3fa-e929f35e6557",
+    "creatorPseudo": "TrawFram",
+    "category": "Dessert",
+    "documents": null,
+    "images": null,
+    "forNumber": 1,
+    "typeNumber": "Pièces",
+    "steps": [
+        "Malaxer le beurre pommade.\nCrémer avec le sucre glace et la poudre d'amandes.",
+        "Ajouter les œufs et mélanger.",
+        "Ajouter la farine et mélanger.\nFraser sans corser.\nRassembler et aplatir.",
+        "Filmer au contact et laisser reposer minimum 30min au frigo avant utilisation."
+    ],
+    "tags": [
+        "VEGETARIEN"
+    ],
+    "groups": [
+        {
+            "id": "a49f2b6b-f3ce-4535-ab08-f60a11ccb38c",
+            "name": "CAP pâtisserie",
+            "owner": "b5e2c5bd-a31f-40da-a3fa-e929f35e6557",
+            "canEdit": false,
+            "link": "https://abcuisto.fr/group/a49f2b6b-f3ce-4535-ab08-f60a11ccb38c",
+            "newOwner": null,
+            "memberId": null,
+            "memberUserName": null
+        },
+        {
+            "id": "527d5a69-58e2-4c45-8e44-a612580188de",
+            "name": "Famille",
+            "owner": "fc23d72e-173a-4fd8-8ad0-0675d1df0d21",
+            "canEdit": false,
+            "link": "https://abcuisto.fr/group/527d5a69-58e2-4c45-8e44-a612580188de",
+            "newOwner": null,
+            "memberId": null,
+            "memberUserName": null
+        },
+        {
+            "id": "ce5bd221-67dc-4545-ac5c-18411353b786",
+            "name": "Public",
+            "owner": "b5e2c5bd-a31f-40da-a3fa-e929f35e6557",
+            "canEdit": false,
+            "link": "https://abcuisto.fr/group/ce5bd221-67dc-4545-ac5c-18411353b786",
+            "newOwner": null,
+            "memberId": null,
+            "memberUserName": null
+        }
+    ],
+    "noteId": "2002c2cb-5f43-4320-aa04-c19ab85b1ffe",
+    "note": 0,
+    "nbNotes": 0,
+    "comments": [],
+    "ustensiles": [
+        ""
+    ],
+    "ingredientsCategories": [
+        {
+            "id": "3714d99e-ea37-45a6-a0ef-2db05a1575c7",
+            "name": "Pâte sucrée",
+            "index": 0,
+            "ingredients": [
+                {
+                    "id": "b69fd94e-2f00-42e6-b7b0-64cad85eb409",
+                    "name": "Farine T55",
+                    "type": "g",
+                    "number": 190,
+                    "index": 0,
+                    "price": null,
+                    "category": "3714d99e-ea37-45a6-a0ef-2db05a1575c7"
+                },
+                {
+                    "id": "3fe01a9c-765d-46d0-9f09-3f670abc01a5",
+                    "name": "Beurre",
+                    "type": "g",
+                    "number": 115,
+                    "index": 0,
+                    "price": null,
+                    "category": "3714d99e-ea37-45a6-a0ef-2db05a1575c7"
+                },
+                {
+                    "id": "749e700a-f9b6-4722-aca9-30764999f49d",
+                    "name": "Poudre d'amandes",
+                    "type": "g",
+                    "number": 23,
+                    "index": 0,
+                    "price": null,
+                    "category": "3714d99e-ea37-45a6-a0ef-2db05a1575c7"
+                },
+                {
+                    "id": "67e3af3d-47db-473e-9eed-ba79f33159a2",
+                    "name": "Oeufs",
+                    "type": "g",
+                    "number": 43,
+                    "index": 0,
+                    "price": null,
+                    "category": "3714d99e-ea37-45a6-a0ef-2db05a1575c7"
+                },
+                {
+                    "id": "04e4fb49-c7b5-4af9-bdb7-9cfbaf437357",
+                    "name": "Sel",
+                    "type": "g",
+                    "number": 0.5,
+                    "index": 0,
+                    "price": null,
+                    "category": "3714d99e-ea37-45a6-a0ef-2db05a1575c7"
+                },
+                {
+                    "id": "8ed1d4da-1bf6-43b9-8f40-2b42fa13d4e4",
+                    "name": "Sucre glace",
+                    "type": "g",
+                    "number": 73,
+                    "index": 0,
+                    "price": null,
+                    "category": "3714d99e-ea37-45a6-a0ef-2db05a1575c7"
+                }
+            ],
+            "recipe": "13238f76-61fb-43d7-8408-25a43c85e4bc"
+        }
+    ]
+}

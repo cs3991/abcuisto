@@ -84,7 +84,7 @@ class _RecipesListState extends State<RecipesList> {
                           },
                         ),
                         const SizedBox(width: 8),
-                        ...state.filteredCategories.map(
+                        ...(state.filter.categories ?? []).map(
                               (category) => Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 2.0),
                             child: InputChip(
@@ -95,12 +95,12 @@ class _RecipesListState extends State<RecipesList> {
                             ),
                           ),
                         ),
-                        ...state.filteredCreatorName != null && state.filteredCreatorName!.isNotEmpty
+                        ...state.filter.creator != null && state.filter.creator!.isNotEmpty
                             ? [
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 2.0),
                             child: InputChip(
-                              label: Text('Créé par ${state.filteredCreatorName}'),
+                              label: Text('Créé par ${state.filter.creator}'),
                               onDeleted: () {
                                 context.read<FilterCubit>().updateFilteredCreatorName(null);
                               },
@@ -108,12 +108,12 @@ class _RecipesListState extends State<RecipesList> {
                           ),
                         ]
                             : [],
-                        ...state.filteredMaxTime != null && state.filteredMaxTime! < 24
+                        ...state.filter.totalTime != null && state.filter.totalTime! < 24
                             ? [
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 2.0),
                             child: InputChip(
-                              label: Text('Moins de ${state.filteredMaxTime}h'),
+                              label: Text('Moins de ${state.filter.totalTime}h'),
                               onDeleted: () {
                                 context.read<FilterCubit>().updateFilteredMaxTime(null);
                               },
@@ -121,7 +121,7 @@ class _RecipesListState extends State<RecipesList> {
                           ),
                         ]
                             : [],
-                        ...state.filteredTags.map(
+                        ...(state.filter.tags ?? []).map(
                               (tag) =>
                               Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 2.0),

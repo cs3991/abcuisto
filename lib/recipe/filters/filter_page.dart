@@ -33,11 +33,11 @@ class _FilterPageState extends State<FilterPage> {
   Widget build(BuildContext context) {
     creatorController.value = context.select(
       (FilterCubit cubit) => TextEditingValue(
-        text: cubit.state.filteredCreatorName ?? '',
-        selection: TextSelection.collapsed(offset: cubit.state.filteredCreatorName?.length ?? 0),
+        text: cubit.state.filter.creator ?? '',
+        selection: TextSelection.collapsed(offset: cubit.state.filter.creator?.length ?? 0),
       ),
     );
-    totalTimeValue = context.select((FilterCubit cubit) => cubit.state.filteredMaxTime ?? 24);
+    totalTimeValue = context.select((FilterCubit cubit) => cubit.state.filter.totalTime ?? 24);
     return Scaffold(
       appBar: SearchAppBar(),
       body: Padding(
@@ -50,7 +50,7 @@ class _FilterPageState extends State<FilterPage> {
               title: Text('Catégories', style: Theme.of(context).textTheme.titleMedium),
               children: FilterPage.categories.map((category) {
                 final isSelected = context.select(
-                  (FilterCubit cubit) => cubit.state.filteredCategories.contains(category),
+                  (FilterCubit cubit) => cubit.state.filter.categories?.contains(category) ?? false,
                 );
                 return CheckboxListTile(
                   title: Text(category),
@@ -106,9 +106,9 @@ class _FilterPageState extends State<FilterPage> {
             SizedBox(height: 16),
             BlocBuilder<FilterCubit, FilterState>(
               builder: (context, state) {
-                final text = state.filteredMaxTime == 24 || state.filteredMaxTime == null
+                final text = state.filter.totalTime == 24 || state.filter.totalTime == null
                     ? "Pas de limite"
-                    : "${state.filteredMaxTime}h";
+                    : "${state.filter.totalTime}h";
                 return Text('Temps total maximum : $text', style: Theme.of(context).textTheme.titleMedium);
               },
             ),
@@ -120,7 +120,7 @@ class _FilterPageState extends State<FilterPage> {
                   initiallyExpanded: true,
                   title: Text('Caractéristiques', style: Theme.of(context).textTheme.titleMedium),
                   children: FilterPage.tags.map((tag) {
-                    final isSelected = state.filteredTags.contains(tag);
+                    final isSelected = state.filter.tags?.contains(tag) ?? false;
                     return CheckboxListTile(
                       title: Text(tag),
                       value: isSelected,

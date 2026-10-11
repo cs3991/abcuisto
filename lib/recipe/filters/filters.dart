@@ -58,6 +58,33 @@ class Filters {
     this.page,
   });
 
+  Filters copyWith({
+    String? searchText,
+    int? totalTime,
+    bool clearTotalTime = false,
+    List<String>? tags,
+    List<String>? ingredients,
+    List<String>? ingredientsToExclude,
+    String? creator,
+    List<String>? categories,
+    List<String>? groups,
+    List<String>? ids,
+    int? page,
+  }) {
+    return Filters(
+      searchText: searchText ?? this.searchText,
+      totalTime: clearTotalTime ? null : totalTime ?? this.totalTime,
+      tags: tags ?? this.tags,
+      ingredients: ingredients ?? this.ingredients,
+      ingredientsToExclude: ingredientsToExclude ?? this.ingredientsToExclude,
+      creator: creator ?? this.creator,
+      categories: categories ?? this.categories,
+      groups: groups ?? this.groups,
+      ids: ids ?? this.ids,
+      page: page ?? this.page,
+    );
+  }
+
   Map<String, dynamic> toJson() {
     return {
       if (searchText != null) 'searchText': searchText,
