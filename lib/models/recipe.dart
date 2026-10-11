@@ -1,3 +1,4 @@
+import 'package:abcuisto/app_config.dart' show AppConfig;
 import 'package:abcuisto/generated/pocketbase/categories_record.dart';
 import 'package:abcuisto/generated/pocketbase/ingredients_record.dart';
 import 'package:abcuisto/generated/pocketbase/notations_record.dart';
@@ -49,10 +50,10 @@ class Recipe {
 
   factory Recipe.fromJson(Map<String, dynamic> recipe) {
     return Recipe(
-      images: recipe['documents'].map<Uri>((doc) => Uri.parse('http://localhost:7066/images/$doc')).toList() as List<Uri>,
+      images: (recipe['documents'] ?? <dynamic>[]).map<Uri>((dynamic doc) => Uri.parse('${AppConfig.instance.apiUrl}/images/$doc')).toList(),
       name: recipe['name'],
       creatorName: '',
-      createdDate: new DateTime.now(),
+      createdDate: DateTime.now(),
       category: null,
       cookware: [],
     );
@@ -64,10 +65,7 @@ class Recipe {
 
   String? get restTimeFormatted => _printDuration(restTime);
 
-  Duration get totalTime =>
-      (prepTime ?? Duration()) +
-      (cookTime ?? Duration()) +
-      (restTime ?? Duration());
+  Duration get totalTime => (prepTime ?? Duration()) + (cookTime ?? Duration()) + (restTime ?? Duration());
 
   String? get totalTimeFormatted => _printDuration(totalTime);
 

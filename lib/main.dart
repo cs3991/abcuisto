@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:abcuisto/app_config.dart';
 import 'package:abcuisto/entry_page.dart';
 import 'package:abcuisto/login/authentication_cubit.dart';
 import 'package:abcuisto/models/abcuisto_repository.dart';
@@ -11,6 +12,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 
 void main() {
+  final flavorName = const String.fromEnvironment('APP_FLAVOR', defaultValue: 'prod');
+  final flavor = AppFlavor.values.firstWhere(
+    (value) => value.name == flavorName,
+    orElse: () => AppFlavor.dev,
+  );
+
+  AppConfig.initialize(flavor: flavor);
   runApp(const ProvidersWidget());
 }
 
@@ -21,7 +29,7 @@ class ProvidersWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (context) {
-        final repo = AbcuistoRepository(url: "http://localhost:7066");
+        final repo = AbcuistoRepository(url: AppConfig.instance.apiUrl);
         return repo;
       },
       child: MultiBlocProvider(

@@ -55,9 +55,9 @@ class FilterCubit extends Cubit<FilterState> {
 
     try {
       final newKey = (state.pagingState.keys?.last ?? 0) + 1;
-      final newItems = await repository.getRecipesFiltered(new Filters(
+      final newItems = await repository.getRecipesFiltered(Filters(
         searchText: '',
-        totalTime: 0,
+        // totalTime: 0,
         tags: [],
         ingredients: [],
         ingredientsToExclude: [],
