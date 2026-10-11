@@ -59,7 +59,7 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
   }
 
   Future<void> sendPasswordReset(String email) async {
-    await repository.resetPassword({'email': email});
+    await repository.resetPassword(email: email);
   }
 
   Future<void> signUp(String email, String password, String username) async {

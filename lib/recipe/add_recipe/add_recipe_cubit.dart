@@ -35,7 +35,7 @@ class AddRecipeCubit extends Cubit<AddRecipeState> {
     required RecettesRecordTypeNumberEnum typeNumber,
     required RecettesRecordPrixEnum prix,
     required List<RecettesRecordTagsEnum> tags,
-    required List<Map<String, String>> ingredients,
+    required List<RecipeIngredientInput> ingredients,
   }) async {
     emit(AddRecipeLoading());
     try {

@@ -137,13 +137,75 @@ class AbcuistoRepository extends ChangeNotifier {
 
   Future<dynamic> getAllRecipes() => _get('/api/Recipes/all');
 
-  Future<dynamic> deleteRecipe(Map<String, dynamic> recipe) => _post('/api/Recipes/deleteRecipe', recipe);
+  Future<dynamic> deleteRecipe({required String id}) => _post('/api/Recipes/deleteRecipe', {'id': id});
 
-  Future<dynamic> updateRecipe(Map<String, dynamic> recipe) => _post('/api/Recipes/updateRecipe', recipe);
+  Future<dynamic> updateRecipe({
+    required String id,
+    String? name,
+    int? preparationTime,
+    int? cookingTime,
+    int? waitingTime,
+    int? totalTime,
+    String? creator,
+    String? creatorPseudo,
+    String? category,
+    List<String>? documents,
+    List<ApiImageInput>? images,
+    int? forNumber,
+    String? typeNumber,
+    List<String>? steps,
+    List<String>? tags,
+    List<ApiGroupInput>? groups,
+    String? noteId,
+    int? note,
+    int? nbNotes,
+    List<ApiRecipeCommentInput>? comments,
+    List<String>? ustensiles,
+    List<ApiRecipeCategoryInput>? ingredientsCategories,
+  }) {
+    final recipe = <String, dynamic>{
+      'id': id,
+      if (name != null) 'name': name,
+      if (preparationTime != null) 'preparationTime': preparationTime,
+      if (cookingTime != null) 'cookingTime': cookingTime,
+      if (waitingTime != null) 'waitingTime': waitingTime,
+      if (totalTime != null) 'totalTime': totalTime,
+      if (creator != null) 'creator': creator,
+      if (creatorPseudo != null) 'creatorPseudo': creatorPseudo,
+      if (category != null) 'category': category,
+      if (documents != null) 'documents': documents,
+      if (images != null) 'images': images.map((image) => image.toJson()).toList(),
+      if (forNumber != null) 'forNumber': forNumber,
+      if (typeNumber != null) 'typeNumber': typeNumber,
+      if (steps != null) 'steps': steps,
+      if (tags != null) 'tags': tags,
+      if (groups != null) 'groups': groups.map((group) => group.toJson()).toList(),
+      if (noteId != null) 'noteId': noteId,
+      if (note != null) 'note': note,
+      if (nbNotes != null) 'nbNotes': nbNotes,
+      if (comments != null) 'comments': comments.map((comment) => comment.toJson()).toList(),
+      if (ustensiles != null) 'ustensiles': ustensiles,
+      if (ingredientsCategories != null)
+        'ingredientsCategories': ingredientsCategories.map((category) => category.toJson()).toList(),
+    };
+    return _post('/api/Recipes/updateRecipe', recipe);
+  }
 
   Future<dynamic> getRecipesForAuthorization(Filters filters) => _post('/api/Recipes/filters/authorization', filters.toJson());
 
-  Future<dynamic> commentRecipe(Map<String, dynamic> comment) => _post('/api/Recipes/commentRecipe', comment);
+  Future<dynamic> commentRecipe({
+    required String recipeId,
+    required String comment,
+    String? userId,
+    String? username,
+    int? note,
+  }) => _post('/api/Recipes/commentRecipe', {
+    'recipe': recipeId,
+    'comment': comment,
+    if (userId != null) 'user': userId,
+    if (username != null) 'username': username,
+    if (note != null) 'note': note,
+  });
 
   Future<dynamic> deleteComment(String recipeId, String commentId) =>
       _delete('/api/Recipes/deleteComment/${Uri.encodeComponent(recipeId)}/${Uri.encodeComponent(commentId)}');
@@ -152,21 +214,30 @@ class AbcuistoRepository extends ChangeNotifier {
 
   Future<dynamic> createNewGroup(String name) => _post('/api/Groups/createNewGroup', name);
 
-  Future<dynamic> joinGroup(Map<String, dynamic> group) => _post('/api/Groups/joinGroup', group);
+  Future<dynamic> joinGroup({required String groupId, required String memberId, String? memberUserName}) =>
+      _post('/api/Groups/joinGroup', {
+        'id': groupId,
+        'memberId': memberId,
+        if (memberUserName != null) 'memberUserName': memberUserName,
+      });
 
-  Future<dynamic> deleteGroup(String id) => _post('/api/Groups/deleteGroup', id);
+  Future<dynamic> deleteGroup(String groupId) => _post('/api/Groups/deleteGroup', groupId);
 
-  Future<dynamic> changeCanEdit(Map<String, dynamic> group) => _post('/api/Groups/changeCanEdit', group);
+  Future<dynamic> changeCanEdit({required String groupId, required bool canEdit}) =>
+      _post('/api/Groups/changeCanEdit', {'id': groupId, 'canEdit': canEdit});
 
-  Future<dynamic> changeGroupOwner(Map<String, dynamic> group) => _post('/api/Groups/changeGroupOwner', group);
+  Future<dynamic> changeGroupOwner({required String groupId, required String newOwnerId}) =>
+      _post('/api/Groups/changeGroupOwner', {'id': groupId, 'newOwner': newOwnerId});
 
   Future<dynamic> getGroupUsers(String id) => _get('/api/Groups/getGroupUsers/${Uri.encodeComponent(id)}');
 
-  Future<dynamic> quitGroup(Map<String, dynamic> group) => _post('/api/Groups/quitGroup', group);
+  Future<dynamic> quitGroup({required String groupId, required String memberId}) =>
+      _post('/api/Groups/quitGroup', {'id': groupId, 'memberId': memberId});
 
   Future<dynamic> getIngredientsPrices() => _get('/api/Prices/getIngredients');
 
-  Future<dynamic> editIngredientsPrices(Map<String, dynamic> ingredients) => _post('/api/Prices/editIngredients', ingredients);
+  Future<dynamic> editIngredientsPrices({required List<IngredientPriceInput> ingredients}) =>
+      _post('/api/Prices/editIngredients', {'ingredients': ingredients.map((ingredient) => ingredient.toJson()).toList()});
 
   Future<dynamic> deleteIngredient(String id) => _post('/api/Prices/deleteIngredient', id);
 
@@ -182,23 +253,60 @@ class AbcuistoRepository extends ChangeNotifier {
 
   Future<dynamic> verifyEmail(String token) => _post('/api/User/verifyEmail', token);
 
-  Future<dynamic> updateBio(Map<String, dynamic> user) => _post('/api/User/updateBio', user);
+  Future<dynamic> updateBio({required String bio, String? userName}) =>
+      _post('/api/User/updateBio', {'bio': bio, if (userName != null) 'userName': userName});
 
-  Future<dynamic> updateEmail(Map<String, dynamic> user) => _post('/api/User/updateEmail', user);
+  Future<dynamic> updateEmail({required String email, required String lastPassword}) =>
+      _post('/api/User/updateEmail', {'email': email, 'lastPassword': lastPassword});
 
   Future<dynamic> confirmUpdateEmail(String token) => _post('/api/User/confirmUpdateEmail', token);
 
-  Future<dynamic> resetPassword(Map<String, dynamic> request) => _post('/api/User/resetPassword', request);
+  Future<dynamic> resetPassword({
+    required String email,
+    String? newPassword,
+    String? confirmNewPassword,
+  }) => _post('/api/User/resetPassword', {
+    'email': email,
+    if (newPassword != null) 'newPassword': newPassword,
+    if (confirmNewPassword != null) 'confirmNewPassword': confirmNewPassword,
+  });
 
-  Future<dynamic> confirmResetPassword(Map<String, dynamic> request) => _post('/api/User/confirmResetPassword', request);
+  Future<dynamic> confirmResetPassword({
+    required String email,
+    required String token,
+    required String newPassword,
+    required String confirmNewPassword,
+  }) => _post('/api/User/confirmResetPassword', {
+    'email': email,
+    'token': token,
+    'newPassword': newPassword,
+    'confirmNewPassword': confirmNewPassword,
+  });
 
-  Future<dynamic> updatePassword(Map<String, dynamic> user) => _post('/api/User/updatePassword', user);
+  Future<dynamic> updatePassword({
+    required String lastPassword,
+    required String newPassword,
+    required String confirmNewPassword,
+  }) => _post('/api/User/updatePassword', {
+    'lastPassword': lastPassword,
+    'newPassword': newPassword,
+    'confirmNewPassword': confirmNewPassword,
+  });
 
-  Future<dynamic> updateImage(Map<String, dynamic> user) => _post('/api/User/updateImage', user);
+  Future<dynamic> updateImage({
+    required String imageBase64,
+    required String extension,
+    required String fileType,
+    String? oldImage,
+  }) => _post('/api/User/updateImage', {
+    'image': {'imageBase64': imageBase64, 'extension': extension, 'fileType': fileType},
+    if (oldImage != null) 'oldImage': oldImage,
+  });
 
   Future<dynamic> getFavorites() => _get('/api/User/getFavs');
 
-  Future<dynamic> contactSupport(Map<String, dynamic> request) => _post('/api/User/contact', request);
+  Future<dynamic> contactSupport({required String userEmail, required String userObject, required String userMessage}) =>
+      _post('/api/User/contact', {'userEmail': userEmail, 'userObject': userObject, 'userMessage': userMessage});
 
   Future<dynamic> addFavorite(String recipeId) => _post('/api/User/addFav/${Uri.encodeComponent(recipeId)}');
 
@@ -231,7 +339,7 @@ class AbcuistoRepository extends ChangeNotifier {
     required List<RecettesRecordTagsEnum> tags,
     String? createur,
     String? createurPseudo,
-    required List<Map<String, String>> ingredients,
+    required List<RecipeIngredientInput> ingredients,
   }) async {
     final recipeTags = tags.map((tag) => tag.displayValue).toList();
     if (vege && !recipeTags.contains('VEGETARIEN')) {
@@ -257,12 +365,12 @@ class AbcuistoRepository extends ChangeNotifier {
           'index': 0,
           'ingredients': [
             for (var index = 0; index < ingredients.length; index++)
-              if ((ingredients[index]['name'] ?? '').isNotEmpty)
+              if (ingredients[index].name.isNotEmpty)
                 {
                   'id': '00000000-0000-0000-0000-000000000000',
-                  'name': ingredients[index]['name'],
-                  'type': ingredients[index]['unit'],
-                  'number': double.tryParse(ingredients[index]['quantity'] ?? '') ?? 0,
+                  'name': ingredients[index].name,
+                  'type': ingredients[index].unit,
+                  'number': ingredients[index].quantity,
                   'index': index,
                 },
           ],
@@ -304,4 +412,134 @@ class AuthenticationException implements Exception {
 
   @override
   String toString() => message;
+}
+
+class ApiImageInput {
+  final String? imageBase64;
+  final String? extension;
+  final String? fileType;
+
+  const ApiImageInput({this.imageBase64, this.extension, this.fileType});
+
+  Map<String, dynamic> toJson() => {
+    if (imageBase64 != null) 'imageBase64': imageBase64,
+    if (extension != null) 'extension': extension,
+    if (fileType != null) 'fileType': fileType,
+  };
+}
+
+class ApiGroupInput {
+  final String? id;
+  final String? name;
+  final String? owner;
+  final bool? canEdit;
+  final String? link;
+  final String? newOwner;
+  final String? memberId;
+  final String? memberUserName;
+
+  const ApiGroupInput({this.id, this.name, this.owner, this.canEdit, this.link, this.newOwner, this.memberId, this.memberUserName});
+
+  Map<String, dynamic> toJson() => {
+    if (id != null) 'id': id,
+    if (name != null) 'name': name,
+    if (owner != null) 'owner': owner,
+    if (canEdit != null) 'canEdit': canEdit,
+    if (link != null) 'link': link,
+    if (newOwner != null) 'newOwner': newOwner,
+    if (memberId != null) 'memberId': memberId,
+    if (memberUserName != null) 'memberUserName': memberUserName,
+  };
+}
+
+class ApiRecipeCommentInput {
+  final String? id;
+  final String? recipe;
+  final String? user;
+  final String? comment;
+  final String? username;
+  final int? note;
+
+  const ApiRecipeCommentInput({this.id, this.recipe, this.user, this.comment, this.username, this.note});
+
+  Map<String, dynamic> toJson() => {
+    if (id != null) 'id': id,
+    if (recipe != null) 'recipe': recipe,
+    if (user != null) 'user': user,
+    if (comment != null) 'comment': comment,
+    if (username != null) 'username': username,
+    if (note != null) 'note': note,
+  };
+}
+
+class ApiRecipeIngredientInput {
+  final String? id;
+  final String? name;
+  final String? type;
+  final double number;
+  final int index;
+  final double? price;
+  final String? category;
+
+  const ApiRecipeIngredientInput({
+    this.id,
+    this.name,
+    this.type,
+    required this.number,
+    required this.index,
+    this.price,
+    this.category,
+  });
+
+  Map<String, dynamic> toJson() => {
+    if (id != null) 'id': id,
+    if (name != null) 'name': name,
+    if (type != null) 'type': type,
+    'number': number,
+    'index': index,
+    if (price != null) 'price': price,
+    if (category != null) 'category': category,
+  };
+}
+
+class ApiRecipeCategoryInput {
+  final String? id;
+  final String? name;
+  final int? index;
+  final List<ApiRecipeIngredientInput>? ingredients;
+  final String? recipe;
+
+  const ApiRecipeCategoryInput({this.id, this.name, this.index, this.ingredients, this.recipe});
+
+  Map<String, dynamic> toJson() => {
+    if (id != null) 'id': id,
+    if (name != null) 'name': name,
+    if (index != null) 'index': index,
+    if (ingredients != null) 'ingredients': ingredients!.map((ingredient) => ingredient.toJson()).toList(),
+    if (recipe != null) 'recipe': recipe,
+  };
+}
+
+class IngredientPriceInput {
+  final String? id;
+  final String? name;
+  final String? unit;
+  final double price;
+
+  const IngredientPriceInput({this.id, this.name, this.unit, required this.price});
+
+  Map<String, dynamic> toJson() => {
+    if (id != null) 'id': id,
+    if (name != null) 'name': name,
+    if (unit != null) 'unit': unit,
+    'price': price,
+  };
+}
+
+class RecipeIngredientInput {
+  final String name;
+  final String unit;
+  final double quantity;
+
+  const RecipeIngredientInput({required this.name, required this.unit, required this.quantity});
 }
