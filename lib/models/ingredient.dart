@@ -4,7 +4,7 @@ class Ingredient {
   final String id;
   final String name;
   final String nameWithoutDiacritics;
-  final double quantity;
+  final double? quantity;
   final int index;
   final double? price;
   final String? category;
@@ -28,7 +28,7 @@ class Ingredient {
       id: json['id'] as String? ?? '',
       name: name,
       nameWithoutDiacritics: removeDiacritics(name),
-      quantity: number is num ? number.toDouble() : 0,
+      quantity: number is num ? number.toDouble() : null,
       index: json['index'] as int? ?? 0,
       price: (json['price'] as num?)?.toDouble(),
       category: json['category'] as String?,
@@ -36,28 +36,24 @@ class Ingredient {
     );
   }
 
-  String get typeFormatted => switch (type.toLowerCase()) {
-    'g' || 'kg' || 'mg' || 'l' || 'cl' || 'ml' => type,
+  String get typeFormatted {
+    if (type == null || type == 'null') return "";
+
+    return switch (type.toLowerCase()) {
+    
+    'g' || 'kg' || 'mg' || 'l' || 'cl' || 'ml' => type.toLowerCase(),
     'pièce(s)' => '',
-    'cuillère à café' => 'cuillère${quantity > 1 ? "s" : ""} à café',
-    'cuillère à soupe' => 'cuillère${quantity > 1 ? "s" : ""} à soupe',
-    'pincée(s)' => 'pincée${quantity > 1 ? "s" : ""}',
+    'cuillère à café' => 'cuillère${(quantity ?? 0) > 1 ? "s" : ""} à café',
+    'cuillère à soupe' => 'cuillère${(quantity ?? 0) > 1 ? "s" : ""} à soupe',
+    'pincée(s)' => 'pincée${(quantity ?? 0) > 1 ? "s" : ""}',
     _ => type,
   };
-
-  String get quantityFormatted {
-    if (type.toLowerCase() == 'null' || type.isEmpty) return "";
-    return quantity.toStringAsFixed(quantity.truncateToDouble() == quantity ? 0 : 1);
   }
 
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'name': name,
-    'type': type,
-    'number': quantity,
-    'index': index,
-    'price': price,
-    'category': category,
-  };
+  String get quantityFormatted {
+    if (quantity == null || quantity == 0) return "";
+    return quantity!.toStringAsFixed(quantity!.truncateToDouble() == quantity ? 0 : 1);
+  }
 
+  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'type': type, 'number': quantity, 'index': index, 'price': price, 'category': category};
 }

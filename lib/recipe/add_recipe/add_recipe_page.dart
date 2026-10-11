@@ -477,10 +477,11 @@ class _ImageCarouselState extends State<_ImageCarousel> {
             children: [
               _buildButton(Icons.add_rounded, 'Ajouter', () {
                 _picker.pickImage(source: ImageSource.gallery).then((pickedFile) {
-                  if (pickedFile != null) {
+                  if (pickedFile != null && mounted) {
                     setState(() {
-                      widget.imagePaths.insert(_currentIndex + 1, pickedFile.path);
-                      _currentIndex = _currentIndex + 1;
+                      final insertIndex = widget.imagePaths.isEmpty ? 0 : _currentIndex + 1;
+                      widget.imagePaths.insert(insertIndex, pickedFile.path);
+                      _currentIndex = insertIndex;
                       _controller.animateToPage(
                         _currentIndex,
                         duration: const Duration(milliseconds: 300),

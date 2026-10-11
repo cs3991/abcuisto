@@ -41,7 +41,8 @@ void main() {
           'index': 0,
           'recipe': 'recipe-id',
           'ingredients': [
-            {'id': 'ingredient-id', 'name': 'Farine', 'type': 'g', 'number': 190, 'index': 0, 'price': 0.2, 'category': 'category-id'},
+            {'id': 'ingredient-id', 'name': 'Farine', 'type': 'g', 'number': 190, 'index': 1, 'price': 0.2, 'category': 'category-id'},
+            {'id': 'sugar-id', 'name': 'Sucre', 'type': 'g', 'number': 50, 'index': 0, 'price': 0.1, 'category': 'category-id'},
           ],
         },
       ],
@@ -55,8 +56,9 @@ void main() {
     expect(recipe.restTime, const Duration(minutes: 30));
     expect(recipe.category, Category.dessert);
     expect(recipe.instructions, ['Mélanger.', 'Cuire.']);
-    expect(recipe.ingredients['Pâte']!.single.name, 'Farine');
-    expect(recipe.ingredients['Pâte']!.single.typeFormatted, 'g');
+    expect(recipe.ingredients['Pâte']!.first.name, 'Farine');
+    expect(recipe.ingredients['Pâte']!.first.typeFormatted, 'g');
+    expect(recipe.ingredientCategories.single.ingredients.map((ingredient) => ingredient.name), ['Farine', 'Sucre']);
     expect(serialized, json);
   });
 }

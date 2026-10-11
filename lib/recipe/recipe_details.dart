@@ -179,6 +179,43 @@ class RecipeDetails extends StatelessWidget {
                             ),
                           ],
                         ),
+                        SizedBox(height: 12),
+                        if (recipe.comments.isEmpty)
+                          Text("Aucun commentaire pour le moment.", style: Theme.of(context).textTheme.bodyMedium)
+                        else
+                          ...recipe.comments.map(
+                            (comment) => Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3)),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            comment.username?.isNotEmpty == true ? comment.username! : 'Utilisateur',
+                                            style: Theme.of(context).textTheme.titleSmall,
+                                          ),
+                                        ),
+                                        if (comment.note != null) RatingStars(note: comment.note!.toDouble(), size: 16),
+                                      ],
+                                    ),
+                                    if (comment.comment?.isNotEmpty == true) ...[
+                                      SizedBox(height: 8),
+                                      Text(comment.comment!, style: Theme.of(context).textTheme.bodyMedium),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
                       ],
                     ),
                   ),
@@ -200,15 +237,15 @@ class IngredientView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var children = <Widget>[];
-    for (final ingredientCategory in recipe.ingredients.entries) {
+    for (final ingredientCategory in recipe.ingredientCategories) {
       children.add(
         Padding(
           padding: const EdgeInsets.only(left: 4, top: 12, bottom: 4),
-          child: Text(ingredientCategory.key, style: Theme.of(context).textTheme.labelMedium),
+          child: Text(ingredientCategory.name, style: Theme.of(context).textTheme.labelMedium),
         ),
       );
       var ingredientChildren = <TableRow>[];
-      for (final ingredient in ingredientCategory.value) {
+      for (final ingredient in ingredientCategory.ingredients) {
         ingredientChildren.add(
           TableRow(
             children: [

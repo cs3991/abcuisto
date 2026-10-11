@@ -35,7 +35,7 @@ int? _minutesFromDuration(Duration? value) => value?.inMinutes;
 
 String _stringOrEmpty(dynamic value) => value is String ? value : '';
 
-List<String> _stringList(dynamic value) => value is List ? value.whereType<String>().toList() : <String>[];
+List<String> _stringList(dynamic value) => value is List ? value.whereType<String>().where((e) => e != '').toList() : <String>[];
 
 class Recipe {
   final String id;
