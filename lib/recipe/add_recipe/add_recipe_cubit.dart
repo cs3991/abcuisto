@@ -39,9 +39,6 @@ class AddRecipeCubit extends Cubit<AddRecipeState> {
   }) async {
     emit(AddRecipeLoading());
     try {
-      final userId = repository.pb.authStore.record?.id;
-      final username = repository.pb.authStore.record?.get('name') ?? 'Anonyme';
-
       await repository.createRecipe(
         name: name,
         category: category,
@@ -54,8 +51,6 @@ class AddRecipeCubit extends Cubit<AddRecipeState> {
         typeNumber: typeNumber,
         prix: prix,
         tags: tags,
-        createur: userId,
-        createurPseudo: username,
         ingredients: ingredients,
       );
       emit(AddRecipeSuccess());

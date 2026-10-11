@@ -50,12 +50,15 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   SizedBox(
                     width: double.infinity,
                     child: FilledButton(
-                      onPressed: () {
-                        context.read<AuthenticationCubit>().sendPasswordReset(emailController.text);
-
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("Si un compte existe, un email a été envoyé.")),
-                        );
+                      onPressed: () async {
+                        try {
+                          await context.read<AuthenticationCubit>().sendPasswordReset(emailController.text);
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Si un compte existe, un email a été envoyé.")));
+                        } on Exception catch (error) {
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.toString())));
+                        }
                       },
                       child: const Text("Envoyer le lien"),
                     ),
@@ -76,10 +79,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                           },
                           child: Text(
                             "Se connecter",
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.primary,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold),
                           ),
                         ),
                       ),

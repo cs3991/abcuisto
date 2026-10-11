@@ -23,6 +23,7 @@ void showProfilePopup(BuildContext context) {
           TextButton(
             onPressed: () async {
               await context.read<AuthenticationCubit>().logOut();
+              if (!context.mounted) return;
               context.read<FilterCubit>().update();
               Navigator.pop(context);
             },

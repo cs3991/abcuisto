@@ -26,6 +26,8 @@ class _SignUpPageState extends State<SignUpPage> {
       listener: (context, state) {
         if (state is AuthenticationLoggedIn) {
           Navigator.pop(context);
+        } else if (state is AuthenticationFailure) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
         }
       },
       child: Scaffold(
@@ -112,17 +114,11 @@ class _SignUpPageState extends State<SignUpPage> {
                       label: "Créer un compte",
                       onPressed: () {
                         if (passwordController.text != confirmPasswordController.text) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("Les mots de passe ne correspondent pas")),
-                          );
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Les mots de passe ne correspondent pas")));
                           return;
                         }
 
-                        context.read<AuthenticationCubit>().signUp(
-                          emailController.text,
-                          passwordController.text,
-                          usernameController.text,
-                        );
+                        context.read<AuthenticationCubit>().signUp(emailController.text, passwordController.text, usernameController.text);
                       },
                     ),
 
@@ -139,10 +135,7 @@ class _SignUpPageState extends State<SignUpPage> {
                             onTap: () => Navigator.pop(context),
                             child: Text(
                               "Se connecter",
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.primary,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold),
                             ),
                           ),
                         ),

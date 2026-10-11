@@ -2,7 +2,6 @@ import 'package:abcuisto/models/abcuisto_repository.dart';
 import 'package:bloc/bloc.dart';
 import 'package:meta/meta.dart';
 
-
 @immutable
 abstract class AuthenticationState {}
 
@@ -60,10 +59,17 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
   }
 
   Future<void> sendPasswordReset(String email) async {
-    // todo: call pocketbase for password reset
+    await repository.resetPassword({'email': email});
   }
 
-  void signUp(String email, String password, String username) {
-    // todo: call pocketbase for signup
+  Future<void> signUp(String email, String password, String username) async {
+    emit(AuthenticationLoading());
+    try {
+      await repository.signUp(email, password, username);
+      await repository.login(email, password);
+      emit(AuthenticationLoggedIn(username: username));
+    } on Exception catch (error) {
+      emit(AuthenticationFailure(message: error.toString()));
+    }
   }
 }
