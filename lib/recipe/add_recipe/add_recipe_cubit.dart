@@ -1,5 +1,5 @@
-import 'package:abcuisto/generated/pocketbase/recettes_record.dart';
 import 'package:abcuisto/models/abcuisto_repository.dart';
+import 'package:abcuisto/recipe/add_recipe/enum_extensions.dart';
 import 'package:bloc/bloc.dart';
 import 'package:meta/meta.dart';
 
@@ -25,16 +25,16 @@ class AddRecipeCubit extends Cubit<AddRecipeState> {
 
   Future<void> createRecipe({
     required String name,
-    required RecettesRecordCategorieEnum category,
+    required RecipeCategory category,
     required String tempsPreparation,
     required String tempsCuisson,
     required String steps,
     required String ustensiles,
     required bool vege,
     required int forNumber,
-    required RecettesRecordTypeNumberEnum typeNumber,
-    required RecettesRecordPrixEnum prix,
-    required List<RecettesRecordTagsEnum> tags,
+    required RecipeServingType typeNumber,
+    required RecipePrice prix,
+    required List<RecipeTag> tags,
     required List<RecipeIngredientInput> ingredients,
   }) async {
     emit(AddRecipeLoading());

@@ -24,7 +24,7 @@ class RecipeCubit extends Cubit<RecipeState> {
 
   Future<void> focusRecipe(Recipe item) async {
     emit(RecipeLoading());
-    // final recipeFull = await repository.getRecipe(item.record.id);
-    // emit(RecipeLoaded(recipe: recipeFull));
+    final recipeFull = await repository.getRecipe(item.id);
+    emit(RecipeLoaded(recipe: recipeFull));
   }
 }

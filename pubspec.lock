@@ -616,22 +616,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.8"
-  pocketbase:
-    dependency: "direct main"
-    description:
-      name: pocketbase
-      sha256: "85282448be07e1920742a3272737b08778e5548ada8cd5ada82d0a0228347d0c"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.23.0+1"
-  pocketbase_utils:
-    dependency: "direct dev"
-    description:
-      name: pocketbase_utils
-      sha256: "5bdb43a04fd4883d84509c3c5a7f8abe8a1eec2ded2d7c37f43887da148784d7"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.1.6"
   pool:
     dependency: transitive
     description:
@@ -672,14 +656,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.5.0"
-  recase:
-    dependency: transitive
-    description:
-      name: recase
-      sha256: e4eb4ec2dcdee52dcf99cb4ceabaffc631d7424ee55e56f280bc039737f89213
-      url: "https://pub.dev"
-    source: hosted
-    version: "4.1.0"
   shared_preferences:
     dependency: "direct main"
     description:

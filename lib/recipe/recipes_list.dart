@@ -8,7 +8,7 @@ import 'package:abcuisto/recipe/search_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
-import 'package:pocketbase/pocketbase.dart';
+import 'package:http/http.dart' show ClientException;
 
 import 'filters/filter_page.dart';
 
@@ -233,15 +233,6 @@ class RecipeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Uri? image;
-    // if (recipe.documents!.isNotEmpty) {
-    //   image = context.read<AbcuistoRepository>().pb.files.getURL(
-    //     RecordModel(recipe.toJson()),
-    //     recipe.documents!.first,
-    //   );
-    // }
-    // final note = NotationsRecord.fromRecordModel(recipe.expand!['noteId'][0]).note!;
-    // final nbNotes = NotationsRecord.fromRecordModel(recipe.expand!['noteId'][0]).nbNotes!;
     return Card(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

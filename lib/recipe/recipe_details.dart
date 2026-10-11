@@ -27,7 +27,7 @@ class RecipeDetailsPage extends StatelessWidget {
           return Scaffold(
             appBar: AppBar(
               toolbarHeight: 65,
-              title: Text(recipe.name ?? ''),
+              title: Text(recipe.name),
               actions: [
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),

@@ -1,64 +1,79 @@
-import 'package:abcuisto/generated/pocketbase/recettes_record.dart';
+enum RecipeCategory {
+  aperitif,
+  entree,
+  plat,
+  fromage,
+  dessert,
+  petitxdejeuner,
+  boisson,
+  sauce,
+}
 
-extension RecettesRecordCategorieEnumExtension on RecettesRecordCategorieEnum {
+enum RecipeServingType { personnes, pieces }
+
+enum RecipePrice { x, xx, xxx }
+
+enum RecipeTag { thermomix, vegan, vegetarien, alcool, sansgluten }
+
+extension RecipeCategoryDisplayValue on RecipeCategory {
   String get displayValue {
     switch (this) {
-      case RecettesRecordCategorieEnum.aperitif:
+      case RecipeCategory.aperitif:
         return 'Aperitif';
-      case RecettesRecordCategorieEnum.entree:
+      case RecipeCategory.entree:
         return 'Entree';
-      case RecettesRecordCategorieEnum.plat:
+      case RecipeCategory.plat:
         return 'Plat';
-      case RecettesRecordCategorieEnum.fromage:
+      case RecipeCategory.fromage:
         return 'Fromage';
-      case RecettesRecordCategorieEnum.dessert:
+      case RecipeCategory.dessert:
         return 'Dessert';
-      case RecettesRecordCategorieEnum.petitxdejeuner:
+      case RecipeCategory.petitxdejeuner:
         return 'Petit-dejeuner';
-      case RecettesRecordCategorieEnum.boisson:
+      case RecipeCategory.boisson:
         return 'Boisson';
-      case RecettesRecordCategorieEnum.sauce:
+      case RecipeCategory.sauce:
         return 'Sauce';
     }
   }
 }
 
-extension RecettesRecordTypeNumberEnumExtension on RecettesRecordTypeNumberEnum {
+extension RecipeTypeNumberDisplayValue on RecipeServingType {
   String get displayValue {
     switch (this) {
-      case RecettesRecordTypeNumberEnum.personnes:
+      case RecipeServingType.personnes:
         return 'Personnes';
-      case RecettesRecordTypeNumberEnum.pieces:
+      case RecipeServingType.pieces:
         return 'Pieces';
     }
   }
 }
 
-extension RecettesRecordPrixEnumExtension on RecettesRecordPrixEnum {
+extension RecipePriceDisplayValue on RecipePrice {
   String get displayValue {
     switch (this) {
-      case RecettesRecordPrixEnum.x:
+      case RecipePrice.x:
         return '€';
-      case RecettesRecordPrixEnum.xx:
+      case RecipePrice.xx:
         return '€€';
-      case RecettesRecordPrixEnum.xxx:
+      case RecipePrice.xxx:
         return '€€€';
     }
   }
 }
 
-extension RecettesRecordTagsEnumExtension on RecettesRecordTagsEnum {
+extension RecipeTagDisplayValue on RecipeTag {
   String get displayValue {
     switch (this) {
-      case RecettesRecordTagsEnum.thermomix:
+      case RecipeTag.thermomix:
         return 'THERMOMIX';
-      case RecettesRecordTagsEnum.vegan:
+      case RecipeTag.vegan:
         return 'VEGAN';
-      case RecettesRecordTagsEnum.vegetarien:
+      case RecipeTag.vegetarien:
         return 'VEGETARIEN';
-      case RecettesRecordTagsEnum.alcool:
+      case RecipeTag.alcool:
         return 'ALCOOL';
-      case RecettesRecordTagsEnum.sansgluten:
+      case RecipeTag.sansgluten:
         return 'SANSGLUTEN';
     }
   }
