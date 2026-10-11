@@ -40,7 +40,7 @@ class _RecipePageState extends State<RecipePage> {
                   .colorScheme
                   .onPrimary,
               onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const AddRecipePage()));
+                Navigator.push(context, MaterialPageRoute(builder: (context) => AddRecipePage()));
               },
               child: const Icon(Icons.add),
             );

@@ -1,3 +1,4 @@
+import 'package:abcuisto/recipe/add_recipe/add_recipe_page.dart';
 import 'package:abcuisto/recipe/recipe_cubit.dart';
 import 'package:abcuisto/recipe/recipes_list.dart';
 import 'package:flutter/material.dart';
@@ -53,6 +54,16 @@ class RecipeDetailsPage extends StatelessWidget {
                 ),
               ],
             ),
+            floatingActionButton: FloatingActionButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => AddRecipePage(initialRecipe: state.recipe)),
+                );
+              },
+              tooltip: "Modifier la recette",
+              child: Icon(Icons.edit_rounded),
+            ),
             body: RecipeDetails(recipe: state.recipe),
           );
         }
@@ -98,27 +109,27 @@ class RecipeDetails extends StatelessWidget {
                       children: [
                         recipe.prepTime != null
                             ? Text(
-                                'Préparation : ${recipe.prepTimeFormatted!}',
-                                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                              )
+                          'Préparation : ${recipe.prepTimeFormatted!}',
+                          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        )
                             : Container(),
                         recipe.cookTime != null
                             ? Text(
-                                'Cuisson : ${recipe.cookTimeFormatted!}',
-                                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                              )
+                          'Cuisson : ${recipe.cookTimeFormatted!}',
+                          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        )
                             : Container(),
                         recipe.restTime != null
                             ? Text(
-                                'Repos : ${recipe.restTimeFormatted!}',
-                                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                              )
+                          'Repos : ${recipe.restTimeFormatted!}',
+                          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        )
                             : Container(),
                         SizedBox(height: 4),
                         Text(recipe.name, style: Theme.of(context).textTheme.headlineMedium),
@@ -315,21 +326,21 @@ class _ImageCarouselState extends State<_ImageCarousel> {
             borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
             child: widget.images.isNotEmpty
                 ? PageView.builder(
-                    controller: _controller,
-                    itemCount: widget.images.length,
-                    onPageChanged: (index) {
-                      setState(() {
-                        _currentIndex = index;
-                      });
-                    },
-                    itemBuilder: (context, i) {
-                      return Image.network(
-                        widget.images[i].toString(),
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => NoImageBuilder(height: 400),
-                      );
-                    },
-                  )
+              controller: _controller,
+              itemCount: widget.images.length,
+              onPageChanged: (index) {
+                setState(() {
+                  _currentIndex = index;
+                });
+              },
+              itemBuilder: (context, i) {
+                return Image.network(
+                  widget.images[i].toString(),
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => NoImageBuilder(height: 400),
+                );
+              },
+            )
                 : NoImageBuilder(height: 400),
           ),
         ),

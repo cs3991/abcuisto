@@ -17,7 +17,7 @@ class RoundedTextField extends StatelessWidget {
     this.suffixIcon,
     this.keyboardType,
     this.autofillHints,
-    this.maxLines,
+    this.maxLines = 1,
   });
 
   @override
