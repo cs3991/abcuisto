@@ -12,6 +12,11 @@ void main() {
       'id': 'recipe-id',
       'name': 'Tarte',
       'creatorPseudo': 'Recipe author',
+      'forNumber': 2,
+      'typeNumber': 'personnes',
+      'note': 4,
+      'nbNotes': 3,
+      'tags': ['VEGETARIEN'],
       'comments': [
         {'comment': 'Très bon !', 'username': 'Camille', 'note': 5},
       ],
@@ -26,5 +31,9 @@ void main() {
     expect(find.text('Commentaires'), findsOneWidget);
     expect(find.text('Camille'), findsOneWidget);
     expect(find.text('Très bon !'), findsOneWidget);
+    expect(find.text('Ingrédients pour 2 personnes'), findsOneWidget);
+    expect(find.text('VEGETARIEN'), findsOneWidget);
+    expect(find.text('3 avis'), findsOneWidget);
+    expect(find.text('Recette créée par Recipe author'), findsOneWidget);
   });
 }

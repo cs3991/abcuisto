@@ -1,4 +1,5 @@
 import 'package:abcuisto/app_config.dart' show AppConfig;
+import 'package:collection/collection.dart';
 
 import 'ingredient.dart';
 
@@ -48,11 +49,9 @@ class Recipe {
   final double? note;
   final String creatorId;
   final String creatorName;
-  final DateTime createdDate;
   final Category? category;
   final List<String> cookware;
   final List<String> documents;
-  final List<RecipeImage> apiImages;
   final int? forNumber;
   final String? typeNumber;
   final List<String> tags;
@@ -72,11 +71,9 @@ class Recipe {
     this.note,
     this.creatorId = '',
     required this.creatorName,
-    required this.createdDate,
     required this.category,
     required this.cookware,
     this.documents = const [],
-    this.apiImages = const [],
     this.forNumber,
     this.typeNumber,
     this.tags = const [],
@@ -88,7 +85,6 @@ class Recipe {
 
   factory Recipe.fromJson(Map<String, dynamic> recipe) {
     final documents = _stringList(recipe['documents']);
-    final rawImages = recipe['images'];
     return Recipe(
       id: _stringOrEmpty(recipe['id']),
       images: documents.map((document) => Uri.parse('${AppConfig.instance.apiUrl}/images/$document')).toList(),
@@ -100,11 +96,9 @@ class Recipe {
       note: (recipe['note'] as num?)?.toDouble(),
       creatorId: _stringOrEmpty(recipe['creator']),
       creatorName: _stringOrEmpty(recipe['creatorPseudo']),
-      createdDate: DateTime.now(),
       category: Category.fromApi(recipe['category'] as String?),
       cookware: _stringList(recipe['ustensiles']),
       documents: documents,
-      apiImages: rawImages is List ? rawImages.whereType<Map<String, dynamic>>().map(RecipeImage.fromJson).toList() : const [],
       forNumber: recipe['forNumber'] as int?,
       typeNumber: recipe['typeNumber'] as String?,
       tags: _stringList(recipe['tags']),
@@ -126,13 +120,6 @@ class Recipe {
   Duration get totalTime => apiTotalTime ?? (prepTime ?? Duration.zero) + (cookTime ?? Duration.zero) + (restTime ?? Duration.zero);
 
   String? get totalTimeFormatted => _printDuration(totalTime);
-
-  String get createdTimeFormatted {
-    final day = createdDate.day.toString().padLeft(2, '0');
-    final month = createdDate.month.toString().padLeft(2, '0');
-    final year = createdDate.year.toString();
-    return '$day/$month/$year';
-  }
 
   String? _printDuration(Duration? duration) {
     if (duration == null) return null;
@@ -160,11 +147,9 @@ class RecipeFull extends Recipe {
     super.note,
     super.creatorId,
     required super.creatorName,
-    required super.createdDate,
     required super.category,
     required super.cookware,
     super.documents,
-    super.apiImages,
     super.forNumber,
     super.typeNumber,
     super.tags,
@@ -194,11 +179,9 @@ class RecipeFull extends Recipe {
       note: baseRecipe.note,
       creatorId: baseRecipe.creatorId,
       creatorName: baseRecipe.creatorName,
-      createdDate: baseRecipe.createdDate,
       category: baseRecipe.category,
       cookware: baseRecipe.cookware,
       documents: baseRecipe.documents,
-      apiImages: baseRecipe.apiImages,
       forNumber: baseRecipe.forNumber,
       typeNumber: baseRecipe.typeNumber,
       tags: baseRecipe.tags,
@@ -222,7 +205,6 @@ class RecipeFull extends Recipe {
     'creatorPseudo': creatorName,
     'category': category?.displayName,
     'documents': documents.isEmpty ? null : documents,
-    'images': apiImages.map((image) => image.toJson()).toList(),
     'forNumber': forNumber,
     'typeNumber': typeNumber,
     'steps': instructions,
@@ -252,7 +234,7 @@ class RecipeIngredientCategory {
     index: json['index'] as int? ?? 0,
     recipe: json['recipe'] as String?,
     ingredients: json['ingredients'] is List
-        ? (json['ingredients'] as List).whereType<Map<String, dynamic>>().map(Ingredient.fromJson).toList()
+        ? (json['ingredients'] as List).whereType<Map<String, dynamic>>().map(Ingredient.fromJson).toList().sorted((a, b) => a.index - b.index)
         : const [],
   );
 
@@ -263,19 +245,6 @@ class RecipeIngredientCategory {
     'ingredients': ingredients.map((ingredient) => ingredient.toJson()).toList(),
     'recipe': recipe,
   };
-}
-
-class RecipeImage {
-  final String? imageBase64;
-  final String? extension;
-  final String? fileType;
-
-  const RecipeImage({this.imageBase64, this.extension, this.fileType});
-
-  factory RecipeImage.fromJson(Map<String, dynamic> json) =>
-      RecipeImage(imageBase64: json['imageBase64'] as String?, extension: json['extension'] as String?, fileType: json['fileType'] as String?);
-
-  Map<String, dynamic> toJson() => {'imageBase64': imageBase64, 'extension': extension, 'fileType': fileType};
 }
 
 class RecipeGroup {

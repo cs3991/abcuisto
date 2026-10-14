@@ -80,6 +80,9 @@ class RecipeDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final servingType = recipe.typeNumber?.toLowerCase() ?? 'personnes';
+    final servingLabel = servingType == 'personnes' && recipe.forNumber == 1 ? 'personne' : servingType;
+
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -139,7 +142,12 @@ class RecipeDetails extends StatelessWidget {
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                         SizedBox(height: 12),
-                        Text("Ingrédients", style: Theme.of(context).textTheme.titleMedium),
+                        Text(
+                          recipe.forNumber == null
+                              ? "Ingrédients"
+                              : "Ingrédients pour ${recipe.forNumber} $servingLabel",
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
                         IngredientView(recipe: recipe),
                         SizedBox(height: 12),
                         Text("Instructions", style: Theme.of(context).textTheme.titleMedium),
@@ -147,7 +155,7 @@ class RecipeDetails extends StatelessWidget {
                         InstructionsView(recipe: recipe),
                         SizedBox(height: 12),
                         Text(
-                          "Recette créée par ${recipe.creatorName} le ${recipe.createdTimeFormatted}",
+                          "Recette créée par ${recipe.creatorName}",
                           style: Theme.of(context).textTheme.labelMedium,
                         ),
                         SizedBox(height: 12),
@@ -166,6 +174,23 @@ class RecipeDetails extends StatelessWidget {
                             },
                           ),
                         ),
+                        if (recipe.tags.isNotEmpty) ...[
+                          SizedBox(height: 4),
+                          Wrap(
+                            spacing: 4,
+                            runSpacing: 0,
+                            children: recipe.tags
+                                .map(
+                                  (tag) => Chip(
+                                    label: Text(tag),
+                                    labelStyle: Theme.of(context).textTheme.bodySmall,
+                                    visualDensity: VisualDensity.compact,
+                                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  ),
+                                )
+                                .toList(),
+                          ),
+                        ],
                         SizedBox(height: 12),
                         Text("Commentaires", style: Theme.of(context).textTheme.titleMedium),
                         SizedBox(height: 12),
@@ -177,6 +202,13 @@ class RecipeDetails extends StatelessWidget {
                               recipe.note?.toStringAsPrecision(2) ?? '',
                               style: Theme.of(context).textTheme.headlineMedium,
                             ),
+                            if (recipe.nbNotes != null) ...[
+                              SizedBox(width: 8),
+                              Text(
+                                '${recipe.nbNotes} avis',
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                            ],
                           ],
                         ),
                         SizedBox(height: 12),

@@ -17,9 +17,7 @@ void main() {
       'creatorPseudo': 'TrawFram',
       'category': 'Dessert',
       'documents': ['cover.jpg'],
-      'images': [
-        {'imageBase64': 'encoded-image', 'extension': 'jpg', 'fileType': 'image/jpeg'},
-      ],
+      'images': null,
       'forNumber': 1,
       'typeNumber': 'Pièces',
       'steps': ['Mélanger.', 'Cuire.'],
@@ -56,9 +54,11 @@ void main() {
     expect(recipe.restTime, const Duration(minutes: 30));
     expect(recipe.category, Category.dessert);
     expect(recipe.instructions, ['Mélanger.', 'Cuire.']);
+    expect(recipe.images.single.path, '/images/cover.jpg');
     expect(recipe.ingredients['Pâte']!.first.name, 'Farine');
     expect(recipe.ingredients['Pâte']!.first.typeFormatted, 'g');
     expect(recipe.ingredientCategories.single.ingredients.map((ingredient) => ingredient.name), ['Farine', 'Sucre']);
-    expect(serialized, json);
+    expect(serialized.containsKey('images'), isFalse);
+    expect(serialized, Map<String, dynamic>.from(json)..remove('images'));
   });
 }
