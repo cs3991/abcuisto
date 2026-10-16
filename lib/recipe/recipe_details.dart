@@ -37,29 +37,35 @@ class RecipeDetailsPage extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     child: BlocBuilder<AuthenticationCubit, AuthenticationState>(
                       builder: (context, state) {
-                        return IconButton(
-                          icon: Icon(state is AuthenticationLoggedIn ? Icons.person_rounded : Icons.login_rounded),
-                          tooltip: state is AuthenticationLoggedIn ? "Connecté" : "Se connecter",
-                          onPressed: () {
-                            if (state is AuthenticationLoggedOut || state is AuthenticationInitial) {
-                              Navigator.push(context, MaterialPageRoute(builder: (context) => LoginPage()));
-                            } else if (state is AuthenticationLoggedIn) {
-                              showProfilePopup(context);
-                            }
-                          },
+                        final isOwner = state is AuthenticationLoggedIn && context.read<AbcuistoRepository>().user?.id == recipe.creatorId;
+                        return Row(
+                          children: [
+                            if (isOwner)
+                              IconButton(
+                                icon: const Icon(Icons.edit_rounded),
+                                tooltip: "Modifier la recette",
+                                onPressed: () {
+                                  Navigator.push(context, MaterialPageRoute(builder: (context) => AddRecipePage(initialRecipe: recipe)));
+                                },
+                              ),
+                            IconButton(
+                              icon: Icon(state is AuthenticationLoggedIn ? Icons.person_rounded : Icons.login_rounded),
+                              tooltip: state is AuthenticationLoggedIn ? "Connecté" : "Se connecter",
+                              onPressed: () {
+                                if (state is AuthenticationLoggedOut || state is AuthenticationInitial) {
+                                  Navigator.push(context, MaterialPageRoute(builder: (context) => LoginPage()));
+                                } else if (state is AuthenticationLoggedIn) {
+                                  showProfilePopup(context);
+                                }
+                              },
+                            ),
+                          ],
                         );
                       },
                     ),
                   ),
                 ),
               ],
-            ),
-            floatingActionButton: FloatingActionButton(
-              onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => AddRecipePage(initialRecipe: state.recipe)));
-              },
-              tooltip: "Modifier la recette",
-              child: Icon(Icons.edit_rounded),
             ),
             body: RecipeDetails(recipe: state.recipe),
           );
@@ -191,7 +197,7 @@ class RecipeDetails extends StatelessWidget {
                         else
                           ...recipe.comments.map((comment) => _RecipeCommentCard(comment: comment, recipeId: recipe.id)),
                         SizedBox(height: 4),
-                        _CommentComposer(recipe: recipe),
+                        recipe.creatorId != context.read<AbcuistoRepository>().user?.id ? _CommentComposer(recipe: recipe) : Container(),
                       ],
                     ),
                   ),
