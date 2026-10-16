@@ -13,11 +13,10 @@ class SearchAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    searchBarController.value = context.select(
-      (FilterCubit cubit) => TextEditingValue(
-        text: cubit.state.filter.searchText ?? '',
-        selection: TextSelection.collapsed(offset: cubit.state.filter.searchText?.length ?? 0),
-      ),
+    final searchText = context.select((FilterCubit cubit) => cubit.state.filter.searchText ?? '');
+    searchBarController.value = TextEditingValue(
+      text: searchText,
+      selection: TextSelection.collapsed(offset: searchText.length),
     );
     return AppBar(
       toolbarHeight: 65,
@@ -31,7 +30,17 @@ class SearchAppBar extends StatelessWidget implements PreferredSizeWidget {
           isDense: false,
           filled: true,
           fillColor: Theme.of(context).colorScheme.surfaceContainer,
-          suffixIcon: Icon(Icons.search_rounded, color: Theme.of(context).colorScheme.outline),
+          suffixIcon: searchText.isEmpty
+              ? Icon(Icons.search_rounded, color: Theme.of(context).colorScheme.outline)
+              : IconButton(
+                  icon: const Icon(Icons.close_rounded),
+                  color: Theme.of(context).colorScheme.outline,
+                  tooltip: 'Effacer la recherche',
+                  onPressed: () {
+                    searchBarController.clear();
+                    context.read<FilterCubit>().updateSearchPattern('');
+                  },
+                ),
         ),
         style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
         onChanged: (t) => context.read<FilterCubit>().updateSearchPattern(t),

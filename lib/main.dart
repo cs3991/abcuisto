@@ -5,6 +5,7 @@ import 'package:abcuisto/entry_page.dart';
 import 'package:abcuisto/login/authentication_cubit.dart';
 import 'package:abcuisto/models/abcuisto_repository.dart';
 import 'package:abcuisto/recipe/add_recipe/add_recipe_cubit.dart';
+import 'package:abcuisto/recipe/comment_cubit.dart';
 import 'package:abcuisto/recipe/filters/filter_cubit.dart';
 import 'package:abcuisto/recipe/recipe_cubit.dart';
 import 'package:flutter/material.dart';
@@ -36,6 +37,7 @@ class ProvidersWidget extends StatelessWidget {
         providers: [
           BlocProvider(create: (context) => AuthenticationCubit(context.read<AbcuistoRepository>())),
           BlocProvider(create: (context) => RecipeCubit(context.read<AbcuistoRepository>())),
+          BlocProvider(create: (context) => CommentCubit(context.read<AbcuistoRepository>())),
           BlocProvider(create: (context) => FilterCubit(context.read<AbcuistoRepository>())),
           BlocProvider(create: (context) => AddRecipeCubit(context.read<AbcuistoRepository>())),
         ],

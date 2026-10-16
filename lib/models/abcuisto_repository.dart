@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:abcuisto/models/recipe.dart';
+import 'package:abcuisto/models/user.dart';
 import 'package:abcuisto/recipe/add_recipe/enum_extensions.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -13,6 +14,7 @@ class AbcuistoRepository extends ChangeNotifier {
   SharedPreferences? prefs;
   String? authToken;
   String? authEmail;
+  User? user;
   bool initialized = false;
 
   AbcuistoRepository({required this.url});
@@ -23,6 +25,8 @@ class AbcuistoRepository extends ChangeNotifier {
     prefs = await SharedPreferences.getInstance();
     authToken = prefs!.getString('api_auth_token');
     authEmail = prefs!.getString('api_auth_email');
+
+    if (isAuthenticated) await getUserInfos();
 
     initialized = true;
     notifyListeners();
@@ -35,6 +39,7 @@ class AbcuistoRepository extends ChangeNotifier {
     }
 
     await _saveAuthentication(response['token'] as String, email);
+    await getUserInfos();
   }
 
   Future<void> signUp(String email, String password, String username) async {
@@ -70,6 +75,7 @@ class AbcuistoRepository extends ChangeNotifier {
     }
     authToken = null;
     authEmail = null;
+    user = null;
     notifyListeners();
   }
 
@@ -82,6 +88,9 @@ class AbcuistoRepository extends ChangeNotifier {
       headers['Authorization'] = 'Bearer $authToken';
     }
 
+    if (authenticated && authToken != null) {
+      headers['Authorization'] = 'Bearer $authToken';
+    }
     final request = http.Request(method, _uri(path))..headers.addAll(headers);
     if (body != null) request.body = jsonEncode(body);
     final streamedResponse = await request.send();
@@ -200,7 +209,7 @@ class AbcuistoRepository extends ChangeNotifier {
         if (note != null) 'note': note,
       });
 
-  Future<dynamic> deleteComment(String recipeId, String commentId) =>
+  Future<dynamic> deleteComment({required String recipeId, required String commentId}) =>
       _delete('/api/Recipes/deleteComment/${Uri.encodeComponent(recipeId)}/${Uri.encodeComponent(commentId)}');
 
   Future<dynamic> getGroupById(String id) => _get('/api/Groups/getGroupById/${Uri.encodeComponent(id)}');
@@ -238,7 +247,17 @@ class AbcuistoRepository extends ChangeNotifier {
     return response;
   }
 
-  Future<dynamic> getUserInfos() => _get('/api/User/getUserInfos');
+  Future<User> getUserInfos() async {
+    final response = await _get('/api/User/getUserInfos');
+    if (response is! Map<String, dynamic>) {
+      throw const FormatException('Réponse invalide : informations utilisateur manquantes.');
+    }
+
+    final fetchedUser = User.fromJson(response);
+    user = fetchedUser;
+    notifyListeners();
+    return fetchedUser;
+  }
 
   Future<dynamic> verifyEmail(String token) => _post('/api/User/verifyEmail', token);
 
