@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:abcuisto/models/abcuisto_repository.dart';
 import 'package:abcuisto/models/recipe.dart';
 import 'package:abcuisto/recipe/add_recipe/add_recipe_cubit.dart';
+import 'package:abcuisto/recipe/add_recipe/duration_picker.dart';
 import 'package:abcuisto/recipe/add_recipe/enum_extensions.dart';
 import 'package:abcuisto/recipe/filters/filter_cubit.dart';
 import 'package:abcuisto/recipe/recipe_cubit.dart';
@@ -47,9 +48,9 @@ class _CreateRecipeBodyState extends State<CreateRecipeBody> {
   ];
 
   final _nameController = TextEditingController();
-  final _prepTimeController = TextEditingController();
-  final _cookTimeController = TextEditingController();
-  final _restTimeController = TextEditingController();
+  Duration _prepTime = Duration.zero;
+  Duration _cookTime = Duration.zero;
+  Duration _restTime = Duration.zero;
   final _servingsController = TextEditingController();
   final _utensilsController = TextEditingController();
   final List<TextEditingController> _stepControllers = [];
@@ -69,9 +70,9 @@ class _CreateRecipeBodyState extends State<CreateRecipeBody> {
     super.initState();
     final recipe = widget.initialRecipe;
     _nameController.text = recipe?.name ?? '';
-    _prepTimeController.text = recipe?.prepTimeFormatted ?? '';
-    _cookTimeController.text = recipe?.cookTimeFormatted ?? '';
-    _restTimeController.text = recipe?.restTimeFormatted ?? '';
+    _prepTime = recipe?.prepTime ?? Duration.zero;
+    _cookTime = recipe?.cookTime ?? Duration.zero;
+    _restTime = recipe?.restTime ?? Duration.zero;
     _servingsController.text = recipe?.forNumber?.toString() ?? '';
     _utensilsController.text = recipe?.cookware.join(', ') ?? '';
     _selectedCategory = _categoryFor(recipe?.category);
@@ -115,9 +116,6 @@ class _CreateRecipeBodyState extends State<CreateRecipeBody> {
   @override
   void dispose() {
     _nameController.dispose();
-    _prepTimeController.dispose();
-    _cookTimeController.dispose();
-    _restTimeController.dispose();
     _servingsController.dispose();
     _utensilsController.dispose();
     for (final controller in _stepControllers) {
@@ -217,7 +215,7 @@ class _CreateRecipeBodyState extends State<CreateRecipeBody> {
                   ),
                   padding: const EdgeInsets.all(16),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                             const SizedBox(height: 16),
                             RoundedTextField(hintText: 'Nom de la recette', controller: _nameController),
@@ -225,7 +223,7 @@ class _CreateRecipeBodyState extends State<CreateRecipeBody> {
                             const SectionTitle(title: 'Catégorie de la recette'),
                             const SizedBox(height: 8),
                             DropdownButtonFormField<RecipeCategory>(
-                              value: _selectedCategory,
+                              initialValue: _selectedCategory,
                               decoration: const InputDecoration(border: OutlineInputBorder(), hintText: 'Choisir une catégorie'),
                               items: RecipeCategory.values
                                   .map((category) => DropdownMenuItem(value: category, child: Text(_categoryLabel(category))))
@@ -233,17 +231,33 @@ class _CreateRecipeBodyState extends State<CreateRecipeBody> {
                               onChanged: (category) => setState(() => _selectedCategory = category),
                             ),
                             const SizedBox(height: 16),
-                            Row(
+                            Wrap(
+                              alignment: WrapAlignment.spaceAround,
                               children: [
-                                Expanded(
-                                  child: RoundedTextField(hintText: 'Temps de préparation', controller: _prepTimeController),
+                                DurationPicker(
+                                  label: 'Préparation',
+                                  initialDuration: widget.initialRecipe?.prepTime,
+                                  onDurationChanged: (duration) {
+                                    _prepTime = duration;
+                                  },
                                 ),
                                 const SizedBox(width: 8),
-                                Expanded(child: RoundedTextField(hintText: 'Temps de cuisson', controller: _cookTimeController)),
+                                // Expanded(child: RoundedTextField(hintText: 'Temps de cuisson', controller: _cookTimeController)),
+                                DurationPicker(
+                                  label: 'Cuisson',
+                                  initialDuration: widget.initialRecipe?.cookTime,
+                                  onDurationChanged: (duration) => _cookTime = duration,
+                                ),
+                                const SizedBox(width: 8),
+                                DurationPicker(
+                                  label: 'Repos',
+                                  initialDuration: widget.initialRecipe?.restTime,
+                                  onDurationChanged: (duration) => _restTime = duration,
+                                ),
                               ],
                             ),
-                            const SizedBox(height: 8),
-                            RoundedTextField(hintText: 'Temps de repos', controller: _restTimeController),
+                            // const SizedBox(height: 8),
+                            // RoundedTextField(hintText: 'Temps de repos', controller: _restTimeController),
                             if (availableGroups.isNotEmpty) ...[
                               const SizedBox(height: 16),
                               const SectionTitle(title: 'Visible pour quels groupes ?'),
@@ -298,7 +312,7 @@ class _CreateRecipeBodyState extends State<CreateRecipeBody> {
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: DropdownButtonFormField<RecipeServingType>(
-                                    value: _servingType,
+                                    initialValue: _servingType,
                                     decoration: const InputDecoration(border: OutlineInputBorder()),
                                     items: RecipeServingType.values
                                         .map((type) => DropdownMenuItem(value: type, child: Text(_servingLabel(type))))
@@ -397,18 +411,6 @@ class _CreateRecipeBodyState extends State<CreateRecipeBody> {
       _showError('Indiquez un nombre de portions valide.');
       return;
     }
-    final repository = context.read<AbcuistoRepository>();
-    for (final field in [_prepTimeController, _cookTimeController, _restTimeController]) {
-      final value = field.text.trim();
-      if (value.isNotEmpty) {
-        final duration = repository.parseRecipeDuration(value);
-        if (duration == null || duration < 0) {
-          _showError('Indiquez une durée valide (ex. 45 min ou 1 h 30 min).');
-          return;
-        }
-      }
-    }
-
     final categories = <ApiRecipeCategoryInput>[];
     for (var categoryIndex = 0; categoryIndex < _categories.length; categoryIndex++) {
       final category = _categories[categoryIndex];
@@ -475,9 +477,9 @@ class _CreateRecipeBodyState extends State<CreateRecipeBody> {
       cubit.createRecipe(
         name: name,
         category: _selectedCategory!,
-        preparationTime: _prepTimeController.text.trim(),
-        cookingTime: _cookTimeController.text.trim(),
-        waitingTime: _restTimeController.text.trim(),
+        preparationTime: _prepTime.inMinutes.toString(),
+        cookingTime: _cookTime.inMinutes.toString(),
+        waitingTime: _restTime.inMinutes.toString(),
         steps: steps,
         utensils: utensils,
         servings: servings,
@@ -492,9 +494,9 @@ class _CreateRecipeBodyState extends State<CreateRecipeBody> {
         recipe: recipe,
         name: name,
         category: _selectedCategory!,
-        preparationTime: _prepTimeController.text.trim(),
-        cookingTime: _cookTimeController.text.trim(),
-        waitingTime: _restTimeController.text.trim(),
+        preparationTime: _prepTime.inMinutes.toString(),
+        cookingTime: _cookTime.inMinutes.toString(),
+        waitingTime: _restTime.inMinutes.toString(),
         steps: steps,
         utensils: utensils,
         servings: servings,
