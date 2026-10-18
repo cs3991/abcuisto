@@ -11,8 +11,6 @@ enum RecipeCategory {
 
 enum RecipeServingType { personnes, pieces }
 
-enum RecipePrice { x, xx, xxx }
-
 enum RecipeTag { thermomix, vegan, vegetarien, alcool, sansgluten }
 
 extension RecipeCategoryDisplayValue on RecipeCategory {
@@ -44,20 +42,7 @@ extension RecipeTypeNumberDisplayValue on RecipeServingType {
       case RecipeServingType.personnes:
         return 'Personnes';
       case RecipeServingType.pieces:
-        return 'Pieces';
-    }
-  }
-}
-
-extension RecipePriceDisplayValue on RecipePrice {
-  String get displayValue {
-    switch (this) {
-      case RecipePrice.x:
-        return '€';
-      case RecipePrice.xx:
-        return '€€';
-      case RecipePrice.xxx:
-        return '€€€';
+        return 'Pièces';
     }
   }
 }

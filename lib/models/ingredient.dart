@@ -24,11 +24,12 @@ class Ingredient {
   factory Ingredient.fromJson(Map<String, dynamic> json) {
     final name = json['name'] as String? ?? '';
     final number = json['number'];
+    final quantity = number is num ? number.toDouble() : number is String ? double.tryParse(number) : null;
     return Ingredient(
       id: json['id'] as String? ?? '',
       name: name,
       nameWithoutDiacritics: removeDiacritics(name),
-      quantity: number is num ? number.toDouble() : null,
+      quantity: quantity,
       index: json['index'] as int? ?? 0,
       price: (json['price'] as num?)?.toDouble(),
       category: json['category'] as String?,

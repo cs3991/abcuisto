@@ -23,7 +23,7 @@ class AppConfig {
     _instance = AppConfig(
       flavor: flavor,
       apiUrl: switch (flavor) {
-        AppFlavor.dev => 'http://localhost:7066',
+        AppFlavor.dev => 'http://192.168.1.102:7067',
         AppFlavor.prod => 'https://back.abcuisto.fr',
       },
     );

@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:abcuisto/models/recipe.dart';
 import 'package:abcuisto/models/user.dart';
 import 'package:abcuisto/recipe/add_recipe/enum_extensions.dart';
+import 'package:diacritic/diacritic.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -26,7 +28,11 @@ class AbcuistoRepository extends ChangeNotifier {
     authToken = prefs!.getString('api_auth_token');
     authEmail = prefs!.getString('api_auth_email');
 
-    if (isAuthenticated) await getUserInfos();
+    try {
+      if (isAuthenticated) await getUserInfos();
+    } catch (error) {
+      await logout();
+    }
 
     initialized = true;
     notifyListeners();
@@ -170,14 +176,19 @@ class AbcuistoRepository extends ChangeNotifier {
     List<ApiRecipeCommentInput>? comments,
     List<String>? ustensiles,
     List<ApiRecipeCategoryInput>? ingredientsCategories,
+    bool includePreparationTime = false,
+    bool includeCookingTime = false,
+    bool includeWaitingTime = false,
+    bool includeTotalTime = false,
   }) {
     final recipe = <String, dynamic>{
       'id': id,
       if (name != null) 'name': name,
-      if (preparationTime != null) 'preparationTime': preparationTime,
-      if (cookingTime != null) 'cookingTime': cookingTime,
-      if (waitingTime != null) 'waitingTime': waitingTime,
-      if (totalTime != null) 'totalTime': totalTime,
+      if (name != null) 'nameWithoutDiacritics': removeDiacritics(name),
+      if (preparationTime != null || includePreparationTime) 'preparationTime': preparationTime,
+      if (cookingTime != null || includeCookingTime) 'cookingTime': cookingTime,
+      if (waitingTime != null || includeWaitingTime) 'waitingTime': waitingTime,
+      if (totalTime != null || includeTotalTime) 'totalTime': totalTime,
       if (creator != null) 'creator': creator,
       if (creatorPseudo != null) 'creatorPseudo': creatorPseudo,
       if (category != null) 'category': category,
@@ -187,13 +198,19 @@ class AbcuistoRepository extends ChangeNotifier {
       if (typeNumber != null) 'typeNumber': typeNumber,
       if (steps != null) 'steps': steps,
       if (tags != null) 'tags': tags,
-      if (groups != null) 'groups': groups.map((group) => group.toJson()).toList(),
+      if (groups != null) ...{
+        'groups': groups.map((group) => group.toJson()).toList(),
+        'groupsIds': groups.map((group) => group.id).whereType<String>().toList(),
+      },
       if (noteId != null) 'noteId': noteId,
       if (note != null) 'note': note,
       if (nbNotes != null) 'nbNotes': nbNotes,
       if (comments != null) 'comments': comments.map((comment) => comment.toJson()).toList(),
       if (ustensiles != null) 'ustensiles': ustensiles,
-      if (ingredientsCategories != null) 'ingredientsCategories': ingredientsCategories.map((category) => category.toJson()).toList(),
+      if (ingredientsCategories != null) ...{
+        'ingredientsCategories': ingredientsCategories.map((category) => category.toJson()).toList(),
+        'categoriesIds': <String>[],
+      },
     };
     return _post('/api/Recipes/updateRecipe', recipe);
   }
@@ -306,81 +323,75 @@ class AbcuistoRepository extends ChangeNotifier {
   int? _durationInMinutes(String value) {
     final normalized = value.trim().toLowerCase();
     if (normalized.isEmpty) return null;
-    final hours = RegExp(r'(\d+)\s*(?:h|heure)').firstMatch(normalized);
-    final minutes = RegExp(r'(\d+)\s*(?:min|m)').firstMatch(normalized);
-    if (hours != null || minutes != null) {
-      return (int.tryParse(hours?.group(1) ?? '') ?? 0) * 60 + (int.tryParse(minutes?.group(1) ?? '') ?? 0);
-    }
-    return int.tryParse(normalized);
+    final plainMinutes = int.tryParse(normalized);
+    if (plainMinutes != null) return plainMinutes;
+    final duration = RegExp(r'^(?:(\d+)\s*(?:h|heure(?:s)?)\s*)?(?:(\d+)\s*(?:min|m))?$').firstMatch(normalized);
+    if (duration == null || (duration.group(1) == null && duration.group(2) == null)) return null;
+    return (int.tryParse(duration.group(1) ?? '') ?? 0) * 60 + (int.tryParse(duration.group(2) ?? '') ?? 0);
   }
+
+  int? parseRecipeDuration(String value) => _durationInMinutes(value);
 
   Future<void> createRecipe({
     required String name,
     required RecipeCategory category,
     required String tempsPreparation,
     required String tempsCuisson,
-    required String steps,
-    required String ustensiles,
-    required bool vege,
+    required String tempsRepos,
+    required List<String> steps,
+    required List<String> ustensiles,
     required double forNumber,
     required RecipeServingType typeNumber,
-    required RecipePrice prix,
     required List<RecipeTag> tags,
+    required List<ApiGroupInput> groups,
+    required List<ApiRecipeCategoryInput> ingredientsCategories,
+    required List<ApiImageInput> images,
     String? createur,
     String? createurPseudo,
-    required List<RecipeIngredientInput> ingredients,
   }) async {
     final recipeTags = tags.map((tag) => tag.displayValue).toList();
-    if (vege && !recipeTags.contains('VEGETARIEN')) {
-      recipeTags.add('VEGETARIEN');
-    }
+    final prepTime = _durationInMinutes(tempsPreparation);
+    final cookTime = _durationInMinutes(tempsCuisson);
+    final waitingTime = _durationInMinutes(tempsRepos);
     final body = <String, dynamic>{
-      'id': '00000000-0000-0000-0000-000000000000',
+      'id': _newGuid(),
       'name': name,
+      'nameWithoutDiacritics': removeDiacritics(name),
       'category': category.displayValue,
-      'preparationTime': _durationInMinutes(tempsPreparation),
-      'cookingTime': _durationInMinutes(tempsCuisson),
-      'steps': steps.split(RegExp(r'\r?\n')).where((step) => step.trim().isNotEmpty).toList(),
-      'ustensiles': ustensiles.split(',').map((value) => value.trim()).where((value) => value.isNotEmpty).toList(),
+      'preparationTime': prepTime,
+      'cookingTime': cookTime,
+      'waitingTime': waitingTime,
+      'steps': steps,
+      'ustensiles': ustensiles,
       'forNumber': forNumber.round(),
       'typeNumber': typeNumber.displayValue,
       'creator': createur,
       'creatorPseudo': createurPseudo,
       'tags': recipeTags,
-      'ingredientsCategories': [
-        {
-          'name': '$name-ingredients',
-          'id': '00000000-0000-0000-0000-000000000000',
-          'index': 0,
-          'ingredients': [
-            for (var index = 0; index < ingredients.length; index++)
-              if (ingredients[index].name.isNotEmpty)
-                {
-                  'id': '00000000-0000-0000-0000-000000000000',
-                  'name': ingredients[index].name,
-                  'type': ingredients[index].unit,
-                  'number': ingredients[index].quantity,
-                  'index': index,
-                },
-          ],
-        },
-      ],
+      'groups': groups.map((group) => group.toJson()).toList(),
+      'groupsIds': groups.map((group) => group.id).whereType<String>().toList(),
+      'categoriesIds': <String>[],
+      'ingredientsCategories': ingredientsCategories.map((category) => category.toJson()).toList(),
+      'images': images.map((image) => image.toJson()).toList(),
+      'note': 0,
+      'nbNotes': 0,
+      'noteId': null,
     };
-    body.removeWhere((key, value) => value == null);
-    if (ingredients.isEmpty) body.remove('ingredientsCategories');
-    final prepTime = body['preparationTime'] as int?;
-    final cookTime = body['cookingTime'] as int?;
-    if (prepTime != null || cookTime != null) {
-      body['totalTime'] = (prepTime ?? 0) + (cookTime ?? 0);
+    body.removeWhere((key, value) => value == null && key != 'noteId');
+    if (prepTime != null || cookTime != null || waitingTime != null) {
+      body['totalTime'] = (prepTime ?? 0) + (cookTime ?? 0) + (waitingTime ?? 0);
     }
-    body['images'] = <dynamic>[];
-    body['documents'] = <dynamic>[];
-    body['comments'] = <dynamic>[];
-    body['groups'] = <dynamic>[];
-    body['note'] = 0;
-    body['nbNotes'] = 0;
     await _post('/api/Recipes/createRecipe', body);
     notifyListeners();
+  }
+
+  static String _newGuid() {
+    final random = Random.secure();
+    final bytes = List<int>.generate(16, (_) => random.nextInt(256));
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    final hex = bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
+    return '${hex.substring(0, 8)}-${hex.substring(8, 12)}-${hex.substring(12, 16)}-${hex.substring(16, 20)}-${hex.substring(20)}';
   }
 }
 
@@ -426,8 +437,19 @@ class ApiGroupInput {
   final String? newOwner;
   final String? memberId;
   final String? memberUserName;
+  final List<Map<String, dynamic>> members;
 
-  const ApiGroupInput({this.id, this.name, this.owner, this.canEdit, this.link, this.newOwner, this.memberId, this.memberUserName});
+  const ApiGroupInput({
+    this.id,
+    this.name,
+    this.owner,
+    this.canEdit,
+    this.link,
+    this.newOwner,
+    this.memberId,
+    this.memberUserName,
+    this.members = const [],
+  });
 
   Map<String, dynamic> toJson() => {
     if (id != null) 'id': id,
@@ -438,6 +460,7 @@ class ApiGroupInput {
     if (newOwner != null) 'newOwner': newOwner,
     if (memberId != null) 'memberId': memberId,
     if (memberUserName != null) 'memberUserName': memberUserName,
+    'members': members,
   };
 }
 
@@ -465,7 +488,7 @@ class ApiRecipeIngredientInput {
   final String? id;
   final String? name;
   final String? type;
-  final double number;
+  final String number;
   final int index;
   final double? price;
   final String? category;
@@ -475,6 +498,7 @@ class ApiRecipeIngredientInput {
   Map<String, dynamic> toJson() => {
     if (id != null) 'id': id,
     if (name != null) 'name': name,
+    if (name != null) 'nameWithoutDiacritics': removeDiacritics(name!),
     if (type != null) 'type': type,
     'number': number,
     'index': index,
@@ -497,7 +521,7 @@ class ApiRecipeCategoryInput {
     if (name != null) 'name': name,
     if (index != null) 'index': index,
     if (ingredients != null) 'ingredients': ingredients!.map((ingredient) => ingredient.toJson()).toList(),
-    if (recipe != null) 'recipe': recipe,
+    'ingredientsIds': <String>[],
   };
 }
 
@@ -510,12 +534,4 @@ class IngredientPriceInput {
   const IngredientPriceInput({this.id, this.name, this.unit, required this.price});
 
   Map<String, dynamic> toJson() => {if (id != null) 'id': id, if (name != null) 'name': name, if (unit != null) 'unit': unit, 'price': price};
-}
-
-class RecipeIngredientInput {
-  final String name;
-  final String unit;
-  final double quantity;
-
-  const RecipeIngredientInput({required this.name, required this.unit, required this.quantity});
 }

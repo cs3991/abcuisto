@@ -256,8 +256,19 @@ class RecipeGroup {
   final String? newOwner;
   final String? memberId;
   final String? memberUserName;
+  final List<Map<String, dynamic>> members;
 
-  const RecipeGroup({this.id, this.name, this.owner, this.canEdit, this.link, this.newOwner, this.memberId, this.memberUserName});
+  const RecipeGroup({
+    this.id,
+    this.name,
+    this.owner,
+    this.canEdit,
+    this.link,
+    this.newOwner,
+    this.memberId,
+    this.memberUserName,
+    this.members = const [],
+  });
 
   factory RecipeGroup.fromJson(Map<String, dynamic> json) => RecipeGroup(
     id: json['id'] as String?,
@@ -268,6 +279,9 @@ class RecipeGroup {
     newOwner: json['newOwner'] as String?,
     memberId: json['memberId'] as String?,
     memberUserName: json['memberUserName'] as String?,
+    members: json['members'] is List
+        ? (json['members'] as List).whereType<Map<String, dynamic>>().toList()
+        : const [],
   );
 
   Map<String, dynamic> toJson() => {
@@ -279,6 +293,7 @@ class RecipeGroup {
     if (newOwner != null) 'newOwner': newOwner,
     if (memberId != null) 'memberId': memberId,
     if (memberUserName != null) 'memberUserName': memberUserName,
+    'members': members,
   };
 }
 
