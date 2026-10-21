@@ -83,7 +83,7 @@ class RecipeDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final servingType = recipe.typeNumber?.toLowerCase() ?? 'personnes';
+    final servingType = recipe.typeNumber?.displayName ?? 'personnes';
     final servingLabel = servingType == 'personnes' && recipe.forNumber == 1 ? 'personne' : servingType;
 
     return Stack(
@@ -168,7 +168,7 @@ class RecipeDetails extends StatelessWidget {
                             children: recipe.tags
                                 .map(
                                   (tag) => Chip(
-                                    label: Text(tag),
+                                    label: Text(tag.displayName),
                                     labelStyle: Theme.of(context).textTheme.bodySmall,
                                     visualDensity: VisualDensity.compact,
                                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,

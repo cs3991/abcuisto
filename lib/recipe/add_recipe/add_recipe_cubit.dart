@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:abcuisto/models/abcuisto_repository.dart';
 import 'package:abcuisto/models/recipe.dart';
-import 'package:abcuisto/recipe/add_recipe/enum_extensions.dart';
 import 'package:bloc/bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:meta/meta.dart';
@@ -113,9 +112,9 @@ class AddRecipeCubit extends Cubit<AddRecipeState> {
           documents: documents,
           images: await _apiImages(images),
           forNumber: servings,
-          typeNumber: servingType.displayValue,
+          typeNumber: servingType,
           steps: steps,
-          tags: tags.map((tag) => tag.displayValue).toList(),
+          tags: tags,
           groups: groups,
           ustensiles: utensils,
           ingredientsCategories: ingredientsCategories,

@@ -4,7 +4,6 @@ import 'package:abcuisto/models/abcuisto_repository.dart';
 import 'package:abcuisto/models/recipe.dart';
 import 'package:abcuisto/recipe/add_recipe/add_recipe_cubit.dart';
 import 'package:abcuisto/recipe/add_recipe/duration_picker.dart';
-import 'package:abcuisto/recipe/add_recipe/enum_extensions.dart';
 import 'package:abcuisto/recipe/filters/filter_cubit.dart';
 import 'package:abcuisto/recipe/recipe_cubit.dart';
 import 'package:abcuisto/widgets.dart';
@@ -64,7 +63,7 @@ class _CreateRecipeBodyState extends State<CreateRecipeBody> {
     _servingsController.text = recipe?.forNumber?.toString() ?? '';
     _utensilsController.text = recipe?.cookware.join(', ') ?? '';
     _selectedCategory = recipe?.category;
-    final normalizedServingType = recipe?.typeNumber?.toLowerCase();
+    final normalizedServingType = recipe?.typeNumber?.displayName;
     _servingType = normalizedServingType == 'pieces' || normalizedServingType == 'pièces' ? RecipeServingType.pieces : RecipeServingType.personnes;
     _selectedTags.addAll(_tagsFor(recipe?.tags ?? const []));
     _selectedGroupIds.addAll(recipe?.groups.map((group) => group.id).whereType<String>() ?? const []);
@@ -273,7 +272,7 @@ class _CreateRecipeBodyState extends State<CreateRecipeBody> {
                         spacing: 8,
                         children: RecipeTag.values.map((tag) {
                           return FilterChip(
-                            label: Text(_tagLabel(tag)),
+                            label: Text(tag.label),
                             selected: _selectedTags.contains(tag),
                             onSelected: (selected) => setState(() {
                               if (selected) {
@@ -296,7 +295,7 @@ class _CreateRecipeBodyState extends State<CreateRecipeBody> {
                             child: DropdownButtonFormField<RecipeServingType>(
                               initialValue: _servingType,
                               decoration: const InputDecoration(border: OutlineInputBorder()),
-                              items: RecipeServingType.values.map((type) => DropdownMenuItem(value: type, child: Text(_servingLabel(type)))).toList(),
+                              items: RecipeServingType.values.map((type) => DropdownMenuItem(value: type, child: Text(type.label))).toList(),
                               onChanged: (type) {
                                 if (type != null) setState(() => _servingType = type);
                               },
@@ -517,24 +516,13 @@ class _CreateRecipeBodyState extends State<CreateRecipeBody> {
   //   return null;
   // }
 
-  static List<RecipeTag> _tagsFor(List<String> tags) {
-    final normalized = tags.map((tag) => tag.toUpperCase()).toSet();
-    return RecipeTag.values.where((tag) => normalized.contains(tag.displayValue)).toList();
+  static List<RecipeTag> _tagsFor(List<RecipeTag> tags) {
+    final normalized = tags.toSet();
+    return RecipeTag.values.where((tag) => normalized.contains(tag)).toList();
   }
 
 
-  static String _tagLabel(RecipeTag tag) => switch (tag) {
-    RecipeTag.thermomix => 'Thermomix',
-    RecipeTag.vegan => 'Vegan',
-    RecipeTag.vegetarien => 'Végétarien',
-    RecipeTag.alcool => 'Alcool',
-    RecipeTag.sansgluten => 'Sans gluten',
-  };
 
-  static String _servingLabel(RecipeServingType type) => switch (type) {
-    RecipeServingType.personnes => 'Personnes',
-    RecipeServingType.pieces => 'Pièces',
-  };
 }
 
 class IngredientCategory {

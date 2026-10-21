@@ -29,8 +29,46 @@ enum RecipeCategory {
   }
 }
 
+enum RecipeTag {
+  thermomix('THERMOMIX', 'Thermomix'),
+  vegan('VEGAN', 'Vegan'),
+  vegetarien('VEGETARIEN', 'Vegetarien'),
+  alcool('ALCOOL', 'Alcool'),
+  sansgluten('SANSGLUTEN', 'Sans Gluten');
 
+  final String label;
+  final String displayName;
 
+  const RecipeTag(this.label, this.displayName);
+
+  static RecipeTag? fromApi(String? value) {
+    if (value == null) return null;
+    for (final tag in values) {
+      if (tag.label == value || tag.displayName == value) {
+        return tag;
+      }
+    }
+    return null;
+  }
+}
+
+enum RecipeServingType { personnes('Personnes', 'Personnes'), pieces('Pièces', 'Pièces');
+
+  final String label;
+  final String displayName;
+
+  const RecipeServingType(this.label, this.displayName);
+
+  static RecipeServingType? fromApi(String? value) {
+    if (value == null) return null;
+    for (final type in values) {
+      if (type.label == value || type.displayName == value) {
+        return type;
+      }
+    }
+    return null;
+  }
+}
 
 Duration? _durationFromMinutes(dynamic value) => value is num ? Duration(minutes: value.toInt()) : null;
 
@@ -55,8 +93,8 @@ class Recipe {
   final List<String> cookware;
   final List<String> documents;
   final int? forNumber;
-  final String? typeNumber;
-  final List<String> tags;
+  final RecipeServingType? typeNumber;
+  final List<RecipeTag> tags;
   final List<RecipeGroup> groups;
   final String? noteId;
   final int? nbNotes;
@@ -102,8 +140,10 @@ class Recipe {
       cookware: _stringList(recipe['ustensiles']),
       documents: documents,
       forNumber: recipe['forNumber'] as int?,
-      typeNumber: recipe['typeNumber'] as String?,
-      tags: _stringList(recipe['tags']),
+      typeNumber: RecipeServingType.fromApi(recipe['typeNumber'] as String?),
+      tags: (recipe['tags'] is List
+          ? (recipe['tags'] as List).whereType<String>().map((tag) => RecipeTag.fromApi(tag)).whereType<RecipeTag>().toList()
+          : const []),
       groups: recipe['groups'] is List ? (recipe['groups'] as List).whereType<Map<String, dynamic>>().map(RecipeGroup.fromJson).toList() : const [],
       noteId: recipe['noteId'] as String?,
       nbNotes: recipe['nbNotes'] as int?,
@@ -208,9 +248,9 @@ class RecipeFull extends Recipe {
     'category': category?.displayName,
     'documents': documents.isEmpty ? null : documents,
     'forNumber': forNumber,
-    'typeNumber': typeNumber,
+    'typeNumber': typeNumber?.label,
     'steps': instructions,
-    'tags': tags,
+    'tags': tags.map((tag) => tag.label).toList(),
     'groups': groups.map((group) => group.toJson()).toList(),
     'noteId': noteId,
     'note': note?.round(),

@@ -3,7 +3,6 @@ import 'dart:math';
 
 import 'package:abcuisto/models/recipe.dart';
 import 'package:abcuisto/models/user.dart';
-import 'package:abcuisto/recipe/add_recipe/enum_extensions.dart';
 import 'package:diacritic/diacritic.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -166,9 +165,9 @@ class AbcuistoRepository extends ChangeNotifier {
     List<String>? documents,
     List<ApiImageInput>? images,
     int? forNumber,
-    String? typeNumber,
+    RecipeServingType? typeNumber,
     List<String>? steps,
-    List<String>? tags,
+    List<RecipeTag>? tags,
     List<ApiGroupInput>? groups,
     String? noteId,
     int? note,
@@ -349,7 +348,7 @@ class AbcuistoRepository extends ChangeNotifier {
     String? createur,
     String? createurPseudo,
   }) async {
-    final recipeTags = tags.map((tag) => tag.displayValue).toList();
+    final recipeTags = tags.map((tag) => tag.label).toList();
     final prepTime = _durationInMinutes(tempsPreparation);
     final cookTime = _durationInMinutes(tempsCuisson);
     final waitingTime = _durationInMinutes(tempsRepos);
@@ -364,7 +363,7 @@ class AbcuistoRepository extends ChangeNotifier {
       'steps': steps,
       'ustensiles': ustensiles,
       'forNumber': forNumber.round(),
-      'typeNumber': typeNumber.displayValue,
+      'typeNumber': typeNumber.label,
       'creator': createur,
       'creatorPseudo': createurPseudo,
       'tags': recipeTags,
