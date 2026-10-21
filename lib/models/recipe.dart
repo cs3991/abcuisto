@@ -3,32 +3,34 @@ import 'package:collection/collection.dart';
 
 import 'ingredient.dart';
 
-enum Category {
-  appetizer('aperitif', 'Apéritif'),
-  starter('entree', 'Entrée'),
-  mainCourse('plat', 'Plat'),
-  cheese('fromage', 'Fromage'),
-  dessert('dessert', 'Dessert'),
-  breakfast('petitxdejeuner', 'Petit-déjeuner'),
-  drink('boisson', 'Boisson'),
-  sauce('sauce', 'Sauce');
+enum RecipeCategory {
+  appetizer('Apéritif', 'Apéritif'),
+  starter('Entrée', 'Entrée'),
+  mainCourse('Plat', 'Plat'),
+  cheese('Fromage', 'Fromage'),
+  dessert('Dessert', 'Dessert'),
+  breakfast('Petit-déjeuner', 'Petit-déjeuner'),
+  drink('Boisson', 'Boisson'),
+  sauce('Sauce', 'Sauce');
 
   final String label;
   final String displayName;
 
-  const Category(this.label, this.displayName);
+  const RecipeCategory(this.label, this.displayName);
 
-  static Category? fromApi(String? value) {
+  static RecipeCategory? fromApi(String? value) {
     if (value == null) return null;
-    final normalized = value.toLowerCase();
     for (final category in values) {
-      if (category.label.toLowerCase() == normalized || category.displayName.toLowerCase() == normalized) {
+      if (category.label == value || category.displayName == value) {
         return category;
       }
     }
     return null;
   }
 }
+
+
+
 
 Duration? _durationFromMinutes(dynamic value) => value is num ? Duration(minutes: value.toInt()) : null;
 
@@ -49,7 +51,7 @@ class Recipe {
   final double? note;
   final String creatorId;
   final String creatorName;
-  final Category? category;
+  final RecipeCategory? category;
   final List<String> cookware;
   final List<String> documents;
   final int? forNumber;
@@ -96,7 +98,7 @@ class Recipe {
       note: (recipe['note'] as num?)?.toDouble(),
       creatorId: _stringOrEmpty(recipe['creator']),
       creatorName: _stringOrEmpty(recipe['creatorPseudo']),
-      category: Category.fromApi(recipe['category'] as String?),
+      category: RecipeCategory.fromApi(recipe['category'] as String?),
       cookware: _stringList(recipe['ustensiles']),
       documents: documents,
       forNumber: recipe['forNumber'] as int?,
@@ -279,9 +281,7 @@ class RecipeGroup {
     newOwner: json['newOwner'] as String?,
     memberId: json['memberId'] as String?,
     memberUserName: json['memberUserName'] as String?,
-    members: json['members'] is List
-        ? (json['members'] as List).whereType<Map<String, dynamic>>().toList()
-        : const [],
+    members: json['members'] is List ? (json['members'] as List).whereType<Map<String, dynamic>>().toList() : const [],
   );
 
   Map<String, dynamic> toJson() => {

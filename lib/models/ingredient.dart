@@ -44,8 +44,8 @@ class Ingredient {
     
     'g' || 'kg' || 'mg' || 'l' || 'cl' || 'ml' => type.toLowerCase(),
     'pièce(s)' => '',
-    'cuillère à café' => 'cuillère${(quantity ?? 0) > 1 ? "s" : ""} à café',
-    'cuillère à soupe' => 'cuillère${(quantity ?? 0) > 1 ? "s" : ""} à soupe',
+    'cuillère à café' => 'CaC',
+    'cuillère à soupe' => 'CaS',
     'pincée(s)' => 'pincée${(quantity ?? 0) > 1 ? "s" : ""}',
     _ => type,
   };

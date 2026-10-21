@@ -33,19 +33,7 @@ class CreateRecipeBody extends StatefulWidget {
 }
 
 class _CreateRecipeBodyState extends State<CreateRecipeBody> {
-  static const _units = [
-    '',
-    'g',
-    'kg',
-    'mg',
-    'l',
-    'cl',
-    'ml',
-    'pièce(s)',
-    'cuillère à café',
-    'cuillère à soupe',
-    'pincée(s)',
-  ];
+  static const _units = ['g', 'kg', 'mg', 'L', 'cL', 'mL', 'pièce(s)', 'cuillère à café', 'cuillère à soupe', 'pincée(s)'];
 
   final _nameController = TextEditingController();
   Duration _prepTime = Duration.zero;
@@ -75,11 +63,9 @@ class _CreateRecipeBodyState extends State<CreateRecipeBody> {
     _restTime = recipe?.restTime ?? Duration.zero;
     _servingsController.text = recipe?.forNumber?.toString() ?? '';
     _utensilsController.text = recipe?.cookware.join(', ') ?? '';
-    _selectedCategory = _categoryFor(recipe?.category);
+    _selectedCategory = recipe?.category;
     final normalizedServingType = recipe?.typeNumber?.toLowerCase();
-    _servingType = normalizedServingType == 'pieces' || normalizedServingType == 'pièces'
-        ? RecipeServingType.pieces
-        : RecipeServingType.personnes;
+    _servingType = normalizedServingType == 'pieces' || normalizedServingType == 'pièces' ? RecipeServingType.pieces : RecipeServingType.personnes;
     _selectedTags.addAll(_tagsFor(recipe?.tags ?? const []));
     _selectedGroupIds.addAll(recipe?.groups.map((group) => group.id).whereType<String>() ?? const []);
     _documents.addAll(recipe?.documents ?? const []);
@@ -217,154 +203,148 @@ class _CreateRecipeBodyState extends State<CreateRecipeBody> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                            const SizedBox(height: 16),
-                            RoundedTextField(hintText: 'Nom de la recette', controller: _nameController),
-                            const SizedBox(height: 16),
-                            const SectionTitle(title: 'Catégorie de la recette'),
-                            const SizedBox(height: 8),
-                            DropdownButtonFormField<RecipeCategory>(
-                              initialValue: _selectedCategory,
-                              decoration: const InputDecoration(border: OutlineInputBorder(), hintText: 'Choisir une catégorie'),
-                              items: RecipeCategory.values
-                                  .map((category) => DropdownMenuItem(value: category, child: Text(_categoryLabel(category))))
-                                  .toList(),
-                              onChanged: (category) => setState(() => _selectedCategory = category),
+                      const SizedBox(height: 16),
+                      RoundedTextField(hintText: 'Nom de la recette', controller: _nameController),
+                      const SizedBox(height: 16),
+                      const SectionTitle(title: 'Catégorie de la recette'),
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<RecipeCategory>(
+                        initialValue: _selectedCategory,
+                        decoration: const InputDecoration(border: OutlineInputBorder(), hintText: 'Choisir une catégorie'),
+                        items: RecipeCategory.values
+                            .map((category) => DropdownMenuItem(value: category, child: Text(category.displayName)))
+                            .toList(),
+                        onChanged: (category) => setState(() => _selectedCategory = category),
+                      ),
+                      const SizedBox(height: 16),
+                      Wrap(
+                        alignment: WrapAlignment.spaceAround,
+                        children: [
+                          DurationPicker(
+                            label: 'Préparation',
+                            initialDuration: widget.initialRecipe?.prepTime,
+                            onDurationChanged: (duration) {
+                              _prepTime = duration;
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          // Expanded(child: RoundedTextField(hintText: 'Temps de cuisson', controller: _cookTimeController)),
+                          DurationPicker(
+                            label: 'Cuisson',
+                            initialDuration: widget.initialRecipe?.cookTime,
+                            onDurationChanged: (duration) => _cookTime = duration,
+                          ),
+                          const SizedBox(width: 8),
+                          DurationPicker(
+                            label: 'Repos',
+                            initialDuration: widget.initialRecipe?.restTime,
+                            onDurationChanged: (duration) => _restTime = duration,
+                          ),
+                        ],
+                      ),
+                      // const SizedBox(height: 8),
+                      // RoundedTextField(hintText: 'Temps de repos', controller: _restTimeController),
+                      if (availableGroups.isNotEmpty) ...[
+                        const SizedBox(height: 16),
+                        const SectionTitle(title: 'Visible pour quels groupes ?'),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          children: availableGroups.map((group) {
+                            final id = group.id!;
+                            return FilterChip(
+                              label: Text(group.name ?? 'Groupe'),
+                              selected: _selectedGroupIds.contains(id),
+                              onSelected: (selected) => setState(() {
+                                if (selected) {
+                                  _selectedGroupIds.add(id);
+                                } else {
+                                  _selectedGroupIds.remove(id);
+                                }
+                              }),
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                      const SizedBox(height: 16),
+                      const SectionTitle(title: 'Tags'),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        children: RecipeTag.values.map((tag) {
+                          return FilterChip(
+                            label: Text(_tagLabel(tag)),
+                            selected: _selectedTags.contains(tag),
+                            onSelected: (selected) => setState(() {
+                              if (selected) {
+                                _selectedTags.add(tag);
+                              } else {
+                                _selectedTags.remove(tag);
+                              }
+                            }),
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: RoundedTextField(hintText: 'Pour combien ?', controller: _servingsController, keyboardType: TextInputType.number),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: DropdownButtonFormField<RecipeServingType>(
+                              initialValue: _servingType,
+                              decoration: const InputDecoration(border: OutlineInputBorder()),
+                              items: RecipeServingType.values.map((type) => DropdownMenuItem(value: type, child: Text(_servingLabel(type)))).toList(),
+                              onChanged: (type) {
+                                if (type != null) setState(() => _servingType = type);
+                              },
                             ),
-                            const SizedBox(height: 16),
-                            Wrap(
-                              alignment: WrapAlignment.spaceAround,
-                              children: [
-                                DurationPicker(
-                                  label: 'Préparation',
-                                  initialDuration: widget.initialRecipe?.prepTime,
-                                  onDurationChanged: (duration) {
-                                    _prepTime = duration;
-                                  },
-                                ),
-                                const SizedBox(width: 8),
-                                // Expanded(child: RoundedTextField(hintText: 'Temps de cuisson', controller: _cookTimeController)),
-                                DurationPicker(
-                                  label: 'Cuisson',
-                                  initialDuration: widget.initialRecipe?.cookTime,
-                                  onDurationChanged: (duration) => _cookTime = duration,
-                                ),
-                                const SizedBox(width: 8),
-                                DurationPicker(
-                                  label: 'Repos',
-                                  initialDuration: widget.initialRecipe?.restTime,
-                                  onDurationChanged: (duration) => _restTime = duration,
-                                ),
-                              ],
-                            ),
-                            // const SizedBox(height: 8),
-                            // RoundedTextField(hintText: 'Temps de repos', controller: _restTimeController),
-                            if (availableGroups.isNotEmpty) ...[
-                              const SizedBox(height: 16),
-                              const SectionTitle(title: 'Visible pour quels groupes ?'),
-                              const SizedBox(height: 8),
-                              Wrap(
-                                spacing: 8,
-                                children: availableGroups.map((group) {
-                                  final id = group.id!;
-                                  return FilterChip(
-                                    label: Text(group.name ?? 'Groupe'),
-                                    selected: _selectedGroupIds.contains(id),
-                                    onSelected: (selected) => setState(() {
-                                      if (selected) {
-                                        _selectedGroupIds.add(id);
-                                      } else {
-                                        _selectedGroupIds.remove(id);
-                                      }
-                                    }),
-                                  );
-                                }).toList(),
-                              ),
-                            ],
-                            const SizedBox(height: 16),
-                            const SectionTitle(title: 'Tags'),
-                            const SizedBox(height: 8),
-                            Wrap(
-                              spacing: 8,
-                              children: RecipeTag.values.map((tag) {
-                                return FilterChip(
-                                  label: Text(_tagLabel(tag)),
-                                  selected: _selectedTags.contains(tag),
-                                  onSelected: (selected) => setState(() {
-                                    if (selected) {
-                                      _selectedTags.add(tag);
-                                    } else {
-                                      _selectedTags.remove(tag);
-                                    }
-                                  }),
-                                );
-                              }).toList(),
-                            ),
-                            const SizedBox(height: 16),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: RoundedTextField(
-                                    hintText: 'Pour combien ?',
-                                    controller: _servingsController,
-                                    keyboardType: TextInputType.number,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: DropdownButtonFormField<RecipeServingType>(
-                                    initialValue: _servingType,
-                                    decoration: const InputDecoration(border: OutlineInputBorder()),
-                                    items: RecipeServingType.values
-                                        .map((type) => DropdownMenuItem(value: type, child: Text(_servingLabel(type))))
-                                        .toList(),
-                                    onChanged: (type) {
-                                      if (type != null) setState(() => _servingType = type);
-                                    },
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 24),
-                            const SectionTitle(title: 'Ingrédients'),
-                            const SizedBox(height: 8),
-                            ..._categories.map(
-                              (category) => IngredientCategoryWidget(
-                                category: category,
-                                units: _units,
-                                onAddIngredient: () => setState(() => category.ingredients.add(IngredientLine())),
-                                onRemoveCategory: () => setState(() {
-                                  if (_categories.length > 1) {
-                                    _categories.remove(category);
-                                    category.dispose();
-                                  }
-                                }),
-                                onRemoveIngredient: (ingredient) => setState(() {
-                                  if (category.ingredients.length > 1) {
-                                    category.ingredients.remove(ingredient);
-                                    ingredient.dispose();
-                                  }
-                                }),
-                              ),
-                            ),
-                            TextButton.icon(
-                              onPressed: () => setState(() => _categories.add(IngredientCategory())),
-                              icon: const Icon(Icons.add),
-                              label: const Text("Ajouter une catégorie d'ingrédients"),
-                            ),
-                            const SizedBox(height: 24),
-                            const SectionTitle(title: 'Étapes'),
-                            const SizedBox(height: 8),
-                            ..._buildSteps(),
-                            TextButton.icon(
-                              onPressed: () => setState(() => _stepControllers.add(TextEditingController())),
-                              icon: const Icon(Icons.add),
-                              label: const Text('Ajouter une étape'),
-                            ),
-                            const SizedBox(height: 24),
-                            const SectionTitle(title: 'Ustensiles'),
-                            const SizedBox(height: 8),
-                            RoundedTextField(hintText: 'Ex: fouet, casserole...', controller: _utensilsController),
-                            const SizedBox(height: 32),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      const SectionTitle(title: 'Ingrédients'),
+                      const SizedBox(height: 8),
+                      ..._categories.map(
+                        (category) => IngredientCategoryWidget(
+                          category: category,
+                          units: _units,
+                          onAddIngredient: () => setState(() => category.ingredients.add(IngredientLine())),
+                          onRemoveCategory: () => setState(() {
+                            if (_categories.length > 1) {
+                              _categories.remove(category);
+                              category.dispose();
+                            }
+                          }),
+                          onRemoveIngredient: (ingredient) => setState(() {
+                            if (category.ingredients.length > 1) {
+                              category.ingredients.remove(ingredient);
+                              ingredient.dispose();
+                            }
+                          }),
+                        ),
+                      ),
+                      TextButton.icon(
+                        onPressed: () => setState(() => _categories.add(IngredientCategory())),
+                        icon: const Icon(Icons.add),
+                        label: const Text("Ajouter une catégorie d'ingrédients"),
+                      ),
+                      const SizedBox(height: 24),
+                      const SectionTitle(title: 'Étapes'),
+                      const SizedBox(height: 8),
+                      ..._buildSteps(),
+                      TextButton.icon(
+                        onPressed: () => setState(() => _stepControllers.add(TextEditingController())),
+                        icon: const Icon(Icons.add),
+                        label: const Text('Ajouter une étape'),
+                      ),
+                      const SizedBox(height: 24),
+                      const SectionTitle(title: 'Ustensiles'),
+                      const SizedBox(height: 8),
+                      RoundedTextField(hintText: 'Ex: fouet, casserole...', controller: _utensilsController),
+                      const SizedBox(height: 32),
                     ],
                   ),
                 ),
@@ -382,7 +362,9 @@ class _CreateRecipeBodyState extends State<CreateRecipeBody> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(child: StepField(index: index + 1, controller: _stepControllers[index])),
+          Expanded(
+            child: StepField(index: index + 1, controller: _stepControllers[index]),
+          ),
           if (_stepControllers.length > 1)
             IconButton(
               tooltip: 'Supprimer l’étape',
@@ -425,12 +407,7 @@ class _CreateRecipeBodyState extends State<CreateRecipeBody> {
           return;
         }
         ingredients.add(
-          ApiRecipeIngredientInput(
-            name: ingredientName,
-            type: ingredient.unit,
-            number: _formatQuantity(quantity),
-            index: ingredientIndex,
-          ),
+          ApiRecipeIngredientInput(name: ingredientName, type: ingredient.unit, number: _formatQuantity(quantity), index: ingredientIndex),
         );
       }
       if (ingredients.isNotEmpty) {
@@ -532,29 +509,19 @@ class _CreateRecipeBodyState extends State<CreateRecipeBody> {
     return quantity.toString();
   }
 
-  static RecipeCategory? _categoryFor(Category? category) {
-    if (category == null) return null;
-    for (final value in RecipeCategory.values) {
-      if (value.displayValue.toLowerCase() == category.label.toLowerCase()) return value;
-    }
-    return null;
-  }
+  // static RecipeCategory? _categoryFor(RecipeCategory? category) {
+  //   if (category == null) return null;
+  //   for (final value in RecipeCategory.values) {
+  //     if (value.displayValue.toLowerCase() == category.label.toLowerCase()) return value;
+  //   }
+  //   return null;
+  // }
 
   static List<RecipeTag> _tagsFor(List<String> tags) {
     final normalized = tags.map((tag) => tag.toUpperCase()).toSet();
     return RecipeTag.values.where((tag) => normalized.contains(tag.displayValue)).toList();
   }
 
-  static String _categoryLabel(RecipeCategory category) => switch (category) {
-    RecipeCategory.aperitif => 'Apéritif',
-    RecipeCategory.entree => 'Entrée',
-    RecipeCategory.plat => 'Plat',
-    RecipeCategory.fromage => 'Fromage',
-    RecipeCategory.dessert => 'Dessert',
-    RecipeCategory.petitxdejeuner => 'Petit-déjeuner',
-    RecipeCategory.boisson => 'Boisson',
-    RecipeCategory.sauce => 'Sauce',
-  };
 
   static String _tagLabel(RecipeTag tag) => switch (tag) {
     RecipeTag.thermomix => 'Thermomix',
@@ -637,12 +604,10 @@ class IngredientCategoryWidget extends StatelessWidget {
       children: [
         Row(
           children: [
-            Expanded(child: RoundedTextField(hintText: 'Nom de la catégorie', controller: category.nameController)),
-            IconButton(
-              tooltip: 'Supprimer la catégorie',
-              onPressed: onRemoveCategory,
-              icon: const Icon(Icons.delete_outline),
+            Expanded(
+              child: RoundedTextField(hintText: 'Nom de la catégorie', controller: category.nameController),
             ),
+            IconButton(tooltip: 'Supprimer la catégorie', onPressed: onRemoveCategory, icon: const Icon(Icons.delete_outline)),
           ],
         ),
         const SizedBox(height: 8),
@@ -668,7 +633,12 @@ class IngredientCategoryWidget extends StatelessWidget {
                     initialValue: ingredient.unit,
                     decoration: const InputDecoration(border: OutlineInputBorder()),
                     items: availableUnits
-                        .map((unit) => DropdownMenuItem(value: unit, child: SizedBox(width: 50, child: Text(unit.isEmpty ? 'Unité' : unit, overflow: TextOverflow.fade))))
+                        .map(
+                          (unit) => DropdownMenuItem(
+                            value: unit,
+                            child: SizedBox(width: 50, child: Text(unit.isEmpty ? 'Unité' : unit, overflow: TextOverflow.fade)),
+                          ),
+                        )
                         .toList(),
                     onChanged: (unit) {
                       if (unit != null) ingredient.unit = unit;
@@ -676,7 +646,9 @@ class IngredientCategoryWidget extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Expanded(child: RoundedTextField(hintText: 'Ingrédient', controller: ingredient.nameController)),
+                Expanded(
+                  child: RoundedTextField(hintText: 'Ingrédient', controller: ingredient.nameController),
+                ),
                 IconButton(
                   tooltip: 'Supprimer l’ingrédient',
                   onPressed: () => onRemoveIngredient(ingredient),
@@ -714,10 +686,7 @@ class StepField extends StatelessWidget {
               height: 22,
               decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary, shape: BoxShape.circle),
               child: Center(
-                child: Text(
-                  '$index',
-                  style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onPrimary),
-                ),
+                child: Text('$index', style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onPrimary)),
               ),
             ),
             const SizedBox(width: 10),
@@ -727,7 +696,9 @@ class StepField extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.only(left: 10, top: 6, bottom: 6),
           child: Container(
-            decoration: BoxDecoration(border: Border(left: BorderSide(color: Theme.of(context).colorScheme.primary, width: 2))),
+            decoration: BoxDecoration(
+              border: Border(left: BorderSide(color: Theme.of(context).colorScheme.primary, width: 2)),
+            ),
             padding: const EdgeInsets.only(left: 8),
             child: RoundedTextField(hintText: 'Étape $index', controller: controller, maxLines: 3),
           ),
@@ -744,13 +715,7 @@ class _ImageCarousel extends StatefulWidget {
   final void Function(int index, XFile file) onReplace;
   final ValueChanged<int> onRemove;
 
-  const _ImageCarousel({
-    required this.images,
-    required this.photoFiles,
-    required this.onAdd,
-    required this.onReplace,
-    required this.onRemove,
-  });
+  const _ImageCarousel({required this.images, required this.photoFiles, required this.onAdd, required this.onReplace, required this.onRemove});
 
   @override
   State<_ImageCarousel> createState() => _ImageCarouselState();
@@ -788,9 +753,7 @@ class _ImageCarouselState extends State<_ImageCarousel> {
           width: width,
           decoration: BoxDecoration(
             borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
-            boxShadow: [
-              BoxShadow(offset: const Offset(1, 1), blurRadius: 5, color: Colors.black.withValues(alpha: 0.25)),
-            ],
+            boxShadow: [BoxShadow(offset: const Offset(1, 1), blurRadius: 5, color: Colors.black.withValues(alpha: 0.25))],
             color: Theme.of(context).colorScheme.secondaryContainer,
           ),
           child: ClipRRect(

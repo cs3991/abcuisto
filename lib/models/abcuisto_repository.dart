@@ -357,7 +357,7 @@ class AbcuistoRepository extends ChangeNotifier {
       'id': _newGuid(),
       'name': name,
       'nameWithoutDiacritics': removeDiacritics(name),
-      'category': category.displayValue,
+      'category': category.label,
       'preparationTime': prepTime,
       'cookingTime': cookTime,
       'waitingTime': waitingTime,

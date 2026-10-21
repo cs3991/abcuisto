@@ -52,7 +52,7 @@ void main() {
     expect(recipe.id, 'recipe-id');
     expect(recipe.prepTime, const Duration(minutes: 15));
     expect(recipe.restTime, const Duration(minutes: 30));
-    expect(recipe.category, Category.dessert);
+    expect(recipe.category, RecipeCategory.dessert);
     expect(recipe.instructions, ['Mélanger.', 'Cuire.']);
     expect(recipe.images.single.path, '/images/cover.jpg');
     expect(recipe.ingredients['Pâte']!.first.name, 'Farine');

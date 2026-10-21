@@ -109,7 +109,7 @@ class AddRecipeCubit extends Cubit<AddRecipeState> {
           includeTotalTime: true,
           creator: recipe.creatorId.isEmpty ? null : recipe.creatorId,
           creatorPseudo: recipe.creatorName,
-          category: category.displayValue,
+          category: category.label,
           documents: documents,
           images: await _apiImages(images),
           forNumber: servings,
