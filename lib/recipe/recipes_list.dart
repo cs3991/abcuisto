@@ -249,9 +249,9 @@ class RecipeCard extends StatelessWidget {
                   .of(context)
                   .colorScheme
                   .secondaryContainer),
-              child: recipe.images.isNotEmpty
+              child: recipe.documents.isNotEmpty
                   ? Image.network(
-                recipe.images.first.toString(),
+                recipe.documents.first.toString(),
                 height: 200,
                 width: MediaQuery
                     .of(context)
