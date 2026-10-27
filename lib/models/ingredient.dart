@@ -37,6 +37,17 @@ class Ingredient {
     );
   }
 
+  Ingredient copyWith({String? name, double? quantity, String? type, int? index, bool clearQuantity = false}) => Ingredient(
+    id: id,
+    name: name ?? this.name,
+    nameWithoutDiacritics: name == null ? nameWithoutDiacritics : removeDiacritics(name),
+    quantity: clearQuantity ? null : quantity ?? this.quantity,
+    type: type ?? this.type,
+    index: index ?? this.index,
+    price: price,
+    category: category,
+  );
+
   String get typeFormatted {
     if (type == null || type == 'null') return "";
 

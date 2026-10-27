@@ -1,17 +1,31 @@
 import 'package:flutter/material.dart';
 
-class DurationPicker extends StatelessWidget {
+class DurationPicker extends StatefulWidget {
   final String label;
   final Duration? initialDuration;
   final ValueChanged<Duration> onDurationChanged;
-  late PageController hours_controller;
-  late PageController minutes_controller;
-  int hours = 0;
-  int minutes = 0;
+  const DurationPicker({super.key, required this.label, this.initialDuration, required this.onDurationChanged});
 
-  DurationPicker({Key? key, required this.label, this.initialDuration, required this.onDurationChanged}) : super(key: key) {
-    hours_controller = PageController(initialPage: initialDuration != null ? initialDuration!.inHours : 0);
-    minutes_controller = PageController(initialPage: initialDuration != null ? initialDuration!.inMinutes % 60 : 0);
+  @override
+  State<DurationPicker> createState() => _DurationPickerState();
+}
+
+class _DurationPickerState extends State<DurationPicker> {
+  late final PageController _hoursController;
+  late final PageController _minutesController;
+
+  @override
+  void initState() {
+    super.initState();
+    _hoursController = PageController(initialPage: widget.initialDuration?.inHours ?? 0);
+    _minutesController = PageController(initialPage: (widget.initialDuration?.inMinutes ?? 0) % 60);
+  }
+
+  @override
+  void dispose() {
+    _hoursController.dispose();
+    _minutesController.dispose();
+    super.dispose();
   }
 
   @override
@@ -19,7 +33,7 @@ class DurationPicker extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: Theme.of(context).textTheme.labelLarge),
+        Text(widget.label, style: Theme.of(context).textTheme.labelLarge),
         SizedBox(height: 8),
         Row(
           mainAxisSize: MainAxisSize.min,
@@ -31,10 +45,9 @@ class DurationPicker extends StatelessWidget {
               width: 40,
               child: PageView.builder(
                 onPageChanged: (value) {
-                  hours = value;
-                  onDurationChanged(Duration(hours: hours, minutes: minutes));
+                  widget.onDurationChanged(Duration(hours: value, minutes: (widget.initialDuration?.inMinutes ?? 0) % 60));
                 },
-                controller: hours_controller,
+                controller: _hoursController,
 
                 scrollDirection: Axis.vertical,
                 itemCount: 73,
@@ -56,11 +69,10 @@ class DurationPicker extends StatelessWidget {
               height: 40,
               width: 40,
               child: PageView.builder(
-                controller: minutes_controller,
+                controller: _minutesController,
                 scrollDirection: Axis.vertical,
                 onPageChanged: (value) {
-                  minutes = value;
-                  onDurationChanged(Duration(hours: hours, minutes: minutes));
+                  widget.onDurationChanged(Duration(hours: widget.initialDuration?.inHours ?? 0, minutes: value));
                 },
                 itemCount: 60,
                 itemBuilder: (context, index) => Container(
@@ -83,5 +95,3 @@ class DurationPicker extends StatelessWidget {
   }
 }
 
-int hours = 0;
-int minutes = 0;

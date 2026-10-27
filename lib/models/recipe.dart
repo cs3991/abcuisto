@@ -1,4 +1,5 @@
 import 'package:abcuisto/app_config.dart' show AppConfig;
+import 'package:abcuisto/models/abcuisto_repository.dart' show ApiImageInput;
 import 'package:collection/collection.dart';
 
 import 'ingredient.dart';
@@ -52,7 +53,9 @@ enum RecipeTag {
   }
 }
 
-enum RecipeServingType { personnes('Personnes', 'Personnes'), pieces('Pièces', 'Pièces');
+enum RecipeServingType {
+  personnes('Personnes', 'Personnes'),
+  pieces('Pièces', 'Pièces');
 
   final String label;
   final String displayName;
@@ -80,7 +83,7 @@ List<String> _stringList(dynamic value) => value is List ? value.whereType<Strin
 
 class Recipe {
   final String id;
-  final List<Uri> images;
+  final List<ApiImageInput> images;
   final String name;
   final Duration? prepTime;
   final Duration? cookTime;
@@ -91,7 +94,7 @@ class Recipe {
   final String creatorName;
   final RecipeCategory? category;
   final List<String> cookware;
-  final List<String> documents;
+  final List<Uri> documents;
   final int? forNumber;
   final RecipeServingType? typeNumber;
   final List<RecipeTag> tags;
@@ -127,7 +130,7 @@ class Recipe {
     final documents = _stringList(recipe['documents']);
     return Recipe(
       id: _stringOrEmpty(recipe['id']),
-      images: documents.map((document) => Uri.parse('${AppConfig.instance.apiUrl}/images/$document')).toList(),
+      images: List<ApiImageInput>.empty(),
       name: _stringOrEmpty(recipe['name']),
       prepTime: _durationFromMinutes(recipe['preparationTime']),
       cookTime: _durationFromMinutes(recipe['cookingTime']),
@@ -138,7 +141,7 @@ class Recipe {
       creatorName: _stringOrEmpty(recipe['creatorPseudo']),
       category: RecipeCategory.fromApi(recipe['category'] as String?),
       cookware: _stringList(recipe['ustensiles']),
-      documents: documents,
+      documents: documents.map((document) => Uri.parse('${AppConfig.instance.apiUrl}/images/$document')).toList(),
       forNumber: recipe['forNumber'] as int?,
       typeNumber: RecipeServingType.fromApi(recipe['typeNumber'] as String?),
       tags: (recipe['tags'] is List
@@ -245,7 +248,7 @@ class RecipeFull extends Recipe {
     'totalTime': _minutesFromDuration(totalTime),
     'creator': creatorId.isEmpty ? null : creatorId,
     'creatorPseudo': creatorName,
-    'category': category?.displayName,
+    'category': category?.label,
     'documents': documents.isEmpty ? null : documents,
     'forNumber': forNumber,
     'typeNumber': typeNumber?.label,
@@ -259,6 +262,56 @@ class RecipeFull extends Recipe {
     'ustensiles': cookware,
     'ingredientsCategories': ingredientCategories.map((category) => category.toJson()).toList(),
   };
+
+  RecipeFull copyWith({
+    String? id,
+    List<ApiImageInput>? images,
+    String? name,
+    Duration? prepTime,
+    Duration? cookTime,
+    Duration? restTime,
+    Duration? apiTotalTime,
+    double? note,
+    String? creatorId,
+    String? creatorName,
+    RecipeCategory? category,
+    List<String>? cookware,
+    List<Uri>? documents,
+    int? forNumber,
+    RecipeServingType? typeNumber,
+    List<RecipeTag>? tags,
+    List<RecipeGroup>? groups,
+    String? noteId,
+    int? nbNotes,
+    List<RecipeComment>? comments,
+    List<RecipeIngredientCategory>? ingredientCategories,
+    List<String>? instructions,
+  }) {
+    return RecipeFull(
+      id: id ?? this.id,
+      images: images ?? this.images,
+      name: name ?? this.name,
+      prepTime: prepTime ?? this.prepTime,
+      cookTime: cookTime ?? this.cookTime,
+      restTime: restTime ?? this.restTime,
+      apiTotalTime: apiTotalTime ?? this.apiTotalTime,
+      note: note ?? this.note,
+      creatorId: creatorId ?? this.creatorId,
+      creatorName: creatorName ?? this.creatorName,
+      category: category ?? this.category,
+      cookware: cookware ?? this.cookware,
+      documents: documents ?? this.documents,
+      forNumber: forNumber ?? this.forNumber,
+      typeNumber: typeNumber ?? this.typeNumber,
+      tags: tags ?? this.tags,
+      groups: groups ?? this.groups,
+      noteId: noteId ?? this.noteId,
+      nbNotes: nbNotes ?? this.nbNotes,
+      comments: comments ?? this.comments,
+      ingredientCategories: ingredientCategories ?? this.ingredientCategories,
+      instructions: instructions ?? this.instructions,
+    );
+  }
 }
 
 class RecipeIngredientCategory {
@@ -269,6 +322,14 @@ class RecipeIngredientCategory {
   final List<Ingredient> ingredients;
 
   const RecipeIngredientCategory({required this.id, required this.name, required this.index, this.recipe, required this.ingredients});
+
+  RecipeIngredientCategory copyWith({String? name, int? index, List<Ingredient>? ingredients}) => RecipeIngredientCategory(
+    id: id,
+    name: name ?? this.name,
+    index: index ?? this.index,
+    recipe: recipe,
+    ingredients: ingredients ?? this.ingredients,
+  );
 
   factory RecipeIngredientCategory.fromJson(Map<String, dynamic> json) => RecipeIngredientCategory(
     id: _stringOrEmpty(json['id']),

@@ -1,160 +1,184 @@
-import 'dart:convert';
-
 import 'package:abcuisto/models/abcuisto_repository.dart';
+import 'package:abcuisto/models/ingredient.dart';
 import 'package:abcuisto/models/recipe.dart';
 import 'package:bloc/bloc.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:meta/meta.dart';
 
+enum AddRecipeStatus { editing, loading, success, error }
+
 @immutable
-abstract class AddRecipeState {}
+class AddRecipeState {
+  final RecipeFull? modifiedRecipe;
+  final AddRecipeStatus status;
+  final String? message;
 
-class AddRecipeInitial extends AddRecipeState {}
+  const AddRecipeState({this.modifiedRecipe, this.status = AddRecipeStatus.editing, this.message});
 
-class AddRecipeLoading extends AddRecipeState {}
-
-class AddRecipeSuccess extends AddRecipeState {
-  final bool updated;
-
-  AddRecipeSuccess({required this.updated});
-}
-
-class AddRecipeError extends AddRecipeState {
-  final String message;
-
-  AddRecipeError({required this.message});
+  AddRecipeState copyWith({RecipeFull? modifiedRecipe, AddRecipeStatus? status, String? message}) => AddRecipeState(
+    modifiedRecipe: modifiedRecipe ?? this.modifiedRecipe,
+    status: status ?? this.status,
+    message: message,
+  );
 }
 
 class AddRecipeCubit extends Cubit<AddRecipeState> {
   final AbcuistoRepository repository;
+  int _nextIndex = 0;
 
-  AddRecipeCubit(this.repository) : super(AddRecipeInitial());
+  AddRecipeCubit(this.repository) : super(const AddRecipeState());
 
-  Future<void> createRecipe({
-    required String name,
-    required RecipeCategory category,
-    required String preparationTime,
-    required String cookingTime,
-    required String waitingTime,
-    required List<String> steps,
-    required List<String> utensils,
-    required int servings,
-    required RecipeServingType servingType,
-    required List<RecipeTag> tags,
-    required List<ApiGroupInput> groups,
-    required List<ApiRecipeCategoryInput> ingredientsCategories,
-    required List<XFile> images,
-  }) async {
-    await _save(
-      updated: false,
-      save: () async {
-        await repository.createRecipe(
-          name: name,
-          category: category,
-          tempsPreparation: preparationTime,
-          tempsCuisson: cookingTime,
-          tempsRepos: waitingTime,
-          steps: steps,
-          ustensiles: utensils,
-          forNumber: servings.toDouble(),
-          typeNumber: servingType,
-          tags: tags,
-          groups: groups,
-          ingredientsCategories: ingredientsCategories,
-          images: await _apiImages(images),
-          createur: repository.user?.id,
-          createurPseudo: repository.user?.userName,
-        );
-      },
+  void initialize(RecipeFull? recipe) {
+    _nextIndex = 0;
+    final modifiedRecipe = recipe ?? RecipeFull(
+      id: '', images: const [], name: '', creatorId: repository.user?.id ?? '',
+      creatorName: repository.user?.userName ?? '', category: null, cookware: const [],
+      typeNumber: RecipeServingType.personnes, ingredientCategories: const [], instructions: const [],
     );
+    emit(AddRecipeState(modifiedRecipe: modifiedRecipe.copyWith(
+      ingredientCategories: modifiedRecipe.ingredientCategories.map((category) => category.copyWith(
+        index: _nextIndex++,
+        ingredients: category.ingredients.map((ingredient) => ingredient.copyWith(index: _nextIndex++)).toList(),
+      )).toList(),
+      instructions: modifiedRecipe.instructions.isEmpty ? [''] : List.of(modifiedRecipe.instructions),
+    )));
+    if (state.modifiedRecipe!.ingredientCategories.isEmpty) addCategory();
   }
 
-  Future<void> updateRecipe({
-    required RecipeFull recipe,
-    required String name,
-    required RecipeCategory category,
-    required String preparationTime,
-    required String cookingTime,
-    required String waitingTime,
-    required List<String> steps,
-    required List<String> utensils,
-    required int servings,
-    required RecipeServingType servingType,
-    required List<RecipeTag> tags,
-    required List<ApiGroupInput> groups,
-    required List<ApiRecipeCategoryInput> ingredientsCategories,
-    required List<String> documents,
-    required List<XFile> images,
-  }) async {
-    final prepMinutes = repository.parseRecipeDuration(preparationTime);
-    final cookMinutes = repository.parseRecipeDuration(cookingTime);
-    final waitingMinutes = repository.parseRecipeDuration(waitingTime);
-
-    await _save(
-      updated: true,
-      save: () async {
-        await repository.updateRecipe(
-          id: recipe.id,
-          name: name,
-          preparationTime: prepMinutes,
-          cookingTime: cookMinutes,
-          waitingTime: waitingMinutes,
-          totalTime: prepMinutes == null && cookMinutes == null && waitingMinutes == null
-              ? null
-              : (prepMinutes ?? 0) + (cookMinutes ?? 0) + (waitingMinutes ?? 0),
-          includePreparationTime: true,
-          includeCookingTime: true,
-          includeWaitingTime: true,
-          includeTotalTime: true,
-          creator: recipe.creatorId.isEmpty ? null : recipe.creatorId,
-          creatorPseudo: recipe.creatorName,
-          category: category.label,
-          documents: documents,
-          images: await _apiImages(images),
-          forNumber: servings,
-          typeNumber: servingType,
-          steps: steps,
-          tags: tags,
-          groups: groups,
-          ustensiles: utensils,
-          ingredientsCategories: ingredientsCategories,
-        );
-      },
-    );
+  void modify(RecipeFull modifiedRecipe) {
+    if (state.status == AddRecipeStatus.loading) return;
+    emit(state.copyWith(modifiedRecipe: modifiedRecipe, status: AddRecipeStatus.editing));
   }
 
-  Future<void> _save({required bool updated, required Future<void> Function() save}) async {
-    emit(AddRecipeLoading());
+  void addPhoto(Uri uri) {
+    final recipe = state.modifiedRecipe!;
+    modify(recipe.copyWith(documents: [...recipe.documents, uri]));
+  }
+
+  void replacePhoto(int index, Uri uri) {
+    final recipe = state.modifiedRecipe!;
+    modify(recipe.copyWith(documents: [...recipe.documents]..[index] = uri));
+  }
+
+  void removePhoto(int index) {
+    final recipe = state.modifiedRecipe!;
+    modify(recipe.copyWith(documents: [...recipe.documents]..removeAt(index)));
+  }
+
+  void addCategory() {
+    final recipe = state.modifiedRecipe!;
+    modify(recipe.copyWith(ingredientCategories: [
+      ...recipe.ingredientCategories,
+      RecipeIngredientCategory(id: '', name: '', index: _nextIndex++, ingredients: [_emptyIngredient()]),
+    ]));
+  }
+
+  Ingredient _emptyIngredient() => Ingredient(
+    id: '', name: '', nameWithoutDiacritics: '', quantity: 0, type: 'g', index: _nextIndex++,
+  );
+
+  void changeCategory(int index, RecipeIngredientCategory category) {
+    final recipe = state.modifiedRecipe!;
+    final categories = List<RecipeIngredientCategory>.of(recipe.ingredientCategories);
+    categories[index] = category;
+    modify(recipe.copyWith(ingredientCategories: categories));
+  }
+
+  void removeCategory(int index) {
+    final recipe = state.modifiedRecipe!;
+    if (recipe.ingredientCategories.length <= 1) return;
+    modify(recipe.copyWith(ingredientCategories: [...recipe.ingredientCategories]..removeAt(index)));
+  }
+
+  void addIngredient(int categoryIndex) {
+    final category = state.modifiedRecipe!.ingredientCategories[categoryIndex];
+    changeCategory(categoryIndex, category.copyWith(ingredients: [...category.ingredients, _emptyIngredient()]));
+  }
+
+  void changeIngredient(int categoryIndex, int index, Ingredient ingredient) {
+    final category = state.modifiedRecipe!.ingredientCategories[categoryIndex];
+    final ingredients = List<Ingredient>.of(category.ingredients);
+    ingredients[index] = ingredient;
+    changeCategory(categoryIndex, category.copyWith(ingredients: ingredients));
+  }
+
+  void removeIngredient(int categoryIndex, int index) {
+    final category = state.modifiedRecipe!.ingredientCategories[categoryIndex];
+    if (category.ingredients.length <= 1) return;
+    changeCategory(categoryIndex, category.copyWith(ingredients: [...category.ingredients]..removeAt(index)));
+  }
+
+  void changeQuantity(int categoryIndex, int index, String raw) {
+    final value = raw.trim().replaceAll(',', '.');
+    final fraction = RegExp(r'^(\d+)\s*/\s*(\d+)$').firstMatch(value);
+    final quantity = value.isEmpty ? 0.0 : fraction == null ? double.tryParse(value)
+        : double.parse(fraction.group(2)!) == 0 ? null
+        : double.parse(fraction.group(1)!) / double.parse(fraction.group(2)!);
+    final ingredient = state.modifiedRecipe!.ingredientCategories[categoryIndex].ingredients[index];
+    changeIngredient(categoryIndex, index, ingredient.copyWith(quantity: quantity, clearQuantity: quantity == null));
+  }
+
+  void changeStep(int index, String value) {
+    final recipe = state.modifiedRecipe!;
+    modify(recipe.copyWith(instructions: [...recipe.instructions]..[index] = value));
+  }
+
+  void addStep() => modify(state.modifiedRecipe!.copyWith(instructions: [...state.modifiedRecipe!.instructions, '']));
+
+  void removeStep(int index) {
+    final recipe = state.modifiedRecipe!;
+    if (recipe.instructions.length > 1) modify(recipe.copyWith(instructions: [...recipe.instructions]..removeAt(index)));
+  }
+
+  Future<void> save() async {
+    if (state.status == AddRecipeStatus.loading) return;
+    final recipe = state.modifiedRecipe!;
+    String? error;
+    if (recipe.name.trim().isEmpty) {
+      error = 'Le nom de la recette est obligatoire.';
+    } else if (recipe.category == null) {
+      error = 'Choisissez une catégorie.';
+    } else if (recipe.forNumber == null || recipe.forNumber! <= 0) {
+      error = 'Indiquez un nombre de portions valide.';
+    } else {
+      for (final ingredient in recipe.ingredientCategories.expand((category) => category.ingredients)) {
+        if (ingredient.name.trim().isNotEmpty && (ingredient.quantity == null || !ingredient.quantity!.isFinite)) {
+          error = 'La quantité de « ${ingredient.name} » doit être un nombre valide.';
+          break;
+        }
+      }
+    }
+    if (error != null) {
+      emit(state.copyWith(status: AddRecipeStatus.error, message: error));
+      return;
+    }
+    final categories = recipe.ingredientCategories.map((category) => category.copyWith(
+      name: category.name.trim().isEmpty ? 'Ingrédients' : category.name.trim(),
+      ingredients: category.ingredients.where((ingredient) => ingredient.name.trim().isNotEmpty)
+          .map((ingredient) => ingredient.copyWith(name: ingredient.name.trim())).toList(),
+    )).where((category) => category.ingredients.isNotEmpty).toList();
+    final modifiedRecipe = recipe.copyWith(
+      name: recipe.name.trim(),
+      apiTotalTime: (recipe.prepTime ?? Duration.zero) + (recipe.cookTime ?? Duration.zero) + (recipe.restTime ?? Duration.zero),
+      instructions: recipe.instructions.map((step) => step.trim()).where((step) => step.isNotEmpty).toList(),
+      ingredientCategories: [
+        for (var i = 0; i < categories.length; i++) categories[i].copyWith(index: i, ingredients: [
+          for (var j = 0; j < categories[i].ingredients.length; j++) categories[i].ingredients[j].copyWith(index: j),
+        ]),
+      ],
+    );
+    emit(state.copyWith(status: AddRecipeStatus.loading));
     try {
-      await save();
-      emit(AddRecipeSuccess(updated: updated));
+      if (modifiedRecipe.id.isEmpty) {
+        await repository.createRecipe(recipe: modifiedRecipe);
+      } else {
+        await repository.updateRecipe(recipe: modifiedRecipe);
+      }
+      emit(state.copyWith(status: AddRecipeStatus.success));
     } catch (error) {
-      emit(AddRecipeError(message: error.toString()));
+      emit(state.copyWith(status: AddRecipeStatus.error, message: error.toString()));
+      rethrow;
     }
   }
 
-  Future<List<ApiImageInput>> _apiImages(List<XFile> files) async {
-    final inputs = <ApiImageInput>[];
-    for (final file in files) {
-      final extension = file.name.contains('.') ? file.name.split('.').last.toLowerCase() : 'jpg';
-      final fileType = file.mimeType ??
-          switch (extension) {
-            'jpg' || 'jpeg' => 'image/jpeg',
-            'png' => 'image/png',
-            'webp' => 'image/webp',
-            'gif' => 'image/gif',
-            _ => 'image/$extension',
-          };
-      inputs.add(ApiImageInput(
-        imageBase64: base64Encode(await file.readAsBytes()),
-        extension: extension,
-        fileType: fileType,
-      ));
-    }
-    return inputs;
-  }
-
-  void reset() {
-    emit(AddRecipeInitial());
-  }
+  void reset() => emit(const AddRecipeState());
 }

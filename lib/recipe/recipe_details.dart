@@ -89,7 +89,7 @@ class RecipeDetails extends StatelessWidget {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        Positioned.fill(child: _ImageCarousel(images: recipe.images)),
+        Positioned.fill(child: _ImageCarousel(images: recipe.documents)),
         TransparentPointer(
           child: ListView(
             padding: EdgeInsets.zero,

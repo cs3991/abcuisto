@@ -6,6 +6,7 @@ import 'package:abcuisto/models/user.dart';
 import 'package:diacritic/diacritic.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../recipe/filters/filters.dart';
@@ -152,67 +153,13 @@ class AbcuistoRepository extends ChangeNotifier {
 
   Future<dynamic> deleteRecipe({required String id}) => _post('/api/Recipes/deleteRecipe', {'id': id});
 
-  Future<dynamic> updateRecipe({
-    required String id,
-    String? name,
-    int? preparationTime,
-    int? cookingTime,
-    int? waitingTime,
-    int? totalTime,
-    String? creator,
-    String? creatorPseudo,
-    String? category,
-    List<String>? documents,
-    List<ApiImageInput>? images,
-    int? forNumber,
-    RecipeServingType? typeNumber,
-    List<String>? steps,
-    List<RecipeTag>? tags,
-    List<ApiGroupInput>? groups,
-    String? noteId,
-    int? note,
-    int? nbNotes,
-    List<ApiRecipeCommentInput>? comments,
-    List<String>? ustensiles,
-    List<ApiRecipeCategoryInput>? ingredientsCategories,
-    bool includePreparationTime = false,
-    bool includeCookingTime = false,
-    bool includeWaitingTime = false,
-    bool includeTotalTime = false,
-  }) {
-    final recipe = <String, dynamic>{
-      'id': id,
-      if (name != null) 'name': name,
-      if (name != null) 'nameWithoutDiacritics': removeDiacritics(name),
-      if (preparationTime != null || includePreparationTime) 'preparationTime': preparationTime,
-      if (cookingTime != null || includeCookingTime) 'cookingTime': cookingTime,
-      if (waitingTime != null || includeWaitingTime) 'waitingTime': waitingTime,
-      if (totalTime != null || includeTotalTime) 'totalTime': totalTime,
-      if (creator != null) 'creator': creator,
-      if (creatorPseudo != null) 'creatorPseudo': creatorPseudo,
-      if (category != null) 'category': category,
-      if (documents != null) 'documents': documents,
-      if (images != null) 'images': images.map((image) => image.toJson()).toList(),
-      if (forNumber != null) 'forNumber': forNumber,
-      if (typeNumber != null) 'typeNumber': typeNumber,
-      if (steps != null) 'steps': steps,
-      if (tags != null) 'tags': tags,
-      if (groups != null) ...{
-        'groups': groups.map((group) => group.toJson()).toList(),
-        'groupsIds': groups.map((group) => group.id).whereType<String>().toList(),
-      },
-      if (noteId != null) 'noteId': noteId,
-      if (note != null) 'note': note,
-      if (nbNotes != null) 'nbNotes': nbNotes,
-      if (comments != null) 'comments': comments.map((comment) => comment.toJson()).toList(),
-      if (ustensiles != null) 'ustensiles': ustensiles,
-      if (ingredientsCategories != null) ...{
-        'ingredientsCategories': ingredientsCategories.map((category) => category.toJson()).toList(),
-        'categoriesIds': <String>[],
-      },
-    };
-    return _post('/api/Recipes/updateRecipe', recipe);
+  Future<void> updateRecipe({
+    required RecipeFull recipe,
+  }) async {
+    await _post('/api/Recipes/updateRecipe', await _recipeBody(recipe));
   }
+
+
 
   Future<dynamic> getRecipesForAuthorization(Filters filters) => _post('/api/Recipes/filters/authorization', filters.toJson());
 
@@ -331,57 +278,41 @@ class AbcuistoRepository extends ChangeNotifier {
 
   int? parseRecipeDuration(String value) => _durationInMinutes(value);
 
-  Future<void> createRecipe({
-    required String name,
-    required RecipeCategory category,
-    required String tempsPreparation,
-    required String tempsCuisson,
-    required String tempsRepos,
-    required List<String> steps,
-    required List<String> ustensiles,
-    required double forNumber,
-    required RecipeServingType typeNumber,
-    required List<RecipeTag> tags,
-    required List<ApiGroupInput> groups,
-    required List<ApiRecipeCategoryInput> ingredientsCategories,
-    required List<ApiImageInput> images,
-    String? createur,
-    String? createurPseudo,
-  }) async {
-    final recipeTags = tags.map((tag) => tag.label).toList();
-    final prepTime = _durationInMinutes(tempsPreparation);
-    final cookTime = _durationInMinutes(tempsCuisson);
-    final waitingTime = _durationInMinutes(tempsRepos);
-    final body = <String, dynamic>{
+  Future<void> createRecipe({required RecipeFull recipe}) async {
+    final body = await _recipeBody(recipe);
+    body.addAll({
       'id': _newGuid(),
-      'name': name,
-      'nameWithoutDiacritics': removeDiacritics(name),
-      'category': category.label,
-      'preparationTime': prepTime,
-      'cookingTime': cookTime,
-      'waitingTime': waitingTime,
-      'steps': steps,
-      'ustensiles': ustensiles,
-      'forNumber': forNumber.round(),
-      'typeNumber': typeNumber.label,
-      'creator': createur,
-      'creatorPseudo': createurPseudo,
-      'tags': recipeTags,
-      'groups': groups.map((group) => group.toJson()).toList(),
-      'groupsIds': groups.map((group) => group.id).whereType<String>().toList(),
+      'nameWithoutDiacritics': removeDiacritics(recipe.name),
+      'groupsIds': recipe.groups.map((group) => group.id).whereType<String>().toList(),
       'categoriesIds': <String>[],
-      'ingredientsCategories': ingredientsCategories.map((category) => category.toJson()).toList(),
-      'images': images.map((image) => image.toJson()).toList(),
       'note': 0,
       'nbNotes': 0,
       'noteId': null,
-    };
-    body.removeWhere((key, value) => value == null && key != 'noteId');
-    if (prepTime != null || cookTime != null || waitingTime != null) {
-      body['totalTime'] = (prepTime ?? 0) + (cookTime ?? 0) + (waitingTime ?? 0);
-    }
+    });
     await _post('/api/Recipes/createRecipe', body);
     notifyListeners();
+  }
+
+  Future<Map<String, dynamic>> _recipeBody(RecipeFull recipe) async {
+    final body = recipe.toJson();
+    final localImages = await Future.wait(
+      recipe.documents.where((uri) => uri.scheme == 'file').map((uri) => ApiImageInput.fromXFile(XFile(uri.toFilePath()))),
+    );
+    body['documents'] = recipe.documents.where((uri) => uri.scheme != 'file').map((uri) => uri.pathSegments.last).toList();
+    body['images'] = [...recipe.images, ...localImages].map((image) => image.toJson()).toList();
+    body['ingredientsCategories'] = recipe.ingredientCategories.map((category) {
+      final json = category.toJson();
+      if (category.id.isEmpty) json.remove('id');
+      json['ingredientsIds'] = <String>[];
+      json['ingredients'] = category.ingredients.map((ingredient) {
+        final json = ingredient.toJson();
+        if (ingredient.id.isEmpty) json.remove('id');
+        json['nameWithoutDiacritics'] = ingredient.nameWithoutDiacritics;
+        return json;
+      }).toList();
+      return json;
+    }).toList();
+    return body;
   }
 
   static String _newGuid() {
@@ -414,114 +345,29 @@ class AuthenticationException implements Exception {
 }
 
 class ApiImageInput {
-  final String? imageBase64;
-  final String? extension;
-  final String? fileType;
+  final String imageBase64;
+  final String extension;
+  final String fileType;
 
-  const ApiImageInput({this.imageBase64, this.extension, this.fileType});
-
-  Map<String, dynamic> toJson() => {
-    if (imageBase64 != null) 'imageBase64': imageBase64,
-    if (extension != null) 'extension': extension,
-    if (fileType != null) 'fileType': fileType,
-  };
-}
-
-class ApiGroupInput {
-  final String? id;
-  final String? name;
-  final String? owner;
-  final bool? canEdit;
-  final String? link;
-  final String? newOwner;
-  final String? memberId;
-  final String? memberUserName;
-  final List<Map<String, dynamic>> members;
-
-  const ApiGroupInput({
-    this.id,
-    this.name,
-    this.owner,
-    this.canEdit,
-    this.link,
-    this.newOwner,
-    this.memberId,
-    this.memberUserName,
-    this.members = const [],
-  });
+  const ApiImageInput({required this.imageBase64, required this.extension, required this.fileType});
 
   Map<String, dynamic> toJson() => {
-    if (id != null) 'id': id,
-    if (name != null) 'name': name,
-    if (owner != null) 'owner': owner,
-    if (canEdit != null) 'canEdit': canEdit,
-    if (link != null) 'link': link,
-    if (newOwner != null) 'newOwner': newOwner,
-    if (memberId != null) 'memberId': memberId,
-    if (memberUserName != null) 'memberUserName': memberUserName,
-    'members': members,
+    'imageBase64': imageBase64,
+    'extension': extension,
+    'fileType': fileType,
   };
-}
 
-class ApiRecipeCommentInput {
-  final String? id;
-  final String? recipe;
-  final String? user;
-  final String? comment;
-  final String? username;
-  final int? note;
-
-  const ApiRecipeCommentInput({this.id, this.recipe, this.user, this.comment, this.username, this.note});
-
-  Map<String, dynamic> toJson() => {
-    if (id != null) 'id': id,
-    if (recipe != null) 'recipe': recipe,
-    if (user != null) 'user': user,
-    if (comment != null) 'comment': comment,
-    if (username != null) 'username': username,
-    if (note != null) 'note': note,
-  };
-}
-
-class ApiRecipeIngredientInput {
-  final String? id;
-  final String? name;
-  final String? type;
-  final String number;
-  final int index;
-  final double? price;
-  final String? category;
-
-  const ApiRecipeIngredientInput({this.id, this.name, this.type, required this.number, required this.index, this.price, this.category});
-
-  Map<String, dynamic> toJson() => {
-    if (id != null) 'id': id,
-    if (name != null) 'name': name,
-    if (name != null) 'nameWithoutDiacritics': removeDiacritics(name!),
-    if (type != null) 'type': type,
-    'number': number,
-    'index': index,
-    if (price != null) 'price': price,
-    if (category != null) 'category': category,
-  };
-}
-
-class ApiRecipeCategoryInput {
-  final String? id;
-  final String? name;
-  final int? index;
-  final List<ApiRecipeIngredientInput>? ingredients;
-  final String? recipe;
-
-  const ApiRecipeCategoryInput({this.id, this.name, this.index, this.ingredients, this.recipe});
-
-  Map<String, dynamic> toJson() => {
-    if (id != null) 'id': id,
-    if (name != null) 'name': name,
-    if (index != null) 'index': index,
-    if (ingredients != null) 'ingredients': ingredients!.map((ingredient) => ingredient.toJson()).toList(),
-    'ingredientsIds': <String>[],
-  };
+  static Future<ApiImageInput> fromXFile(XFile file) async {
+    final extension = file.name.contains('.') ? file.name.split('.').last.toLowerCase() : 'jpg';
+    final fileType = file.mimeType ??
+        switch (extension) {
+          'jpg' || 'jpeg' => 'image/jpeg',
+          'png' => 'image/png',
+          'gif' => 'image/gif',
+          _ => 'application/octet-stream',
+        };
+    return ApiImageInput(imageBase64: base64Encode(await file.readAsBytes()), extension: extension, fileType: fileType);
+  }
 }
 
 class IngredientPriceInput {
