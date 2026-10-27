@@ -38,6 +38,7 @@ class _AddRecipePageState extends State<AddRecipePage> {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message!)));
         } else if (state.status == AddRecipeStatus.success) {
           context.read<FilterCubit>().update();
+          context.read<AddRecipeCubit>().initialize(null);
           final recipeId = state.modifiedRecipe!.id;
           var message = recipeId.isEmpty ? 'Recette créée.' : 'Recette modifiée.';
           if (recipeId.isNotEmpty) {

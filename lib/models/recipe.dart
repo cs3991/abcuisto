@@ -34,8 +34,8 @@ enum RecipeTag {
   thermomix('THERMOMIX', 'Thermomix'),
   vegan('VEGAN', 'Vegan'),
   vegetarien('VEGETARIEN', 'Vegetarien'),
-  alcool('ALCOOL', 'Alcool'),
-  sansgluten('SANSGLUTEN', 'Sans Gluten');
+  // sansgluten('SANSGLUTEN', 'Sans Gluten'); # Problème dans le backend avec ce tag
+  alcool('ALCOOL', 'Alcool');
 
   final String label;
   final String displayName;
