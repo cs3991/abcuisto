@@ -5,7 +5,7 @@ import '../../models/abcuisto_repository.dart';
 import '../../models/group_member.dart';
 import '../../models/recipe.dart';
 
-enum GroupStatus { initial, loading, success, failure, deleting, deleted, leaving, left }
+enum GroupStatus { initial, loading, success, failure, deleting, deleted, leaving, left, transferring, transferred }
 
 @immutable
 class GroupState {
@@ -33,8 +33,27 @@ class GroupCubit extends Cubit<GroupState> {
 
   GroupCubit(this.repository, RecipeGroup group) : super(GroupState(group: group, canDelete: !group.isPublic && repository.user != null && group.owner == repository.user!.id, canLeave: !group.isPublic && group.owner != null && repository.user != null && group.owner != repository.user!.id && repository.user!.groups.any((value) => value.id == group.id)));
 
+  Future<void> transferOwnership(GroupMember member) async {
+    if (!state.canDelete || state.status == GroupStatus.loading || state.status == GroupStatus.deleting || state.status == GroupStatus.deleted || state.status == GroupStatus.leaving || state.status == GroupStatus.left || state.status == GroupStatus.transferring || state.status == GroupStatus.transferred) return;
+    if (member.id == state.group.owner || !state.members.any((value) => value.id == member.id)) {
+      emit(state.copyWith(status: GroupStatus.failure, errorMessage: 'Choisissez un autre membre du groupe.'));
+      return;
+    }
+    emit(state.copyWith(status: GroupStatus.transferring));
+    try {
+      final id = state.group.id;
+      if (id == null) throw const FormatException('Identifiant du groupe manquant.');
+      await repository.changeGroupOwner(groupId: id, newOwnerId: member.id);
+      if (isClosed) return;
+      emit(state.copyWith(status: GroupStatus.transferred));
+    } catch (error) {
+      if (isClosed) return;
+      emit(state.copyWith(status: GroupStatus.failure, errorMessage: error.toString()));
+    }
+  }
+
   Future<void> leaveGroup() async {
-    if (!state.canLeave || state.status == GroupStatus.loading || state.status == GroupStatus.deleting || state.status == GroupStatus.deleted || state.status == GroupStatus.leaving || state.status == GroupStatus.left) return;
+    if (!state.canLeave || state.status == GroupStatus.loading || state.status == GroupStatus.deleting || state.status == GroupStatus.deleted || state.status == GroupStatus.leaving || state.status == GroupStatus.left || state.status == GroupStatus.transferring || state.status == GroupStatus.transferred) return;
     emit(state.copyWith(status: GroupStatus.leaving));
     try {
       final id = state.group.id;
@@ -50,7 +69,7 @@ class GroupCubit extends Cubit<GroupState> {
   }
 
   Future<void> deleteGroup() async {
-    if (!state.canDelete || state.status == GroupStatus.loading || state.status == GroupStatus.deleting || state.status == GroupStatus.deleted || state.status == GroupStatus.leaving || state.status == GroupStatus.left) return;
+    if (!state.canDelete || state.status == GroupStatus.loading || state.status == GroupStatus.deleting || state.status == GroupStatus.deleted || state.status == GroupStatus.leaving || state.status == GroupStatus.left || state.status == GroupStatus.transferring || state.status == GroupStatus.transferred) return;
     emit(state.copyWith(status: GroupStatus.deleting));
     try {
       final id = state.group.id;
@@ -65,7 +84,7 @@ class GroupCubit extends Cubit<GroupState> {
   }
 
   Future<void> loadGroup() async {
-    if (state.status == GroupStatus.loading || state.status == GroupStatus.deleting || state.status == GroupStatus.deleted || state.status == GroupStatus.leaving || state.status == GroupStatus.left) return;
+    if (state.status == GroupStatus.loading || state.status == GroupStatus.deleting || state.status == GroupStatus.deleted || state.status == GroupStatus.leaving || state.status == GroupStatus.left || state.status == GroupStatus.transferring || state.status == GroupStatus.transferred) return;
     emit(state.copyWith(status: GroupStatus.loading));
     try {
       final id = state.group.id;

@@ -19,7 +19,11 @@ class ProfilePage extends StatelessWidget {
       builder: (context) => GroupDetailsPage(group: group),
     ));
     if (!context.mounted || result == null) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result == GroupDetailsResult.deleted ? 'Groupe supprimé.' : 'Vous avez quitté le groupe.')));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(switch (result) {
+      GroupDetailsResult.deleted => 'Groupe supprimé.',
+      GroupDetailsResult.left => 'Vous avez quitté le groupe.',
+      GroupDetailsResult.transferred => 'Propriété du groupe transférée.',
+    })));
     context.read<FilterCubit>().update();
     await context.read<ProfileCubit>().loadProfile();
   }
