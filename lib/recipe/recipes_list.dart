@@ -145,6 +145,24 @@ class _RecipesListState extends State<RecipesList> {
                       state: state.pagingState,
                       fetchNextPage: context.read<FilterCubit>().fetchNextPage,
                       builderDelegate: PagedChildBuilderDelegate(
+                        noItemsFoundIndicatorBuilder: (context) => Padding(
+                          padding: const EdgeInsets.all(32),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Aucune recette trouvée',
+                                style: Theme.of(context).textTheme.titleMedium,
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 8),
+                              const Text(
+                                'Essayez un autre mot-clé ou retirez quelques filtres pour trouver votre prochaine recette.',
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        ),
                         firstPageErrorIndicatorBuilder: (context) {
                           final state = context
                               .read<FilterCubit>()
