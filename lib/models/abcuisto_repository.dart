@@ -214,7 +214,7 @@ class AbcuistoRepository extends ChangeNotifier {
   Future<dynamic> joinGroup({required String groupId, required String memberId, String? memberUserName}) =>
       _post('/api/Groups/joinGroup', {'id': groupId, 'memberId': memberId, if (memberUserName != null) 'memberUserName': memberUserName});
 
-  Future<dynamic> deleteGroup(String groupId) => _post('/api/Groups/deleteGroup', groupId);
+  Future<dynamic> deleteGroup(String groupId) => _post('/api/Groups/deleteGroup', {'id': groupId});
 
   Future<dynamic> changeCanEdit({required String groupId, required bool canEdit}) =>
       _post('/api/Groups/changeCanEdit', {'id': groupId, 'canEdit': canEdit});
