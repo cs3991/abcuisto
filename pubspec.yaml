@@ -27,6 +27,7 @@ dependencies:
   transparent_pointer: ^1.0.1
   http: ^1.6.0
   share_plus: ^11.1.0
+  app_links: ^6.4.1
 
 
 dev_dependencies:

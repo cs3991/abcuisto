@@ -5,6 +5,7 @@ import '../login/authentication_cubit.dart';
 import '../models/abcuisto_repository.dart';
 import '../models/recipe.dart';
 import '../recipe/filters/filter_cubit.dart';
+import '../recipe/recipe_cubit.dart';
 import 'profile_cubit.dart';
 import 'groups/create_group_dialog.dart';
 import 'groups/join_group_dialog.dart';
@@ -23,6 +24,7 @@ class ProfilePage extends StatelessWidget {
       GroupDetailsResult.deleted => 'Groupe supprimé.',
       GroupDetailsResult.left => 'Vous avez quitté le groupe.',
       GroupDetailsResult.transferred => 'Propriété du groupe transférée.',
+      GroupDetailsResult.updated => 'Droits du groupe mis à jour.',
     })));
     context.read<FilterCubit>().update();
     await context.read<ProfileCubit>().loadProfile();
@@ -32,13 +34,21 @@ class ProfilePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => ProfileCubit(context.read<AbcuistoRepository>())..loadProfile(),
-      child: BlocListener<AuthenticationCubit, AuthenticationState>(
+      child: MultiBlocListener(
+        listeners: [
+          BlocListener<ProfileCubit, ProfileState>(
+            listenWhen: (previous, current) => current.status == ProfileStatus.success,
+            listener: (context, state) => context.read<RecipeCubit>().refreshPermissions(),
+          ),
+          BlocListener<AuthenticationCubit, AuthenticationState>(
         listener: (context, state) {
           if (state is AuthenticationLoggedOut) {
             context.read<FilterCubit>().update();
             Navigator.of(context).pop();
           }
         },
+          ),
+        ],
         child: Scaffold(
           appBar: AppBar(title: const Text('Mon profil')),
           body: BlocBuilder<ProfileCubit, ProfileState>(

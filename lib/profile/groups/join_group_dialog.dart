@@ -4,27 +4,35 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../models/abcuisto_repository.dart';
 import 'join_group_cubit.dart';
 
-Future<bool?> showJoinGroupDialog(BuildContext context) {
+Future<bool?> showJoinGroupDialog(BuildContext context, {String initialInvitation = ''}) {
   final repository = context.read<AbcuistoRepository>();
   return showDialog<bool>(
     context: context,
     barrierDismissible: false,
     builder: (context) => BlocProvider(
       create: (_) => JoinGroupCubit(repository),
-      child: const _JoinGroupDialog(),
+      child: _JoinGroupDialog(initialInvitation: initialInvitation),
     ),
   );
 }
 
 class _JoinGroupDialog extends StatefulWidget {
-  const _JoinGroupDialog();
+  final String initialInvitation;
+
+  const _JoinGroupDialog({required this.initialInvitation});
 
   @override
   State<_JoinGroupDialog> createState() => _JoinGroupDialogState();
 }
 
 class _JoinGroupDialogState extends State<_JoinGroupDialog> {
-  final _invitationController = TextEditingController();
+  late final TextEditingController _invitationController;
+
+  @override
+  void initState() {
+    super.initState();
+    _invitationController = TextEditingController(text: widget.initialInvitation);
+  }
 
   @override
   void dispose() {

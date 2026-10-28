@@ -9,7 +9,7 @@ import '../../models/group_member.dart';
 import '../../pulsing_placeholder.dart';
 import 'group_cubit.dart';
 
-enum GroupDetailsResult { deleted, left, transferred }
+enum GroupDetailsResult { deleted, left, transferred, updated }
 
 class GroupDetailsPage extends StatelessWidget {
   final RecipeGroup group;
@@ -101,9 +101,12 @@ class GroupDetailsPage extends StatelessWidget {
           },
           builder: (context, state) {
             final loading = state.status == GroupStatus.loading;
-            final deleting = state.status == GroupStatus.deleting || state.status == GroupStatus.leaving || state.status == GroupStatus.transferring;
+            final deleting = state.status == GroupStatus.deleting || state.status == GroupStatus.leaving || state.status == GroupStatus.transferring || state.status == GroupStatus.updatingPermissions;
             return PopScope(
-              canPop: !deleting,
+              canPop: !deleting && !state.permissionsChanged,
+              onPopInvokedWithResult: (didPop, result) {
+                if (!didPop && !deleting && state.permissionsChanged) Navigator.of(context).pop(GroupDetailsResult.updated);
+              },
               child: RefreshIndicator(
                 onRefresh: context.read<GroupCubit>().loadGroup,
                 child: ListView(
@@ -197,6 +200,13 @@ class GroupDetailsPage extends StatelessWidget {
                     ],
                     if (state.canDelete) ...[
                       const SizedBox(height: 24),
+                      SwitchListTile(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        title: const Text('Autoriser la modification des recettes'),
+                        subtitle: const Text('Les membres peuvent modifier les recettes partagées avec le groupe.'),
+                        value: state.group.canEdit ?? false,
+                        onChanged: loading || deleting ? null : context.read<GroupCubit>().updateCanEdit,
+                      ),
                       ListTile(
                         contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         minVerticalPadding: 4,

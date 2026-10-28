@@ -19,13 +19,20 @@ class RecipeDetailsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<RecipeCubit, RecipeState>(
+    return BlocListener<AuthenticationCubit, AuthenticationState>(
+      listener: (context, state) {
+        if (state is AuthenticationLoggedIn || state is AuthenticationLoggedOut) {
+          context.read<RecipeCubit>().refreshPermissions();
+        }
+      },
+      child: BlocBuilder<RecipeCubit, RecipeState>(
       builder: (context, state) {
         if (state is RecipeInitial || state is RecipeLoading) {
           return Center(child: CircularProgressIndicator());
         }
         if (state is RecipeLoaded) {
           final recipe = state.recipe;
+          final canEdit = state.canEdit;
           return Scaffold(
             appBar: AppBar(
               toolbarHeight: 65,
@@ -37,10 +44,10 @@ class RecipeDetailsPage extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     child: BlocBuilder<AuthenticationCubit, AuthenticationState>(
                       builder: (context, state) {
-                        final isOwner = state is AuthenticationLoggedIn && context.read<AbcuistoRepository>().user?.id == recipe.creatorId;
+                        final canEditRecipe = state is AuthenticationLoggedIn && canEdit;
                         return Row(
                           children: [
-                            if (isOwner)
+                            if (canEditRecipe)
                               IconButton(
                                 icon: const Icon(Icons.edit_rounded),
                                 tooltip: "Modifier la recette",
@@ -51,11 +58,13 @@ class RecipeDetailsPage extends StatelessWidget {
                             IconButton(
                               icon: Icon(state is AuthenticationLoggedIn ? Icons.person_rounded : Icons.login_rounded),
                               tooltip: state is AuthenticationLoggedIn ? "Connecté" : "Se connecter",
-                              onPressed: () {
+                              onPressed: () async {
                                 if (state is AuthenticationLoggedOut || state is AuthenticationInitial) {
                                   Navigator.push(context, MaterialPageRoute(builder: (context) => LoginPage()));
                                 } else if (state is AuthenticationLoggedIn) {
-                                  Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfilePage()));
+                                  await Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfilePage()));
+                                  if (!context.mounted) return;
+                                  context.read<RecipeCubit>().refreshPermissions();
                                 }
                               },
                             ),
@@ -72,6 +81,7 @@ class RecipeDetailsPage extends StatelessWidget {
         }
         return Text("Unexpected Error");
       },
+      ),
     );
   }
 }
