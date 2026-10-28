@@ -5,6 +5,7 @@ import '../login/authentication_cubit.dart';
 import '../models/abcuisto_repository.dart';
 import '../recipe/filters/filter_cubit.dart';
 import 'profile_cubit.dart';
+import 'groups/create_group_dialog.dart';
 import '../pulsing_placeholder.dart';
 
 class ProfilePage extends StatelessWidget {
@@ -45,7 +46,7 @@ class ProfilePage extends StatelessWidget {
                       Center(
                         child: loading
                             ? const PulsingPlaceholder(width: 72, height: 72)
-                            : const Icon(Icons.account_circle, size: 72),
+                            : const Icon(Icons.account_circle_rounded, size: 72),
                       ),
                       const SizedBox(height: 16),
                       Align(
@@ -68,7 +69,22 @@ class ProfilePage extends StatelessWidget {
                             : Text(user!.bio!),
                       ],
                       const SizedBox(height: 32),
-                      Text('Mes groupes', style: Theme.of(context).textTheme.titleLarge),
+                      Row(
+                        children: [
+                          Expanded(child: Text('Mes groupes', style: Theme.of(context).textTheme.titleLarge)),
+                          IconButton(
+                            tooltip: 'Créer un groupe',
+                            icon: const Icon(Icons.group_add_rounded),
+                            onPressed: loading ? null : () async {
+                              final created = await showCreateGroupDialog(context);
+                              if (!context.mounted || created != true) return;
+                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Groupe créé.')));
+                              context.read<FilterCubit>().update();
+                              await context.read<ProfileCubit>().loadProfile();
+                            },
+                          ),
+                        ],
+                      ),
                       const SizedBox(height: 8),
                       if (!loading && groups.isEmpty) const Text('Vous ne faites partie d’aucun groupe.'),
                       for (var index = 0; index < (loading ? 3 : groups.length); index++)
@@ -76,7 +92,7 @@ class ProfilePage extends StatelessWidget {
                           contentPadding: EdgeInsets.zero,
                           leading: loading
                               ? const PulsingPlaceholder(width: 24, height: 24)
-                              : const Icon(Icons.group),
+                              : const Icon(Icons.group_rounded),
                           title: loading
                               ? const Align(
                                   alignment: Alignment.centerLeft,
@@ -92,7 +108,7 @@ class ProfilePage extends StatelessWidget {
                         onPressed: authState is AuthenticationLoggedIn
                             ? () => context.read<AuthenticationCubit>().logOut()
                             : null,
-                        icon: const Icon(Icons.logout),
+                        icon: const Icon(Icons.logout_rounded),
                         label: const Text('Se déconnecter'),
                       ),
                     ),

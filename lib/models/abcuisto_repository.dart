@@ -110,11 +110,28 @@ class AbcuistoRepository extends ChangeNotifier {
         if (response.statusCode >= 200 && response.statusCode < 300) {
           return response.body;
         }
+        if (!response.body.trimLeft().startsWith('<')) responseBody = response.body;
       }
     }
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      final message = responseBody is Map<String, dynamic> ? responseBody['message'] ?? responseBody['error'] : null;
+      String? message;
+      if (responseBody is Map<String, dynamic>) {
+        final details = <String>[];
+        final summary = responseBody['message'] ?? responseBody['error'] ?? responseBody['detail'] ?? responseBody['title'];
+        if (summary is String && summary.isNotEmpty) details.add(summary);
+        final errors = responseBody['errors'];
+        if (errors is Map<String, dynamic>) {
+          for (final entry in errors.entries) {
+            final value = entry.value;
+            final text = value is List ? value.join(' ') : value.toString();
+            details.add('${entry.key}: $text');
+          }
+        }
+        if (details.isNotEmpty) message = details.join('\n');
+      } else if (responseBody is String && responseBody.isNotEmpty) {
+        message = responseBody;
+      }
       throw ApiException(response.statusCode, message is String && message.isNotEmpty ? message : 'La requête a échoué (${response.statusCode}).');
     }
     return responseBody;
@@ -177,7 +194,7 @@ class AbcuistoRepository extends ChangeNotifier {
 
   Future<dynamic> getGroupById(String id) => _get('/api/Groups/getGroupById/${Uri.encodeComponent(id)}');
 
-  Future<dynamic> createNewGroup(String name) => _post('/api/Groups/createNewGroup', name);
+  Future<dynamic> createNewGroup(String name) => _post('/api/Groups/createNewGroup', {'name': name});
 
   Future<dynamic> joinGroup({required String groupId, required String memberId, String? memberUserName}) =>
       _post('/api/Groups/joinGroup', {'id': groupId, 'memberId': memberId, if (memberUserName != null) 'memberUserName': memberUserName});
