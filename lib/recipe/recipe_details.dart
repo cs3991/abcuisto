@@ -8,7 +8,7 @@ import 'package:transparent_pointer/transparent_pointer.dart';
 
 import '../login/authentication_cubit.dart';
 import '../login/login_page.dart';
-import '../login/profile_modal.dart';
+import '../profile/profile_page.dart';
 import '../models/abcuisto_repository.dart';
 import '../models/recipe.dart';
 
@@ -55,7 +55,7 @@ class RecipeDetailsPage extends StatelessWidget {
                                 if (state is AuthenticationLoggedOut || state is AuthenticationInitial) {
                                   Navigator.push(context, MaterialPageRoute(builder: (context) => LoginPage()));
                                 } else if (state is AuthenticationLoggedIn) {
-                                  showProfilePopup(context);
+                                  Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfilePage()));
                                 }
                               },
                             ),

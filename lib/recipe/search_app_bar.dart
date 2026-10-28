@@ -3,7 +3,7 @@ import 'package:abcuisto/login/login_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../login/profile_modal.dart';
+import '../profile/profile_page.dart';
 import 'filters/filter_cubit.dart';
 
 class SearchAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -57,7 +57,7 @@ class SearchAppBar extends StatelessWidget implements PreferredSizeWidget {
                   if (state is AuthenticationLoggedOut || state is AuthenticationInitial) {
                     Navigator.push(context, MaterialPageRoute(builder: (context) => LoginPage()));
                   } else if (state is AuthenticationLoggedIn) {
-                    showProfilePopup(context);
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfilePage()));
                   }
                 },
               );

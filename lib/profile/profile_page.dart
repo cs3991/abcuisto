@@ -1,0 +1,108 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../login/authentication_cubit.dart';
+import '../models/abcuisto_repository.dart';
+import '../recipe/filters/filter_cubit.dart';
+import 'profile_cubit.dart';
+import '../pulsing_placeholder.dart';
+
+class ProfilePage extends StatelessWidget {
+  const ProfilePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => ProfileCubit(context.read<AbcuistoRepository>())..loadProfile(),
+      child: BlocListener<AuthenticationCubit, AuthenticationState>(
+        listener: (context, state) {
+          if (state is AuthenticationLoggedOut) {
+            context.read<FilterCubit>().update();
+            Navigator.of(context).pop();
+          }
+        },
+        child: Scaffold(
+          appBar: AppBar(title: const Text('Mon profil')),
+          body: BlocBuilder<ProfileCubit, ProfileState>(
+            builder: (context, state) {
+              final user = state.user;
+              final loading = state.status == ProfileStatus.loading;
+              final groups = user?.groups.where((group) => !group.isPublic).toList() ?? [];
+              return RefreshIndicator(
+                onRefresh: context.read<ProfileCubit>().loadProfile,
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(24),
+                  children: [
+                    if (state.errorMessage != null) ...[
+                      Text(state.errorMessage!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                      TextButton(
+                        onPressed: context.read<ProfileCubit>().loadProfile,
+                        child: const Text('Réessayer'),
+                      ),
+                    ],
+                    if (loading || user != null) ...[
+                      Center(
+                        child: loading
+                            ? const PulsingPlaceholder(width: 72, height: 72)
+                            : const Icon(Icons.account_circle, size: 72),
+                      ),
+                      const SizedBox(height: 16),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: loading
+                            ? const PulsingPlaceholder(width: 180, height: 28)
+                            : Text(user!.userName ?? user.email ?? 'Mon profil', style: Theme.of(context).textTheme.headlineSmall),
+                      ),
+                      if (loading || user?.email != null)
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: loading
+                              ? const PulsingPlaceholder(width: 240, height: 16)
+                              : Text(user!.email!),
+                        ),
+                      if (loading || (user?.bio?.isNotEmpty ?? false)) ...[
+                        const SizedBox(height: 12),
+                        loading
+                            ? const PulsingPlaceholder(width: double.infinity, height: 16)
+                            : Text(user!.bio!),
+                      ],
+                      const SizedBox(height: 32),
+                      Text('Mes groupes', style: Theme.of(context).textTheme.titleLarge),
+                      const SizedBox(height: 8),
+                      if (!loading && groups.isEmpty) const Text('Vous ne faites partie d’aucun groupe.'),
+                      for (var index = 0; index < (loading ? 3 : groups.length); index++)
+                        ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: loading
+                              ? const PulsingPlaceholder(width: 24, height: 24)
+                              : const Icon(Icons.group),
+                          title: loading
+                              ? const Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: PulsingPlaceholder(width: 180, height: 20),
+                                )
+                              : Text(groups[index].name ?? 'Groupe'),
+                          subtitle: !loading && groups[index].owner == user?.id ? const Text('Propriétaire') : null,
+                        ),
+                    ],
+                    const SizedBox(height: 32),
+                    BlocBuilder<AuthenticationCubit, AuthenticationState>(
+                      builder: (context, authState) => OutlinedButton.icon(
+                        onPressed: authState is AuthenticationLoggedIn
+                            ? () => context.read<AuthenticationCubit>().logOut()
+                            : null,
+                        icon: const Icon(Icons.logout),
+                        label: const Text('Se déconnecter'),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}

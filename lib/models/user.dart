@@ -15,9 +15,11 @@ class User {
       throw const FormatException('Réponse invalide : identifiant utilisateur manquant.');
     }
 
-    final groups = json['groups'] is List
-        ? (json['groups'] as List).whereType<Map<String, dynamic>>().map(RecipeGroup.fromJson).toList()
-        : const <RecipeGroup>[];
+    final rawGroups = json['groups'] as List<dynamic>?;
+    final groupValues = rawGroups ?? const <dynamic>[];
+    final groups = List<RecipeGroup>.unmodifiable(
+      groupValues.whereType<Map<String, dynamic>>().map(RecipeGroup.fromJson),
+    );
     return User(
       id: id,
       userName: json['userName'] as String?,
