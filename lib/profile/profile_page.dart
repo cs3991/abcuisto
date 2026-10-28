@@ -6,6 +6,7 @@ import '../models/abcuisto_repository.dart';
 import '../recipe/filters/filter_cubit.dart';
 import 'profile_cubit.dart';
 import 'groups/create_group_dialog.dart';
+import 'groups/group_details_page.dart';
 import '../pulsing_placeholder.dart';
 
 class ProfilePage extends StatelessWidget {
@@ -89,6 +90,12 @@ class ProfilePage extends StatelessWidget {
                       if (!loading && groups.isEmpty) const Text('Vous ne faites partie d’aucun groupe.'),
                       for (var index = 0; index < (loading ? 3 : groups.length); index++)
                         ListTile(
+                          onTap: loading || groups[index].id == null ? null : () {
+                            Navigator.push(context, MaterialPageRoute(
+                              builder: (context) => GroupDetailsPage(group: groups[index]),
+                            ));
+                          },
+                          trailing: loading ? null : const Icon(Icons.chevron_right_rounded),
                           contentPadding: EdgeInsets.zero,
                           leading: loading
                               ? const PulsingPlaceholder(width: 24, height: 24)

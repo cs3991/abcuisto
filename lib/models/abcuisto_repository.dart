@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'group_member.dart';
+
 import 'package:abcuisto/models/recipe.dart';
 import 'package:abcuisto/models/user.dart';
 import 'package:diacritic/diacritic.dart';
@@ -193,6 +195,19 @@ class AbcuistoRepository extends ChangeNotifier {
       _delete('/api/Recipes/deleteComment/${Uri.encodeComponent(recipeId)}/${Uri.encodeComponent(commentId)}');
 
   Future<dynamic> getGroupById(String id) => _get('/api/Groups/getGroupById/${Uri.encodeComponent(id)}');
+
+  Future<List<GroupMember>> getGroupMembers(String id) async {
+    final response = await getGroupUsers(id);
+    if (response is! Map<String, dynamic> || response['members'] is! List) {
+      throw const FormatException('Réponse invalide : membres du groupe manquants.');
+    }
+    return List<GroupMember>.unmodifiable((response['members'] as List).map((member) {
+      if (member is! Map<String, dynamic>) {
+        throw const FormatException('Réponse invalide : membre mal formé.');
+      }
+      return GroupMember.fromJson(member);
+    }));
+  }
 
   Future<dynamic> createNewGroup(String name) => _post('/api/Groups/createNewGroup', {'name': name});
 
