@@ -23,8 +23,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: AutofillGroup(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
+              child: ListView(
+                padding: const EdgeInsets.only(bottom: 24),
+                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                 children: [
                   const SizedBox(height: 64),
                   // TEXT

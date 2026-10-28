@@ -33,9 +33,11 @@ class FilterCubit extends Cubit<FilterState> {
     if (state.pagingState.isLoading) return;
     emit(state.copyWith(pagingState: state.pagingState.copyWith(isLoading: true, error: null)));
 
+    final loadingState = state.pagingState;
     try {
       final newKey = (state.pagingState.keys?.last ?? 0) + 1;
       final newItems = await repository.getRecipesFiltered(state.filter.copyWith(page: newKey));
+      if (isClosed || !identical(state.pagingState, loadingState)) return;
       final isLastPage = newItems.isEmpty;
 
       emit(
@@ -49,13 +51,12 @@ class FilterCubit extends Cubit<FilterState> {
         ),
       );
     } catch (error, stackTrace) {
+      if (isClosed || !identical(state.pagingState, loadingState)) return;
       print('Error fetching recipes: $error');
       // print stack trace for debugging
       print(stackTrace);
       emit(state.copyWith(pagingState: state.pagingState.copyWith(error: error, isLoading: false)));
     }
-
-    emit(state.copyWith(pagingState: state.pagingState.copyWith(isLoading: false)));
   }
 
   void updateSearchPattern(String? pattern) {
@@ -114,6 +115,11 @@ class FilterCubit extends Cubit<FilterState> {
         filter: state.filter.copyWith(tags: updatedTags),
       ),
     );
+  }
+
+  Future<void> refresh() async {
+    update();
+    await fetchNextPage();
   }
 
   void update() {

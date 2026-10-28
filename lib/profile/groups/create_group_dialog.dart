@@ -8,7 +8,7 @@ Future<bool?> showCreateGroupDialog(BuildContext context) {
   final repository = context.read<AbcuistoRepository>();
   return showDialog<bool>(
     context: context,
-    barrierDismissible: false,
+    barrierDismissible: true,
     builder: (context) => BlocProvider(
       create: (_) => CreateGroupCubit(repository),
       child: const _CreateGroupDialog(),
@@ -40,39 +40,36 @@ class _CreateGroupDialogState extends State<_CreateGroupDialog> {
       },
       builder: (context, state) {
         final loading = state.status == CreateGroupStatus.loading;
-        return PopScope(
-          canPop: !loading,
-          child: AlertDialog(
-            title: const Text('Créer un groupe'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: _nameController,
-                  autofocus: true,
-                  enabled: !loading,
-                  textCapitalization: TextCapitalization.sentences,
-                  textInputAction: TextInputAction.done,
-                  decoration: const InputDecoration(labelText: 'Nom du groupe'),
-                  onSubmitted: (_) => context.read<CreateGroupCubit>().createGroup(_nameController.text),
-                ),
-                if (state.errorMessage != null) ...[
-                  const SizedBox(height: 12),
-                  Text(state.errorMessage!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
-                ],
+        return AlertDialog(
+          title: const Text('Créer un groupe'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _nameController,
+                autofocus: true,
+                enabled: !loading,
+                textCapitalization: TextCapitalization.sentences,
+                textInputAction: TextInputAction.done,
+                decoration: const InputDecoration(labelText: 'Nom du groupe'),
+                onSubmitted: (_) => context.read<CreateGroupCubit>().createGroup(_nameController.text),
+              ),
+              if (state.errorMessage != null) ...[
+                const SizedBox(height: 12),
+                Text(state.errorMessage!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
               ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: loading ? null : () => Navigator.of(context).pop(false),
-                child: const Text('Annuler'),
-              ),
-              FilledButton(
-                onPressed: loading ? null : () => context.read<CreateGroupCubit>().createGroup(_nameController.text),
-                child: Text(loading ? 'Création…' : 'Créer'),
-              ),
             ],
           ),
+          actions: [
+            TextButton(
+              onPressed: loading ? null : () => Navigator.of(context).pop(false),
+              child: const Text('Annuler'),
+            ),
+            FilledButton(
+              onPressed: loading ? null : () => context.read<CreateGroupCubit>().createGroup(_nameController.text),
+              child: Text(loading ? 'Création…' : 'Créer'),
+            ),
+          ],
         );
       },
     );

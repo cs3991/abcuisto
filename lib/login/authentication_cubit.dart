@@ -33,6 +33,7 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
   }
 
   Future<bool> logIn(String email, String password) async {
+    if (state is AuthenticationLoading) return false;
     emit(AuthenticationLoading());
     try {
       await repository.login(email, password);
@@ -63,6 +64,7 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
   }
 
   Future<void> signUp(String email, String password, String username) async {
+    if (state is AuthenticationLoading) return;
     emit(AuthenticationLoading());
     try {
       await repository.signUp(email, password, username);

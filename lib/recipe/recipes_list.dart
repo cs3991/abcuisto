@@ -138,83 +138,87 @@ class _RecipesListState extends State<RecipesList> {
                   ),
                 ),
                 Expanded(
-                  child: PagedListView<int, Recipe>(
-                    state: state.pagingState,
-                    fetchNextPage: context.read<FilterCubit>().fetchNextPage,
-                    builderDelegate: PagedChildBuilderDelegate(
-                      firstPageErrorIndicatorBuilder: (context) {
-                        final state = context
-                            .read<FilterCubit>()
-                            .state;
-                        if (state.pagingState.error is ClientException) {
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.signal_wifi_connected_no_internet_4_rounded,
-                                color: Theme
-                                    .of(context)
-                                    .colorScheme
-                                    .onSurface
-                                    .withAlpha(100),
-                                size: 60,
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
-                                child: Text(
-                                  "Connexion au serveur impossible.\nVérifiez la connexion internet.",
-                                  style: Theme
+                  child: RefreshIndicator(
+                    onRefresh: context.read<FilterCubit>().refresh,
+                    child: PagedListView<int, Recipe>(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      state: state.pagingState,
+                      fetchNextPage: context.read<FilterCubit>().fetchNextPage,
+                      builderDelegate: PagedChildBuilderDelegate(
+                        firstPageErrorIndicatorBuilder: (context) {
+                          final state = context
+                              .read<FilterCubit>()
+                              .state;
+                          if (state.pagingState.error is ClientException) {
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.signal_wifi_connected_no_internet_4_rounded,
+                                  color: Theme
                                       .of(context)
-                                      .textTheme
-                                      .bodyMedium,
-                                  textAlign: TextAlign.center,
+                                      .colorScheme
+                                      .onSurface
+                                      .withAlpha(100),
+                                  size: 60,
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
+                                  child: Text(
+                                    "Connexion au serveur impossible.\nVérifiez la connexion internet.",
+                                    style: Theme
+                                        .of(context)
+                                        .textTheme
+                                        .bodyMedium,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                                OutlinedButton(
+                                  onPressed: () => context.read<FilterCubit>().update(),
+                                  child: Text("Réessayer"),
+                                ),
+                              ],
+                            );
+                          } else {
+                            return Text('Erreur cheloue');
+                          }
+                        },
+                        itemBuilder: (context, item, index) =>
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: MediaQuery
+                                      .of(context)
+                                      .size
+                                      .width > 400
+                                      ? (MediaQuery
+                                      .of(context)
+                                      .size
+                                      .width - 400) / 2
+                                      : 0,
+                                ),
+
+                                child: InkWell(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) {
+                                          context.read<RecipeCubit>().focusRecipe(item);
+                                          return RecipeDetailsPage();
+                                        },
+                                      ),
+                                    );
+                                  },
+                                  child: RecipeCard(recipe: item),
                                 ),
                               ),
-                              OutlinedButton(
-                                onPressed: () => context.read<FilterCubit>().update(),
-                                child: Text("Réessayer"),
-                              ),
-                            ],
-                          );
-                        } else {
-                          return Text('Erreur cheloue');
-                        }
-                      },
-                      itemBuilder: (context, item, index) =>
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: MediaQuery
-                                    .of(context)
-                                    .size
-                                    .width > 400
-                                    ? (MediaQuery
-                                    .of(context)
-                                    .size
-                                    .width - 400) / 2
-                                    : 0,
-                              ),
-
-                              child: InkWell(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) {
-                                        context.read<RecipeCubit>().focusRecipe(item);
-                                        return RecipeDetailsPage();
-                                      },
-                                    ),
-                                  );
-                                },
-                                child: RecipeCard(recipe: item),
-                              ),
                             ),
-                          ),
+                      ),
+                      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                     ),
-                    keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                   ),
                 ),
               ],

@@ -22,6 +22,7 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isLoading = context.select<AuthenticationCubit, bool>((cubit) => cubit.state is AuthenticationLoading);
     return BlocListener<AuthenticationCubit, AuthenticationState>(
       listener: (context, state) {
         if (state is AuthenticationLoggedIn) {
@@ -37,8 +38,9 @@ class _LoginPageState extends State<LoginPage> {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: AutofillGroup(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
+                child: ListView(
+                  padding: const EdgeInsets.only(bottom: 24),
+                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                   children: [
                     SizedBox(height: 64),
                     // Text and logo
@@ -107,17 +109,15 @@ class _LoginPageState extends State<LoginPage> {
                     const SizedBox(height: 16),
 
                     // LOGIN BUTTON
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton(
-                        onPressed: () async {
-                          final loggedIn = await context.read<AuthenticationCubit>().logIn(emailController.text, passwordController.text);
-                          if (loggedIn && context.mounted) {
-                            context.read<FilterCubit>().update();
-                          }
-                        },
-                        child: const Text("Connexion"),
-                      ),
+                    PrimaryButton(
+                      label: "Connexion",
+                      isLoading: isLoading,
+                      onPressed: () async {
+                        final loggedIn = await context.read<AuthenticationCubit>().logIn(emailController.text, passwordController.text);
+                        if (loggedIn && context.mounted) {
+                          context.read<FilterCubit>().update();
+                        }
+                      },
                     ),
 
                     const SizedBox(height: 20),

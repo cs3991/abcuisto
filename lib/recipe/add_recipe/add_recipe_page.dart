@@ -128,6 +128,7 @@ class _AddRecipePageState extends State<AddRecipePage> {
                       const SizedBox(height: 16),
                       Wrap(
                         alignment: WrapAlignment.spaceAround,
+                        runSpacing: 8,
                         children: [
                           DurationPicker(
                             label: 'Préparation',
@@ -150,13 +151,16 @@ class _AddRecipePageState extends State<AddRecipePage> {
                       ),
                       const SizedBox(height: 16),
                       const SectionTitle(title: 'Visibilité de la recette'),
-                      SwitchListTile(
-                        contentPadding: EdgeInsets.zero,
-                        secondary: const Icon(Icons.public),
-                        title: const Text('Public'),
-                        subtitle: const Text('Visible par tout le monde, quels que soient les groupes sélectionnés.'),
-                        value: modifiedRecipe.groups.any((group) => group.isPublic),
-                        onChanged: loading ? null : cubit.setPublic,
+                      Material(
+                        type: MaterialType.transparency,
+                        child: SwitchListTile(
+                          contentPadding: EdgeInsets.zero,
+                          secondary: const Icon(Icons.public),
+                          title: const Text('Public'),
+                          subtitle: const Text('Visible par tout le monde, quels que soient les groupes sélectionnés.'),
+                          value: modifiedRecipe.groups.any((group) => group.isPublic),
+                          onChanged: loading ? null : cubit.setPublic,
+                        ),
                       ),
                       if (groups.isNotEmpty) ...[
                         const Divider(),
@@ -313,6 +317,7 @@ class IngredientCategoryWidget extends StatelessWidget {
             ),
             IconButton(
               tooltip: 'Supprimer la catégorie',
+              color: Theme.of(context).colorScheme.primary,
               onPressed: () => cubit.removeCategory(categoryIndex),
               icon: const Icon(Icons.delete_outline),
             ),

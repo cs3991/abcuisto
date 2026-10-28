@@ -22,6 +22,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isLoading = context.select<AuthenticationCubit, bool>((cubit) => cubit.state is AuthenticationLoading);
     return BlocListener<AuthenticationCubit, AuthenticationState>(
       listener: (context, state) {
         if (state is AuthenticationLoggedIn) {
@@ -37,8 +38,9 @@ class _SignUpPageState extends State<SignUpPage> {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: AutofillGroup(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: ListView(
+                  padding: const EdgeInsets.only(bottom: 24),
+                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                   children: [
                     const SizedBox(height: 64),
 
@@ -112,6 +114,7 @@ class _SignUpPageState extends State<SignUpPage> {
                     // SIGN UP BUTTON
                     PrimaryButton(
                       label: "Créer un compte",
+                      isLoading: isLoading,
                       onPressed: () {
                         if (passwordController.text != confirmPasswordController.text) {
                           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Les mots de passe ne correspondent pas")));

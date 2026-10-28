@@ -43,14 +43,35 @@ class RoundedTextField extends StatelessWidget {
 class PrimaryButton extends StatelessWidget {
   final String label;
   final VoidCallback onPressed;
+  final bool isLoading;
 
-  const PrimaryButton({super.key, required this.label, required this.onPressed});
+  const PrimaryButton({super.key, required this.label, required this.onPressed, this.isLoading = false});
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      child: FilledButton(onPressed: onPressed, child: Text(label)),
+      child: FilledButton(
+        onPressed: isLoading ? null : onPressed,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (isLoading) ...[
+              SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.38),
+                  semanticsLabel: 'Chargement en cours',
+                ),
+              ),
+              const SizedBox(width: 8),
+            ],
+            Text(label),
+          ],
+        ),
+      ),
     );
   }
 }
