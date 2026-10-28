@@ -351,6 +351,10 @@ class RecipeIngredientCategory {
 }
 
 class RecipeGroup {
+  static const publicGroup = RecipeGroup(id: 'ce5bd221-67dc-4545-ac5c-18411353b786', name: 'Public');
+
+  bool get isPublic => id == publicGroup.id;
+
   final String? id;
   final String? name;
   final String? owner;

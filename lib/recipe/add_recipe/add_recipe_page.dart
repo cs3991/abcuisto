@@ -64,7 +64,7 @@ class _AddRecipePageState extends State<AddRecipePage> {
             if (group.id != null) group.id!: group,
           for (final group in widget.initialRecipe?.groups ?? const <RecipeGroup>[])
             if (group.id != null) group.id!: group,
-        }.values;
+        }.values.where((group) => !group.isPublic);
         final loading = state.status == AddRecipeStatus.loading;
         return Scaffold(
           appBar: AppBar(
@@ -148,9 +148,23 @@ class _AddRecipePageState extends State<AddRecipePage> {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 16),
+                      const SectionTitle(title: 'Visibilité de la recette'),
+                      SwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        secondary: const Icon(Icons.public),
+                        title: const Text('Public'),
+                        subtitle: const Text('Visible par tout le monde, quels que soient les groupes sélectionnés.'),
+                        value: modifiedRecipe.groups.any((group) => group.isPublic),
+                        onChanged: loading ? null : cubit.setPublic,
+                      ),
                       if (groups.isNotEmpty) ...[
-                        const SizedBox(height: 16),
-                        const SectionTitle(title: 'Visible pour quels groupes ?'),
+                        const Divider(),
+                        const SectionTitle(title: 'Partager avec des groupes'),
+                        const SizedBox(height: 8),
+                        Text(modifiedRecipe.groups.any((group) => group.isPublic)
+                            ? 'La recette est publique : ces groupes ne limitent pas sa visibilité.'
+                            : 'La recette est visible uniquement par les groupes sélectionnés.'),
                         const SizedBox(height: 8),
                         Wrap(
                           spacing: 8,
@@ -159,9 +173,7 @@ class _AddRecipePageState extends State<AddRecipePage> {
                             return FilterChip(
                               label: Text(group.name ?? 'Groupe'),
                               selected: modifiedRecipe.groups.any((selected) => selected.id == id),
-                              onSelected: (selected) => cubit.modify(
-                                modifiedRecipe.copyWith(groups: [...modifiedRecipe.groups.where((value) => value.id != id), if (selected) group]),
-                              ),
+                              onSelected: loading ? null : (selected) => cubit.selectGroup(group, selected),
                             );
                           }).toList(),
                         ),

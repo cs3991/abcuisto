@@ -54,6 +54,22 @@ class AddRecipeCubit extends Cubit<AddRecipeState> {
     modify(recipe.copyWith(documents: [...recipe.documents, uri]));
   }
 
+  void setPublic(bool isPublic) {
+    final recipe = state.modifiedRecipe!;
+    modify(recipe.copyWith(groups: [
+      ...recipe.groups.where((group) => !group.isPublic),
+      if (isPublic) RecipeGroup.publicGroup,
+    ]));
+  }
+
+  void selectGroup(RecipeGroup group, bool selected) {
+    final recipe = state.modifiedRecipe!;
+    modify(recipe.copyWith(groups: [
+      ...recipe.groups.where((value) => value.id != group.id),
+      if (selected) group,
+    ]));
+  }
+
   void replacePhoto(int index, Uri uri) {
     final recipe = state.modifiedRecipe!;
     modify(recipe.copyWith(documents: [...recipe.documents]..[index] = uri));
