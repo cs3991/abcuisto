@@ -7,6 +7,7 @@ import '../models/recipe.dart';
 import '../recipe/filters/filter_cubit.dart';
 import 'profile_cubit.dart';
 import 'groups/create_group_dialog.dart';
+import 'groups/join_group_dialog.dart';
 import 'groups/group_details_page.dart';
 import '../pulsing_placeholder.dart';
 
@@ -14,11 +15,11 @@ class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
 
   Future<void> _openGroup(BuildContext context, RecipeGroup group) async {
-    final deleted = await Navigator.push<bool>(context, MaterialPageRoute(
+    final result = await Navigator.push<GroupDetailsResult>(context, MaterialPageRoute(
       builder: (context) => GroupDetailsPage(group: group),
     ));
-    if (!context.mounted || deleted != true) return;
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Groupe supprimé.')));
+    if (!context.mounted || result == null) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result == GroupDetailsResult.deleted ? 'Groupe supprimé.' : 'Vous avez quitté le groupe.')));
     context.read<FilterCubit>().update();
     await context.read<ProfileCubit>().loadProfile();
   }
@@ -81,22 +82,7 @@ class ProfilePage extends StatelessWidget {
                             : Text(user!.bio!),
                       ],
                       const SizedBox(height: 32),
-                      Row(
-                        children: [
-                          Expanded(child: Text('Mes groupes', style: Theme.of(context).textTheme.titleLarge)),
-                          IconButton(
-                            tooltip: 'Créer un groupe',
-                            icon: const Icon(Icons.group_add_rounded),
-                            onPressed: loading ? null : () async {
-                              final created = await showCreateGroupDialog(context);
-                              if (!context.mounted || created != true) return;
-                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Groupe créé.')));
-                              context.read<FilterCubit>().update();
-                              await context.read<ProfileCubit>().loadProfile();
-                            },
-                          ),
-                        ],
-                      ),
+                      Text('Mes groupes', style: Theme.of(context).textTheme.titleLarge),
                       const SizedBox(height: 8),
                       if (!loading && groups.isEmpty) const Text('Vous ne faites partie d’aucun groupe.'),
                       for (var index = 0; index < (loading ? 3 : groups.length); index++)
@@ -115,6 +101,35 @@ class ProfilePage extends StatelessWidget {
                               : Text(groups[index].name ?? 'Groupe'),
                           subtitle: !loading && groups[index].owner == user?.id ? const Text('Propriétaire') : null,
                         ),
+                      const SizedBox(height: 8),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        enabled: !loading,
+                        title: const Text('Rejoindre un groupe'),
+                        subtitle: const Text('Vous avez une invitation ? Collez le lien ou l’ID du groupe.'),
+                        trailing: Icon(Icons.login_rounded, color: Theme.of(context).colorScheme.primary),
+                        onTap: loading ? null : () async {
+                          final joined = await showJoinGroupDialog(context);
+                          if (!context.mounted || joined != true) return;
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Vous avez rejoint le groupe.')));
+                          context.read<FilterCubit>().update();
+                          await context.read<ProfileCubit>().loadProfile();
+                        },
+                      ),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        enabled: !loading,
+                        title: const Text('Créer un groupe'),
+                        subtitle: const Text('Rassemblez vos proches pour partager vos recettes.'),
+                        trailing: Icon(Icons.group_add_rounded, color: Theme.of(context).colorScheme.primary),
+                        onTap: loading ? null : () async {
+                          final created = await showCreateGroupDialog(context);
+                          if (!context.mounted || created != true) return;
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Groupe créé.')));
+                          context.read<FilterCubit>().update();
+                          await context.read<ProfileCubit>().loadProfile();
+                        },
+                      ),
                     ],
                     const SizedBox(height: 32),
                     BlocBuilder<AuthenticationCubit, AuthenticationState>(

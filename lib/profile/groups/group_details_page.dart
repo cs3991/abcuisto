@@ -7,6 +7,8 @@ import '../../models/recipe.dart';
 import '../../pulsing_placeholder.dart';
 import 'group_cubit.dart';
 
+enum GroupDetailsResult { deleted, left }
+
 class GroupDetailsPage extends StatelessWidget {
   final RecipeGroup group;
 
@@ -16,7 +18,7 @@ class GroupDetailsPage extends StatelessWidget {
     try {
       await Clipboard.setData(ClipboardData(text: link));
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Lien d’invitation copié.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Lien d’invitation copié.')));
     } catch (_) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Impossible de copier le lien d’invitation.')));
@@ -31,11 +33,12 @@ class GroupDetailsPage extends StatelessWidget {
         appBar: AppBar(title: Text(group.name ?? 'Groupe')),
         body: BlocConsumer<GroupCubit, GroupState>(
           listener: (context, state) {
-            if (state.status == GroupStatus.deleted) Navigator.of(context).pop(true);
+            if (state.status == GroupStatus.deleted) Navigator.of(context).pop(GroupDetailsResult.deleted);
+            if (state.status == GroupStatus.left) Navigator.of(context).pop(GroupDetailsResult.left);
           },
           builder: (context, state) {
             final loading = state.status == GroupStatus.loading;
-            final deleting = state.status == GroupStatus.deleting;
+            final deleting = state.status == GroupStatus.deleting || state.status == GroupStatus.leaving;
             return PopScope(
               canPop: !deleting,
               child: RefreshIndicator(
@@ -97,6 +100,34 @@ class GroupDetailsPage extends StatelessWidget {
                         onTap: deleting || !(state.group.link?.isNotEmpty ?? false) ? null : () => _copyInvitation(context, state.group.link!),
                       ),
                     ),
+                    if (state.canLeave) ...[
+                      const SizedBox(height: 24),
+                      ListTile(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        minVerticalPadding: 4,
+                        title: Text(state.status == GroupStatus.leaving ? 'Départ…' : 'Quitter le groupe'),
+                        subtitle: const Text('Vous ne ferez plus partie de ce groupe et perdrez l’accès à ses recettes privées.'),
+                        trailing: const Icon(Icons.logout_rounded),
+                        textColor: Theme.of(context).colorScheme.error,
+                        iconColor: Theme.of(context).colorScheme.error,
+                        enabled: !loading && !deleting,
+                        onTap: loading || deleting ? null : () async {
+                          final confirmed = await showDialog<bool>(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Quitter le groupe ?'),
+                              content: const Text('Vous pourrez le rejoindre à nouveau avec une invitation.'),
+                              actions: [
+                                TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Annuler')),
+                                FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Quitter')),
+                              ],
+                            ),
+                          );
+                          if (!context.mounted || confirmed != true) return;
+                          await context.read<GroupCubit>().leaveGroup();
+                        },
+                      ),
+                    ],
                     if (state.canDelete) ...[
                       const SizedBox(height: 24),
                       Card(

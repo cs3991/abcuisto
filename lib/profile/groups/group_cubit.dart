@@ -5,7 +5,7 @@ import '../../models/abcuisto_repository.dart';
 import '../../models/group_member.dart';
 import '../../models/recipe.dart';
 
-enum GroupStatus { initial, loading, success, failure, deleting, deleted }
+enum GroupStatus { initial, loading, success, failure, deleting, deleted, leaving, left }
 
 @immutable
 class GroupState {
@@ -14,12 +14,14 @@ class GroupState {
   final GroupStatus status;
   final String? errorMessage;
   final bool canDelete;
+  final bool canLeave;
 
-  const GroupState({required this.group, this.members = const [], this.status = GroupStatus.initial, this.errorMessage, this.canDelete = false});
+  const GroupState({required this.group, this.members = const [], this.status = GroupStatus.initial, this.errorMessage, this.canDelete = false, this.canLeave = false});
 
   GroupState copyWith({required GroupStatus status, List<GroupMember>? members, String? errorMessage}) => GroupState(
     group: group,
     canDelete: canDelete,
+    canLeave: canLeave,
     members: members ?? this.members,
     status: status,
     errorMessage: errorMessage,
@@ -29,10 +31,26 @@ class GroupState {
 class GroupCubit extends Cubit<GroupState> {
   final AbcuistoRepository repository;
 
-  GroupCubit(this.repository, RecipeGroup group) : super(GroupState(group: group, canDelete: !group.isPublic && repository.user != null && group.owner == repository.user!.id));
+  GroupCubit(this.repository, RecipeGroup group) : super(GroupState(group: group, canDelete: !group.isPublic && repository.user != null && group.owner == repository.user!.id, canLeave: !group.isPublic && group.owner != null && repository.user != null && group.owner != repository.user!.id && repository.user!.groups.any((value) => value.id == group.id)));
+
+  Future<void> leaveGroup() async {
+    if (!state.canLeave || state.status == GroupStatus.loading || state.status == GroupStatus.deleting || state.status == GroupStatus.deleted || state.status == GroupStatus.leaving || state.status == GroupStatus.left) return;
+    emit(state.copyWith(status: GroupStatus.leaving));
+    try {
+      final id = state.group.id;
+      final user = repository.user;
+      if (id == null || user == null) throw const FormatException('Groupe ou utilisateur manquant.');
+      await repository.quitGroup(groupId: id, memberId: user.id);
+      if (isClosed) return;
+      emit(state.copyWith(status: GroupStatus.left));
+    } catch (error) {
+      if (isClosed) return;
+      emit(state.copyWith(status: GroupStatus.failure, errorMessage: error.toString()));
+    }
+  }
 
   Future<void> deleteGroup() async {
-    if (!state.canDelete || state.status == GroupStatus.loading || state.status == GroupStatus.deleting || state.status == GroupStatus.deleted) return;
+    if (!state.canDelete || state.status == GroupStatus.loading || state.status == GroupStatus.deleting || state.status == GroupStatus.deleted || state.status == GroupStatus.leaving || state.status == GroupStatus.left) return;
     emit(state.copyWith(status: GroupStatus.deleting));
     try {
       final id = state.group.id;
@@ -47,7 +65,7 @@ class GroupCubit extends Cubit<GroupState> {
   }
 
   Future<void> loadGroup() async {
-    if (state.status == GroupStatus.loading || state.status == GroupStatus.deleting || state.status == GroupStatus.deleted) return;
+    if (state.status == GroupStatus.loading || state.status == GroupStatus.deleting || state.status == GroupStatus.deleted || state.status == GroupStatus.leaving || state.status == GroupStatus.left) return;
     emit(state.copyWith(status: GroupStatus.loading));
     try {
       final id = state.group.id;
