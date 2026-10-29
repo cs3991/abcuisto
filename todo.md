@@ -6,3 +6,5 @@
 
 
 - [ ] Adaptation des quantités (`lib/models/ingredient.dart`, `Ingredient.quantityFormatted`) : l’affichage impose une seule décimale ; une quantité positive inférieure à 0,05 apparaît comme « 0.0 » après réduction des portions. Prévoir une précision adaptée aux petites quantités et un affichage français cohérent lors de l’étape de calcul à partir d’un ingrédient.
+  - L’affichage du détail utilise maintenant une précision adaptée et une virgule décimale ; le formateur partagé `Ingredient.quantityFormatted` conserve sa limite pour ses autres usages.
+- [ ] Quantités dans les instructions (`lib/recipe/recipe_details.dart`, `InstructionsView`) : les étapes sont du texte libre et peuvent contenir des quantités fixes. L’adaptation recalcule la liste des ingrédients et les portions, mais les quantités écrites dans les étapes restent celles d’origine. Prévoir une indication visible ou une représentation structurée des quantités si ce cas doit être pris en charge.

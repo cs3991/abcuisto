@@ -13,6 +13,7 @@ import '../login/login_page.dart';
 import '../profile/profile_page.dart';
 import '../models/abcuisto_repository.dart';
 import '../models/recipe.dart';
+import '../models/ingredient.dart';
 import '../app_config.dart';
 import '../pulsing_placeholder.dart';
 import 'filters/filter_cubit.dart';
@@ -108,9 +109,7 @@ class RecipeDetailsPage extends StatelessWidget {
               child: Scaffold(
                 appBar: AppBar(
                   toolbarHeight: 65,
-                  title: recipe == null
-                      ? const PulsingPlaceholder(width: 180, height: 24)
-                      : Text(recipe.name),
+                  title: recipe == null ? const PulsingPlaceholder(width: 180, height: 24) : Text(recipe.name),
                   actions: [
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -172,14 +171,14 @@ class RecipeDetailsPage extends StatelessWidget {
                                   icon: Icon(state is AuthenticationLoggedIn ? Icons.person_rounded : Icons.login_rounded),
                                   tooltip: state is AuthenticationLoggedIn ? "Connecté" : "Se connecter",
                                   onPressed: () async {
-                                          if (state is AuthenticationLoggedOut || state is AuthenticationInitial) {
-                                            Navigator.push(context, MaterialPageRoute(builder: (context) => LoginPage()));
-                                          } else if (state is AuthenticationLoggedIn) {
-                                            await Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfilePage()));
-                                            if (!context.mounted) return;
-                                            context.read<RecipeCubit>().refreshPermissions();
-                                          }
-                                        },
+                                    if (state is AuthenticationLoggedOut || state is AuthenticationInitial) {
+                                      Navigator.push(context, MaterialPageRoute(builder: (context) => LoginPage()));
+                                    } else if (state is AuthenticationLoggedIn) {
+                                      await Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfilePage()));
+                                      if (!context.mounted) return;
+                                      context.read<RecipeCubit>().refreshPermissions();
+                                    }
+                                  },
                                 ),
                               ],
                             );
@@ -203,10 +202,7 @@ class RecipeDetailsPage extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(state.message),
-                      TextButton(
-                        onPressed: () => context.read<RecipeCubit>().refreshRecipe(),
-                        child: const Text('Recharger la recette'),
-                      ),
+                      TextButton(onPressed: () => context.read<RecipeCubit>().refreshRecipe(), child: const Text('Recharger la recette')),
                     ],
                   ),
                 ),
@@ -334,9 +330,7 @@ class RecipeDetails extends StatelessWidget {
                               final cookware = recipe?.cookware[index];
                               return Padding(
                                 padding: const EdgeInsets.only(right: 8.0),
-                                child: Chip(label: cookware == null
-                                    ? const PulsingPlaceholder(width: 64, height: 16)
-                                    : Text(cookware)),
+                                child: Chip(label: cookware == null ? const PulsingPlaceholder(width: 64, height: 16) : Text(cookware)),
                               );
                             },
                           ),
@@ -349,9 +343,7 @@ class RecipeDetails extends StatelessWidget {
                             children: List.generate(
                               recipe == null ? 3 : recipe.tags.length,
                               (index) => Chip(
-                                label: recipe == null
-                                    ? const PulsingPlaceholder(width: 56, height: 14)
-                                    : Text(recipe.tags[index].displayName),
+                                label: recipe == null ? const PulsingPlaceholder(width: 56, height: 14) : Text(recipe.tags[index].displayName),
                                 labelStyle: Theme.of(context).textTheme.bodySmall,
                                 visualDensity: VisualDensity.compact,
                                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -364,9 +356,7 @@ class RecipeDetails extends StatelessWidget {
                         SizedBox(height: 12),
                         Row(
                           children: [
-                            recipe == null
-                                ? const PulsingPlaceholder(width: 160, height: 32)
-                                : RatingStars(note: recipe.note, size: 32),
+                            recipe == null ? const PulsingPlaceholder(width: 160, height: 32) : RatingStars(note: recipe.note, size: 32),
                             SizedBox(width: 12),
                             recipe == null
                                 ? const PulsingPlaceholder(width: 40, height: 34)
@@ -383,8 +373,10 @@ class RecipeDetails extends StatelessWidget {
                         if (recipe != null && recipe.comments.isEmpty)
                           Text("Aucun commentaire pour le moment.", style: Theme.of(context).textTheme.bodyMedium)
                         else
-                          ...List.generate(recipe == null ? 2 : recipe.comments.length, (index) =>
-                            _RecipeCommentCard(comment: recipe?.comments[index], recipeId: recipe?.id)),
+                          ...List.generate(
+                            recipe == null ? 2 : recipe.comments.length,
+                            (index) => _RecipeCommentCard(comment: recipe?.comments[index], recipeId: recipe?.id),
+                          ),
                         SizedBox(height: 4),
                         if (recipe == null)
                           const PulsingPlaceholder(width: 140, height: 40)
@@ -560,9 +552,9 @@ class _RecipeCommentCard extends StatelessWidget {
                       child: comment == null
                           ? const Align(alignment: Alignment.centerLeft, child: PulsingPlaceholder(width: 120, height: 20))
                           : Text(
-                        comment.username?.isNotEmpty == true ? comment.username! : 'Utilisateur',
-                        style: Theme.of(context).textTheme.titleSmall,
-                      ),
+                              comment.username?.isNotEmpty == true ? comment.username! : 'Utilisateur',
+                              style: Theme.of(context).textTheme.titleSmall,
+                            ),
                     ),
                     if (canDelete)
                       BlocBuilder<CommentCubit, CommentState>(
@@ -573,8 +565,7 @@ class _RecipeCommentCard extends StatelessWidget {
                           onPressed: commentState.status == CommentStatus.loading ? null : () => _confirmDelete(context),
                         ),
                       ),
-                    if (comment == null)
-                      const PulsingPlaceholder(width: 80, height: 16),
+                    if (comment == null) const PulsingPlaceholder(width: 80, height: 16),
                     if (comment?.note != null) RatingStars(note: comment!.note!.toDouble(), size: 16),
                   ],
                 ),
@@ -646,20 +637,17 @@ class _RecipeQuantities extends StatelessWidget {
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
-                if (originalServings != null && originalServings > 0)
-                  IconButton(
-                    icon: const Icon(Icons.edit_rounded),
-                    tooltip: 'Adapter les quantités',
-                    onPressed: () async {
-                      final result = await showDialog<double>(
-                        context: context,
-                        builder: (_) => _ServingsDialog(servings: servings!, pieces: pieces),
-                      );
-                      if (result != null && context.mounted) {
-                        context.read<RecipeQuantitiesCubit>().changeServings(result, originalServings);
-                      }
-                    },
+                IconButton(
+                  icon: const Icon(Icons.edit_rounded),
+                  tooltip: 'Adapter les quantités',
+                  onPressed: () => showDialog<void>(
+                    context: context,
+                    builder: (_) => BlocProvider.value(
+                      value: context.read<RecipeQuantitiesCubit>(),
+                      child: _ServingsDialog(recipe: recipe, factor: state.factor),
+                    ),
                   ),
+                ),
               ],
             ),
             if (state.factor != 1)
@@ -676,13 +664,18 @@ class _RecipeQuantities extends StatelessWidget {
   }
 }
 
-String _formatQuantity(double value) => value.toStringAsFixed(2).replaceFirst(RegExp(r'\.?0+$'), '').replaceAll('.', ',');
+String _formatQuantity(double value) {
+  final text = value != 0 && value.abs() < 0.01 ? value.toStringAsPrecision(3) : value.toStringAsFixed(2);
+  final parts = text.split('e');
+  final number = parts.first.contains('.') ? parts.first.replaceFirst(RegExp(r'\.?0+$'), '') : parts.first;
+  return '${number.replaceAll('.', ',')}${parts.length > 1 ? 'e${parts.last}' : ''}';
+}
 
 class _ServingsDialog extends StatefulWidget {
-  final double servings;
-  final bool pieces;
+  final RecipeFull recipe;
+  final double factor;
 
-  const _ServingsDialog({required this.servings, required this.pieces});
+  const _ServingsDialog({required this.recipe, required this.factor});
 
   @override
   State<_ServingsDialog> createState() => _ServingsDialogState();
@@ -691,11 +684,12 @@ class _ServingsDialog extends StatefulWidget {
 class _ServingsDialogState extends State<_ServingsDialog> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _controller;
+  Ingredient? _selectedIngredient;
 
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController(text: _formatQuantity(widget.servings));
+    _controller = TextEditingController(text: widget.recipe.forNumber == null ? '' : _formatQuantity(widget.recipe.forNumber! * widget.factor));
   }
 
   @override
@@ -704,40 +698,108 @@ class _ServingsDialogState extends State<_ServingsDialog> {
     super.dispose();
   }
 
+  void _select(Ingredient? ingredient) {
+    if (identical(_selectedIngredient, ingredient)) return;
+    setState(() {
+      _selectedIngredient = ingredient;
+      final quantity = ingredient == null ? widget.recipe.forNumber?.toDouble() : ingredient.quantity;
+      _controller.text = quantity == null ? '' : _formatQuantity(quantity * widget.factor);
+    });
+  }
+
   void _submit() {
-    if (_formKey.currentState!.validate()) {
-      Navigator.pop(context, double.parse(_controller.text.trim().replaceAll(',', '.')));
+    if (!_formKey.currentState!.validate()) return;
+    final quantity = double.parse(_controller.text.trim().replaceAll(',', '.'));
+    final cubit = context.read<RecipeQuantitiesCubit>();
+    final ingredient = _selectedIngredient;
+    if (ingredient == null) {
+      cubit.changeServings(quantity, widget.recipe.forNumber!);
+    } else {
+      cubit.changeFromIngredient(ingredient, quantity);
     }
+    Navigator.pop(context);
+  }
+
+  Widget _quantityField({required String label, String? unit}) {
+    return TextFormField(
+      key: ObjectKey(_selectedIngredient),
+      controller: _controller,
+      autofocus: true,
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      decoration: InputDecoration(labelText: label, suffixText: unit),
+      validator: (text) {
+        final value = double.tryParse((text ?? '').trim().replaceAll(',', '.'));
+        final original = _selectedIngredient?.quantity ?? widget.recipe.forNumber?.toDouble();
+        if (value == null || !value.isFinite || value <= 0) return 'Saisissez un nombre supérieur à zéro.';
+        if (original == null || original <= 0) return 'Choisissez un ingrédient avec une quantité.';
+        final factor = value / original;
+        return !factor.isFinite || factor <= 0 ? 'Cette quantité ne permet pas le calcul.' : null;
+      },
+      onFieldSubmitted: (_) => _submit(),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final recipe = widget.recipe;
+    final canChangeServings = recipe.forNumber != null && recipe.forNumber! > 0;
+    final servingLabel = recipe.typeNumber == RecipeServingType.pieces ? 'Nombre de pièces' : 'Nombre de personnes';
     return AlertDialog(
       title: const Text('Adapter les quantités'),
-      content: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Les quantités des ingrédients seront recalculées sans modifier la recette enregistrée.'),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _controller,
-              autofocus: true,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: InputDecoration(labelText: widget.pieces ? 'Nombre de pièces' : 'Nombre de personnes'),
-              validator: (text) {
-                final value = double.tryParse((text ?? '').trim().replaceAll(',', '.'));
-                return value == null || !value.isFinite || value <= 0 ? 'Saisissez un nombre supérieur à zéro.' : null;
-              },
-              onFieldSubmitted: (_) => _submit(),
+      content: SizedBox(
+        width: 400,
+        child: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Adaptez les portions ou choisissez un ingrédient. La recette enregistrée reste inchangée.'),
+                if (canChangeServings) ...[
+                  const SizedBox(height: 16),
+                  if (_selectedIngredient == null)
+                    _quantityField(label: servingLabel)
+                  else
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(servingLabel),
+                      trailing: Text(_formatQuantity(recipe.forNumber! * widget.factor)),
+                      onTap: () => _select(null),
+                    ),
+                ],
+                const SizedBox(height: 32),
+                const Text("À partir d’un ingrédient : indiquez la quantité dont vous disposez d'un ingrédient"),
+                for (final category in recipe.ingredientCategories) ...[
+                  if (category.name.isNotEmpty)
+                    const SizedBox(height: 12),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 12),
+                      child: Text(category.name, style: Theme.of(context).textTheme.labelLarge),
+                    ),
+                  for (final ingredient in category.ingredients) ...[
+                    ListTile(
+                      minTileHeight: 24,
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(ingredient.name, style: Theme.of(context).textTheme.bodyMedium),
+                      trailing: Text(
+                        '${ingredient.quantity == null || ingredient.quantity == 0 ? '' : _formatQuantity(ingredient.quantity! * widget.factor)} ${ingredient.typeFormatted}',
+                      ),
+                      selected: identical(_selectedIngredient, ingredient),
+                      enabled: ingredient.quantity != null && ingredient.quantity!.isFinite && ingredient.quantity! > 0,
+                      onTap: () => _select(ingredient),
+                    ),
+                    if (identical(_selectedIngredient, ingredient)) _quantityField(label: 'Quantité disponible', unit: ingredient.typeFormatted),
+                  ],
+                ],
+              ],
             ),
-          ],
+          ),
         ),
       ),
       actions: [
         TextButton(onPressed: () => Navigator.pop(context), child: const Text('Annuler')),
-        FilledButton(onPressed: _submit, child: const Text('Appliquer')),
+        FilledButton(onPressed: canChangeServings || _selectedIngredient != null ? _submit : null, child: const Text('Appliquer')),
       ],
     );
   }
@@ -775,12 +837,17 @@ class IngredientView extends StatelessWidget {
                   padding: const EdgeInsets.only(left: 16, right: 12),
                   child: ingredient == null
                       ? const PulsingPlaceholder(width: 48, height: 20)
-                      : Text('${ingredient.quantityFormatted} ${ingredient.typeFormatted}', style: Theme.of(context).textTheme.bodyMedium),
+                      : Text(
+                          '${ingredient.quantity == null || ingredient.quantity == 0 ? '' : _formatQuantity(ingredient.quantity!)} ${ingredient.typeFormatted}',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
                 ),
               ),
-              TableCell(child: ingredient == null
-                  ? const Align(alignment: Alignment.centerLeft, child: PulsingPlaceholder(width: 160, height: 20))
-                  : Text(ingredient.name, style: Theme.of(context).textTheme.bodyMedium)),
+              TableCell(
+                child: ingredient == null
+                    ? const Align(alignment: Alignment.centerLeft, child: PulsingPlaceholder(width: 160, height: 20))
+                    : Text(ingredient.name, style: Theme.of(context).textTheme.bodyMedium),
+              ),
             ],
           ),
         );
@@ -833,9 +900,10 @@ class InstructionsView extends StatelessWidget {
                     left: BorderSide(color: Theme.of(context).colorScheme.primary, width: borderWidth),
                   ),
                 ),
-                child: Padding(padding: const EdgeInsets.only(left: 8), child: instruction == null
-                    ? const PulsingPlaceholder(width: double.infinity, height: 48)
-                    : Text(instruction)),
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: instruction == null ? const PulsingPlaceholder(width: double.infinity, height: 48) : Text(instruction),
+                ),
               ),
             ),
           ],
