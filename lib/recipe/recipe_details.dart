@@ -16,6 +16,7 @@ import '../models/recipe.dart';
 import '../app_config.dart';
 import '../pulsing_placeholder.dart';
 import 'filters/filter_cubit.dart';
+import 'recipe_quantities_cubit.dart';
 
 enum _RecipeAction { edit, share, link, delete }
 
@@ -247,8 +248,6 @@ class RecipeDetails extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final recipe = this.recipe;
-    final servingType = recipe?.typeNumber?.displayName ?? 'personnes';
-    final servingLabel = servingType == 'personnes' && recipe?.forNumber == 1 ? 'personne' : servingType;
 
     return Stack(
       clipBehavior: Clip.none,
@@ -307,13 +306,15 @@ class RecipeDetails extends StatelessWidget {
                             ? const PulsingPlaceholder(width: 100, height: 16)
                             : Text(recipe.category?.displayName ?? '', style: Theme.of(context).textTheme.bodySmall),
                         SizedBox(height: 12),
-                        recipe == null
-                            ? const PulsingPlaceholder(width: 200, height: 24)
-                            : Text(
-                                recipe.forNumber == null ? "Ingrédients" : "Ingrédients pour ${recipe.forNumber} $servingLabel",
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
-                        IngredientView(recipe: recipe),
+                        if (recipe == null) ...[
+                          const PulsingPlaceholder(width: 200, height: 24),
+                          const IngredientView(recipe: null),
+                        ] else
+                          BlocProvider(
+                            key: ObjectKey(recipe),
+                            create: (_) => RecipeQuantitiesCubit(),
+                            child: _RecipeQuantities(recipe: recipe),
+                          ),
                         SizedBox(height: 12),
                         Text("Instructions", style: Theme.of(context).textTheme.titleMedium),
                         SizedBox(height: 8),
@@ -621,10 +622,132 @@ class _RecipeCommentCard extends StatelessWidget {
   }
 }
 
+class _RecipeQuantities extends StatelessWidget {
+  final RecipeFull recipe;
+
+  const _RecipeQuantities({required this.recipe});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<RecipeQuantitiesCubit, RecipeQuantitiesState>(
+      builder: (context, state) {
+        final originalServings = recipe.forNumber;
+        final servings = originalServings == null ? null : originalServings * state.factor;
+        final pieces = recipe.typeNumber == RecipeServingType.pieces;
+        final label = pieces ? (servings == 1 ? 'pièce' : 'pièces') : (servings == 1 ? 'personne' : 'personnes');
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    servings == null ? 'Ingrédients' : 'Ingrédients pour ${_formatQuantity(servings)} $label',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                if (originalServings != null && originalServings > 0)
+                  IconButton(
+                    icon: const Icon(Icons.edit_rounded),
+                    tooltip: 'Adapter les quantités',
+                    onPressed: () async {
+                      final result = await showDialog<double>(
+                        context: context,
+                        builder: (_) => _ServingsDialog(servings: servings!, pieces: pieces),
+                      );
+                      if (result != null && context.mounted) {
+                        context.read<RecipeQuantitiesCubit>().changeServings(result, originalServings);
+                      }
+                    },
+                  ),
+              ],
+            ),
+            if (state.factor != 1)
+              TextButton.icon(
+                onPressed: () => context.read<RecipeQuantitiesCubit>().reset(),
+                icon: const Icon(Icons.restart_alt_rounded),
+                label: const Text('Quantités d’origine'),
+              ),
+            IngredientView(recipe: recipe, factor: state.factor),
+          ],
+        );
+      },
+    );
+  }
+}
+
+String _formatQuantity(double value) => value.toStringAsFixed(2).replaceFirst(RegExp(r'\.?0+$'), '').replaceAll('.', ',');
+
+class _ServingsDialog extends StatefulWidget {
+  final double servings;
+  final bool pieces;
+
+  const _ServingsDialog({required this.servings, required this.pieces});
+
+  @override
+  State<_ServingsDialog> createState() => _ServingsDialogState();
+}
+
+class _ServingsDialogState extends State<_ServingsDialog> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: _formatQuantity(widget.servings));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    if (_formKey.currentState!.validate()) {
+      Navigator.pop(context, double.parse(_controller.text.trim().replaceAll(',', '.')));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Adapter les quantités'),
+      content: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Les quantités des ingrédients seront recalculées sans modifier la recette enregistrée.'),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _controller,
+              autofocus: true,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(labelText: widget.pieces ? 'Nombre de pièces' : 'Nombre de personnes'),
+              validator: (text) {
+                final value = double.tryParse((text ?? '').trim().replaceAll(',', '.'));
+                return value == null || !value.isFinite || value <= 0 ? 'Saisissez un nombre supérieur à zéro.' : null;
+              },
+              onFieldSubmitted: (_) => _submit(),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Annuler')),
+        FilledButton(onPressed: _submit, child: const Text('Appliquer')),
+      ],
+    );
+  }
+}
+
 class IngredientView extends StatelessWidget {
   final RecipeFull? recipe;
+  final double factor;
 
-  const IngredientView({super.key, required this.recipe});
+  const IngredientView({super.key, required this.recipe, this.factor = 1});
 
   @override
   Widget build(BuildContext context) {
@@ -642,7 +765,8 @@ class IngredientView extends StatelessWidget {
       );
       var ingredientChildren = <TableRow>[];
       for (var index = 0; index < (ingredientCategory?.ingredients.length ?? 4); index++) {
-        final ingredient = ingredientCategory?.ingredients[index];
+        final original = ingredientCategory?.ingredients[index];
+        final ingredient = original?.quantity == null ? original : original!.copyWith(quantity: original.quantity! * factor);
         ingredientChildren.add(
           TableRow(
             children: [
