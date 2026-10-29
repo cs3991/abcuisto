@@ -29,6 +29,7 @@ Prefer `StatelessWidget` when a screen can render from its inputs and provided s
 
 ## How we work together
 
+- Always write commit messages in English.
 - Use only rounded icons (`Icons.*_rounded`) for new or modified UI.
 - While working, record concrete inconsistencies, bugs, and improvement opportunities in the root `todo.md`. Keep this file growing without overwriting existing entries, avoid duplicates, and include enough context for another chat to act on each item. Briefly mention new findings to the user, but keep unrelated fixes outside the current task.
 

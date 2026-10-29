@@ -14,6 +14,7 @@ import '../profile/profile_page.dart';
 import '../models/abcuisto_repository.dart';
 import '../models/recipe.dart';
 import '../app_config.dart';
+import '../pulsing_placeholder.dart';
 import 'filters/filter_cubit.dart';
 
 enum _RecipeAction { edit, share, link, delete }
@@ -98,19 +99,17 @@ class RecipeDetailsPage extends StatelessWidget {
           }
         },
         builder: (context, state) {
-          if (state is RecipeInitial || state is RecipeLoading) {
-            return const PopScope(
-              canPop: false,
-              child: Scaffold(body: Center(child: CircularProgressIndicator())),
-            );
-          }
-          if (state is RecipeLoaded) {
-            final recipe = state.recipe;
-            final recipeState = state;
-            return Scaffold(
+          if (state is RecipeInitial || state is RecipeLoading || state is RecipeLoaded) {
+            final recipeState = state is RecipeLoaded ? state : null;
+            final recipe = recipeState?.recipe;
+            return PopScope(
+              canPop: recipeState != null,
+              child: Scaffold(
                 appBar: AppBar(
                   toolbarHeight: 65,
-                  title: Text(recipe.name),
+                  title: recipe == null
+                      ? const PulsingPlaceholder(width: 180, height: 24)
+                      : Text(recipe.name),
                   actions: [
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -128,9 +127,10 @@ class RecipeDetailsPage extends StatelessWidget {
                                   shape: const RoundedRectangleBorder(borderRadius: BorderRadiusGeometry.all(Radius.circular(8))),
                                   color: Theme.of(context).colorScheme.surface,
                                   surfaceTintColor: Colors.transparent,
-                                  onSelected: (action) => _handleAction(context, recipeState, action),
+                                  enabled: recipeState != null,
+                                  onSelected: (action) => _handleAction(context, recipeState!, action),
                                   itemBuilder: (context) => [
-                                    if (recipeState.canEdit)
+                                    if (recipeState?.canEdit == true)
                                       const PopupMenuItem(
                                         value: _RecipeAction.edit,
                                         child: _RecipeActionTile(
@@ -155,7 +155,7 @@ class RecipeDetailsPage extends StatelessWidget {
                                         icon: Icons.link_rounded,
                                       ),
                                     ),
-                                    if (recipeState.canDelete)
+                                    if (recipeState?.canDelete == true)
                                       PopupMenuItem(
                                         value: _RecipeAction.delete,
                                         child: _RecipeActionTile(
@@ -188,7 +188,8 @@ class RecipeDetailsPage extends StatelessWidget {
                     ),
                   ],
                 ),
-                body: RecipeDetails(recipe: state.recipe),
+                body: RecipeDetails(recipe: recipe),
+              ),
             );
           }
           if (state is RecipeError) {
@@ -239,19 +240,20 @@ class _RecipeActionTile extends StatelessWidget {
 }
 
 class RecipeDetails extends StatelessWidget {
-  final RecipeFull recipe;
+  final RecipeFull? recipe;
 
   RecipeDetails({super.key, required this.recipe});
 
   @override
   Widget build(BuildContext context) {
-    final servingType = recipe.typeNumber?.displayName ?? 'personnes';
-    final servingLabel = servingType == 'personnes' && recipe.forNumber == 1 ? 'personne' : servingType;
+    final recipe = this.recipe;
+    final servingType = recipe?.typeNumber?.displayName ?? 'personnes';
+    final servingLabel = servingType == 'personnes' && recipe?.forNumber == 1 ? 'personne' : servingType;
 
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        Positioned.fill(child: _ImageCarousel(images: recipe.documents)),
+        Positioned.fill(child: _ImageCarousel(images: recipe?.documents)),
         TransparentPointer(
           child: ListView(
             padding: EdgeInsets.zero,
@@ -272,71 +274,88 @@ class RecipeDetails extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        recipe.prepTime != null
+                        recipe == null
+                            ? const PulsingPlaceholder(width: 140, height: 16)
+                            : recipe.prepTime != null
                             ? Text(
                                 'Préparation : ${recipe.prepTimeFormatted!}',
                                 style: Theme.of(context).textTheme.labelMedium?.copyWith(color: Theme.of(context).colorScheme.primary),
                               )
                             : Container(),
-                        recipe.cookTime != null
+                        recipe == null
+                            ? const PulsingPlaceholder(width: 140, height: 16)
+                            : recipe.cookTime != null
                             ? Text(
                                 'Cuisson : ${recipe.cookTimeFormatted!}',
                                 style: Theme.of(context).textTheme.labelMedium?.copyWith(color: Theme.of(context).colorScheme.primary),
                               )
                             : Container(),
-                        recipe.restTime != null
+                        recipe == null
+                            ? const PulsingPlaceholder(width: 140, height: 16)
+                            : recipe.restTime != null
                             ? Text(
                                 'Repos : ${recipe.restTimeFormatted!}',
                                 style: Theme.of(context).textTheme.labelMedium?.copyWith(color: Theme.of(context).colorScheme.primary),
                               )
                             : Container(),
                         SizedBox(height: 4),
-                        Text(recipe.name, style: Theme.of(context).textTheme.headlineMedium),
+                        recipe == null
+                            ? const PulsingPlaceholder(width: 240, height: 34)
+                            : Text(recipe.name, style: Theme.of(context).textTheme.headlineMedium),
                         SizedBox(height: 4),
-                        Text(recipe.category?.displayName ?? '', style: Theme.of(context).textTheme.bodySmall),
+                        recipe == null
+                            ? const PulsingPlaceholder(width: 100, height: 16)
+                            : Text(recipe.category?.displayName ?? '', style: Theme.of(context).textTheme.bodySmall),
                         SizedBox(height: 12),
-                        Text(
-                          recipe.forNumber == null ? "Ingrédients" : "Ingrédients pour ${recipe.forNumber} $servingLabel",
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
+                        recipe == null
+                            ? const PulsingPlaceholder(width: 200, height: 24)
+                            : Text(
+                                recipe.forNumber == null ? "Ingrédients" : "Ingrédients pour ${recipe.forNumber} $servingLabel",
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
                         IngredientView(recipe: recipe),
                         SizedBox(height: 12),
                         Text("Instructions", style: Theme.of(context).textTheme.titleMedium),
                         SizedBox(height: 8),
                         InstructionsView(recipe: recipe),
                         SizedBox(height: 12),
-                        Text("Recette créée par ${recipe.creatorName}", style: Theme.of(context).textTheme.labelMedium),
+                        recipe == null
+                            ? const PulsingPlaceholder(width: 180, height: 16)
+                            : Text("Recette créée par ${recipe.creatorName}", style: Theme.of(context).textTheme.labelMedium),
                         SizedBox(height: 12),
                         Text("Ustensiles", style: Theme.of(context).textTheme.titleMedium),
                         SizedBox(
                           height: 40,
                           child: ListView.builder(
                             scrollDirection: Axis.horizontal,
-                            itemCount: recipe.cookware.length,
+                            itemCount: recipe == null ? 3 : recipe.cookware.length,
                             itemBuilder: (context, index) {
-                              final cookware = recipe.cookware[index];
+                              final cookware = recipe?.cookware[index];
                               return Padding(
                                 padding: const EdgeInsets.only(right: 8.0),
-                                child: Chip(label: Text(cookware)),
+                                child: Chip(label: cookware == null
+                                    ? const PulsingPlaceholder(width: 64, height: 16)
+                                    : Text(cookware)),
                               );
                             },
                           ),
                         ),
-                        if (recipe.tags.isNotEmpty) ...[
+                        if (recipe == null || recipe.tags.isNotEmpty) ...[
                           SizedBox(height: 4),
                           Wrap(
                             spacing: 4,
                             runSpacing: 0,
-                            children: recipe.tags
-                                .map(
-                                  (tag) => Chip(
-                                    label: Text(tag.displayName),
-                                    labelStyle: Theme.of(context).textTheme.bodySmall,
-                                    visualDensity: VisualDensity.compact,
-                                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                  ),
-                                )
-                                .toList(),
+                            children: List.generate(
+                              recipe == null ? 3 : recipe.tags.length,
+                              (index) => Chip(
+                                label: recipe == null
+                                    ? const PulsingPlaceholder(width: 56, height: 14)
+                                    : Text(recipe.tags[index].displayName),
+                                labelStyle: Theme.of(context).textTheme.bodySmall,
+                                visualDensity: VisualDensity.compact,
+                                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
+                            ),
                           ),
                         ],
                         SizedBox(height: 12),
@@ -344,22 +363,32 @@ class RecipeDetails extends StatelessWidget {
                         SizedBox(height: 12),
                         Row(
                           children: [
-                            RatingStars(note: recipe.note, size: 32),
+                            recipe == null
+                                ? const PulsingPlaceholder(width: 160, height: 32)
+                                : RatingStars(note: recipe.note, size: 32),
                             SizedBox(width: 12),
-                            Text(recipe.note?.toStringAsPrecision(2) ?? '', style: Theme.of(context).textTheme.headlineMedium),
-                            if (recipe.nbNotes != null) ...[
+                            recipe == null
+                                ? const PulsingPlaceholder(width: 40, height: 34)
+                                : Text(recipe.note?.toStringAsPrecision(2) ?? '', style: Theme.of(context).textTheme.headlineMedium),
+                            if (recipe == null || recipe.nbNotes != null) ...[
                               SizedBox(width: 8),
-                              Text('${recipe.nbNotes} avis', style: Theme.of(context).textTheme.bodyMedium),
+                              recipe == null
+                                  ? const PulsingPlaceholder(width: 48, height: 16)
+                                  : Text('${recipe.nbNotes} avis', style: Theme.of(context).textTheme.bodyMedium),
                             ],
                           ],
                         ),
                         SizedBox(height: 12),
-                        if (recipe.comments.isEmpty)
+                        if (recipe != null && recipe.comments.isEmpty)
                           Text("Aucun commentaire pour le moment.", style: Theme.of(context).textTheme.bodyMedium)
                         else
-                          ...recipe.comments.map((comment) => _RecipeCommentCard(comment: comment, recipeId: recipe.id)),
+                          ...List.generate(recipe == null ? 2 : recipe.comments.length, (index) =>
+                            _RecipeCommentCard(comment: recipe?.comments[index], recipeId: recipe?.id)),
                         SizedBox(height: 4),
-                        recipe.creatorId != context.read<AbcuistoRepository>().user?.id ? _CommentComposer(recipe: recipe) : Container(),
+                        if (recipe == null)
+                          const PulsingPlaceholder(width: 140, height: 40)
+                        else if (recipe.creatorId != context.read<AbcuistoRepository>().user?.id)
+                          _CommentComposer(recipe: recipe),
                       ],
                     ),
                   ),
@@ -543,17 +572,18 @@ class _CommentComposerState extends State<_CommentComposer> {
 }
 
 class _RecipeCommentCard extends StatelessWidget {
-  final RecipeComment comment;
-  final String recipeId;
+  final RecipeComment? comment;
+  final String? recipeId;
 
   const _RecipeCommentCard({required this.comment, required this.recipeId});
 
   @override
   Widget build(BuildContext context) {
+    final comment = this.comment;
     return BlocBuilder<AuthenticationCubit, AuthenticationState>(
       builder: (context, authState) {
         final userId = context.read<AbcuistoRepository>().user?.id;
-        final canDelete = authState is AuthenticationLoggedIn && userId != null && comment.user == userId && comment.id != null;
+        final canDelete = authState is AuthenticationLoggedIn && userId != null && comment != null && comment.user == userId && comment.id != null;
         return Padding(
           padding: const EdgeInsets.only(bottom: 8),
           child: Container(
@@ -569,7 +599,9 @@ class _RecipeCommentCard extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: Text(
+                      child: comment == null
+                          ? const Align(alignment: Alignment.centerLeft, child: PulsingPlaceholder(width: 120, height: 20))
+                          : Text(
                         comment.username?.isNotEmpty == true ? comment.username! : 'Utilisateur',
                         style: Theme.of(context).textTheme.titleSmall,
                       ),
@@ -583,12 +615,16 @@ class _RecipeCommentCard extends StatelessWidget {
                           onPressed: commentState.status == CommentStatus.loading ? null : () => _confirmDelete(context),
                         ),
                       ),
-                    if (comment.note != null) RatingStars(note: comment.note!.toDouble(), size: 16),
+                    if (comment == null)
+                      const PulsingPlaceholder(width: 80, height: 16),
+                    if (comment?.note != null) RatingStars(note: comment!.note!.toDouble(), size: 16),
                   ],
                 ),
-                if (comment.comment?.isNotEmpty == true) ...[
+                if (comment == null || comment.comment?.isNotEmpty == true) ...[
                   const SizedBox(height: 8),
-                  Text(comment.comment!, style: Theme.of(context).textTheme.bodyMedium),
+                  comment == null
+                      ? const PulsingPlaceholder(width: double.infinity, height: 16)
+                      : Text(comment.comment!, style: Theme.of(context).textTheme.bodyMedium),
                 ],
               ],
             ),
@@ -613,7 +649,7 @@ class _RecipeCommentCard extends StatelessWidget {
     if (shouldDelete != true || !context.mounted) return;
 
     final commentCubit = context.read<CommentCubit>();
-    await commentCubit.deleteComment(recipeId: recipeId, commentId: comment.id!);
+    await commentCubit.deleteComment(recipeId: recipeId!, commentId: comment!.id!);
     if (!context.mounted) return;
 
     final state = commentCubit.state;
@@ -629,32 +665,41 @@ class _RecipeCommentCard extends StatelessWidget {
 }
 
 class IngredientView extends StatelessWidget {
-  final RecipeFull recipe;
+  final RecipeFull? recipe;
 
   const IngredientView({super.key, required this.recipe});
 
   @override
   Widget build(BuildContext context) {
+    final categories = recipe?.ingredientCategories;
     var children = <Widget>[];
-    for (final ingredientCategory in recipe.ingredientCategories) {
+    for (var categoryIndex = 0; categoryIndex < (categories?.length ?? 1); categoryIndex++) {
+      final ingredientCategory = categories?[categoryIndex];
       children.add(
         Padding(
           padding: const EdgeInsets.only(left: 4, top: 12, bottom: 4),
-          child: Text(ingredientCategory.name, style: Theme.of(context).textTheme.labelMedium),
+          child: ingredientCategory == null
+              ? const PulsingPlaceholder(width: 120, height: 16)
+              : Text(ingredientCategory.name, style: Theme.of(context).textTheme.labelMedium),
         ),
       );
       var ingredientChildren = <TableRow>[];
-      for (final ingredient in ingredientCategory.ingredients) {
+      for (var index = 0; index < (ingredientCategory?.ingredients.length ?? 4); index++) {
+        final ingredient = ingredientCategory?.ingredients[index];
         ingredientChildren.add(
           TableRow(
             children: [
               TableCell(
                 child: Padding(
                   padding: const EdgeInsets.only(left: 16, right: 12),
-                  child: Text('${ingredient.quantityFormatted} ${ingredient.typeFormatted}', style: Theme.of(context).textTheme.bodyMedium),
+                  child: ingredient == null
+                      ? const PulsingPlaceholder(width: 48, height: 20)
+                      : Text('${ingredient.quantityFormatted} ${ingredient.typeFormatted}', style: Theme.of(context).textTheme.bodyMedium),
                 ),
               ),
-              TableCell(child: Text(ingredient.name, style: Theme.of(context).textTheme.bodyMedium)),
+              TableCell(child: ingredient == null
+                  ? const Align(alignment: Alignment.centerLeft, child: PulsingPlaceholder(width: 160, height: 20))
+                  : Text(ingredient.name, style: Theme.of(context).textTheme.bodyMedium)),
             ],
           ),
         );
@@ -666,7 +711,7 @@ class IngredientView extends StatelessWidget {
 }
 
 class InstructionsView extends StatelessWidget {
-  final RecipeFull recipe;
+  final RecipeFull? recipe;
   final double iconSize = 22;
   final double borderWidth = 2;
 
@@ -674,9 +719,10 @@ class InstructionsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final instructions = recipe?.instructions;
     var children = <Widget>[];
-    for (var i = 0; i < recipe.instructions.length; i++) {
-      final instruction = recipe.instructions.toList()[i];
+    for (var i = 0; i < (instructions?.length ?? 3); i++) {
+      final instruction = instructions?[i];
       children.add(
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -706,7 +752,9 @@ class InstructionsView extends StatelessWidget {
                     left: BorderSide(color: Theme.of(context).colorScheme.primary, width: borderWidth),
                   ),
                 ),
-                child: Padding(padding: const EdgeInsets.only(left: 8), child: Text(instruction)),
+                child: Padding(padding: const EdgeInsets.only(left: 8), child: instruction == null
+                    ? const PulsingPlaceholder(width: double.infinity, height: 48)
+                    : Text(instruction)),
               ),
             ),
           ],
@@ -718,7 +766,7 @@ class InstructionsView extends StatelessWidget {
 }
 
 class _ImageCarousel extends StatefulWidget {
-  final List<dynamic> images;
+  final List<dynamic>? images;
 
   const _ImageCarousel({required this.images});
 
@@ -732,6 +780,7 @@ class _ImageCarouselState extends State<_ImageCarousel> {
 
   @override
   Widget build(BuildContext context) {
+    final images = widget.images;
     final width = MediaQuery.of(context).size.width;
 
     return Stack(
@@ -746,17 +795,19 @@ class _ImageCarouselState extends State<_ImageCarousel> {
           ),
           child: ClipRRect(
             borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
-            child: widget.images.isNotEmpty
+            child: images == null
+                ? const PulsingPlaceholder(width: double.infinity, height: 400)
+                : images.isNotEmpty
                 ? PageView.builder(
                     controller: _controller,
-                    itemCount: widget.images.length,
+                    itemCount: images.length,
                     onPageChanged: (index) {
                       setState(() {
                         _currentIndex = index;
                       });
                     },
                     itemBuilder: (context, i) {
-                      return Image.network(widget.images[i].toString(), fit: BoxFit.cover, errorBuilder: (_, __, ___) => NoImageBuilder(height: 400));
+                      return Image.network(images[i].toString(), fit: BoxFit.cover, errorBuilder: (_, __, ___) => NoImageBuilder(height: 400));
                     },
                   )
                 : NoImageBuilder(height: 400),
@@ -770,7 +821,7 @@ class _ImageCarouselState extends State<_ImageCarousel> {
           right: 0,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(widget.images.length, (i) {
+            children: List.generate(images?.length ?? 0, (i) {
               return Container(
                 width: _currentIndex == i ? 16 : 10,
                 height: 10,

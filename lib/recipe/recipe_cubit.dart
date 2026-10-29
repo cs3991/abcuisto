@@ -36,8 +36,10 @@ class RecipeCubit extends Cubit<RecipeState> {
   bool _canEdit(RecipeFull recipe) {
     final user = repository.user;
     if (user == null) return false;
-    return recipe.creatorId == user.id || user.groups.any((group) =>
-      group.id != null && !group.isPublic && group.canEdit == true && recipe.groups.any((sharedGroup) => sharedGroup.id == group.id));
+    return recipe.creatorId == user.id ||
+        user.groups.any(
+          (group) => group.id != null && !group.isPublic && group.canEdit == true && recipe.groups.any((sharedGroup) => sharedGroup.id == group.id),
+        );
   }
 
   void refreshPermissions() {
@@ -78,6 +80,7 @@ class RecipeCubit extends Cubit<RecipeState> {
     if (recipeId == null) return;
     emit(RecipeLoading());
     try {
+      // await Future.pause(Duration(seconds: 2));
       final recipeFull = await repository.getRecipe(recipeId);
       if (!isClosed) showRecipe(recipeFull);
     } catch (error) {

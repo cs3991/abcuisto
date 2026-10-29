@@ -7,3 +7,5 @@
 - [ ] `lib/recipe/recipe_details.dart` : retirer le code commenté de `_submitComment` et clarifier la gestion de la note sélectionnée, actuellement conservée dans le widget alors qu’elle participe à l’envoi d’un avis.
 - [ ] `lib/models/abcuisto_repository.dart` : retirer le doublon d’affectation du header `Authorization` dans `_request`.
 - [ ] `lib/models/abcuisto_repository.dart` : la persistance des identifiants utilise encore directement `SharedPreferences` ; envisager de l’extraire dans un stockage de session dédié pour recentrer le repository sur l’API. Le thème est désormais persisté par `HydratedCubit`.
+
+- [ ] `lib/recipe/recipe_details.dart` : `_ImageCarouselState` possède un `PageController` sans le libérer dans `dispose` ; le libérer à la fermeture du détail de recette.
