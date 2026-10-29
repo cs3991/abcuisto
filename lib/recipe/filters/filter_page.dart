@@ -27,20 +27,30 @@ class FilterPage extends StatefulWidget {
 
 class _FilterPageState extends State<FilterPage> {
   final TextEditingController creatorController = TextEditingController();
+  late final TextEditingController ingredientsController;
   int totalTimeValue = 24;
+
+  @override
+  void initState() {
+    super.initState();
+    creatorController.text = context.read<FilterCubit>().state.filter.creator ?? '';
+    ingredientsController = TextEditingController(
+      text: (context.read<FilterCubit>().state.filter.ingredients ?? []).join(', '),
+    );
+  }
+
+  @override
+  void dispose() {
+    creatorController.dispose();
+    ingredientsController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final authState = context.watch<AuthenticationCubit>().state;
     final username = authState is AuthenticationLoggedIn ? authState.username : '';
-    final creator = context.select((FilterCubit cubit) => cubit.state.filter.creator ?? '');
-    final isCreatorSelf = username.isNotEmpty && creator == username;
-    creatorController.value = context.select(
-      (FilterCubit cubit) => TextEditingValue(
-        text: cubit.state.filter.creator ?? '',
-        selection: TextSelection.collapsed(offset: cubit.state.filter.creator?.length ?? 0),
-      ),
-    );
+    final isCreatorSelf = context.select((FilterCubit cubit) => cubit.state.isCreatorSelf);
     totalTimeValue = context.select((FilterCubit cubit) => cubit.state.filter.totalTime ?? 24);
     return Scaffold(
       appBar: SearchAppBar(),
@@ -76,7 +86,7 @@ class _FilterPageState extends State<FilterPage> {
               onSelectionChanged: (value) {
                 if (value.first) {
                   creatorController.text = username;
-                  context.read<FilterCubit>().updateFilteredCreatorName(username);
+                  context.read<FilterCubit>().updateFilteredCreatorName(username, isSelf: true);
                 } else {
                   creatorController.clear();
                   context.read<FilterCubit>().updateFilteredCreatorName('');
@@ -135,8 +145,11 @@ class _FilterPageState extends State<FilterPage> {
             Text('Ingrédients', style: Theme.of(context).textTheme.titleMedium),
             SizedBox(height: 8),
             TextField(
+              controller: ingredientsController,
+              onChanged: context.read<FilterCubit>().updateFilteredIngredients,
               decoration: InputDecoration(
-                hintText: "Ajouter des ingrédients...",
+                hintText: "Ex. : tomate, oignon",
+                helperText: 'Séparez les ingrédients par des virgules.',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide.none,

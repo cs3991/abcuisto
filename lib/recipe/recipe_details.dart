@@ -414,7 +414,6 @@ class _CommentComposer extends StatefulWidget {
 class _CommentComposerState extends State<_CommentComposer> {
   final _commentController = TextEditingController();
   bool _isExpanded = false;
-  int? _selectedRating;
 
   @override
   void dispose() {
@@ -422,48 +421,8 @@ class _CommentComposerState extends State<_CommentComposer> {
     super.dispose();
   }
 
-  void _toggleRating(int rating) {
-    setState(() {
-      _selectedRating = _selectedRating == rating ? null : rating;
-    });
-  }
-
   void _submitComment() {
-    final comment = _commentController.text.trim();
-    if (_selectedRating == null) return;
-
-    // setState(() {
-    //   _isSubmitting = true;
-    //   _errorMessage = null;
-    // });
-
-    // final messenger = ScaffoldMessenger.of(context);
-    context.read<CommentCubit>().addComment(recipeId: widget.recipe.id, comment: comment, note: _selectedRating);
-
-    // if (!mounted) return;
-    // if (result.status == CommentStatus.failure) {
-    //   setState(() {
-    //     _isSubmitting = false;
-    //     _errorMessage = 'Impossible d’ajouter le commentaire : ${result.errorMessage}';
-    //   });
-    //   return;
-    // }
-
-    // setState(() {
-    //   _isSubmitting = false;
-    //   _isExpanded = false;
-    //   _commentController.clear();
-    //   _selectedRating = null;
-    // });
-    // messenger.showSnackBar(
-    //   SnackBar(
-    //     content: Text(
-    //       result.refreshErrorMessage == null
-    //           ? 'Commentaire ajouté.'
-    //           : 'Commentaire ajouté, mais impossible d’actualiser la recette : ${result.refreshErrorMessage}',
-    //     ),
-    //   ),
-    // );
+    context.read<CommentCubit>().addComment(recipeId: widget.recipe.id, comment: _commentController.text.trim());
   }
 
   @override
@@ -474,11 +433,10 @@ class _CommentComposerState extends State<_CommentComposer> {
           setState(() {
             _isExpanded = false;
             _commentController.clear();
-            _selectedRating = null;
           });
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Commentaire ajouté.')));
           context.read<RecipeCubit>().refreshRecipe();
-          context.read<CommentCubit>().reset();
+          context.read<CommentCubit>().reset(clearRating: true);
         }
       },
 
@@ -495,6 +453,7 @@ class _CommentComposerState extends State<_CommentComposer> {
                       Navigator.push(context, MaterialPageRoute(builder: (context) => LoginPage()));
                       return;
                     }
+                    context.read<CommentCubit>().reset(clearRating: true);
                     setState(() {
                       _isExpanded = true;
                     });
@@ -513,8 +472,8 @@ class _CommentComposerState extends State<_CommentComposer> {
                       tooltip: '$rating étoile${rating > 1 ? 's' : ''}',
                       iconSize: 32,
                       padding: EdgeInsets.zero,
-                      onPressed: state.status == CommentStatus.loading ? null : () => _toggleRating(rating),
-                      icon: Icon(_selectedRating != null && rating <= _selectedRating! ? Icons.star_rounded : Icons.star_outline_rounded),
+                      onPressed: state.status == CommentStatus.loading ? null : () => context.read<CommentCubit>().toggleRating(rating),
+                      icon: Icon(rating <= (state.selectedRating ?? 0) ? Icons.star_rounded : Icons.star_outline_rounded),
                       color: Colors.orange.withValues(alpha: 0.5),
                     ),
                 ],
@@ -522,14 +481,13 @@ class _CommentComposerState extends State<_CommentComposer> {
 
               TextField(
                 controller: _commentController,
+                enabled: state.status != CommentStatus.loading,
                 minLines: 3,
                 maxLines: 6,
                 textCapitalization: TextCapitalization.sentences,
                 decoration: const InputDecoration(hintText: 'Commentaire', border: OutlineInputBorder()),
                 onChanged: (_) {
-                  setState(() {
-                    context.read<CommentCubit>().reset();
-                  });
+                  context.read<CommentCubit>().reset();
                 },
               ),
               const SizedBox(height: 8),
@@ -548,14 +506,13 @@ class _CommentComposerState extends State<_CommentComposer> {
                             setState(() {
                               _isExpanded = false;
                               _commentController.clear();
-                              _selectedRating = null;
                             });
-                            context.read<CommentCubit>().reset();
+                            context.read<CommentCubit>().reset(clearRating: true);
                           },
                     child: const Text('Annuler'),
                   ),
                   FilledButton.icon(
-                    onPressed: state.status == CommentStatus.loading || _selectedRating == null ? null : _submitComment,
+                    onPressed: state.status == CommentStatus.loading || state.selectedRating == null ? null : _submitComment,
                     icon: state.status == CommentStatus.loading
                         ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
                         : const Icon(Icons.send_rounded),
@@ -777,6 +734,12 @@ class _ImageCarousel extends StatefulWidget {
 class _ImageCarouselState extends State<_ImageCarousel> {
   final PageController _controller = PageController();
   int _currentIndex = 0;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

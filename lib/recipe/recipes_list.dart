@@ -84,6 +84,18 @@ class _RecipesListState extends State<RecipesList> {
                           },
                         ),
                         const SizedBox(width: 8),
+                        ...(state.filter.ingredients ?? []).map(
+                          (ingredient) => Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                            child: InputChip(
+                              label: Text("Avec : $ingredient"),
+                              deleteIcon: const Icon(Icons.close_rounded),
+                              onDeleted: () {
+                                context.read<FilterCubit>().removeFilteredIngredient(ingredient);
+                              },
+                            ),
+                          ),
+                        ),
                         ...(state.filter.categories ?? []).map(
                               (category) => Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 2.0),
@@ -141,6 +153,7 @@ class _RecipesListState extends State<RecipesList> {
                   child: RefreshIndicator(
                     onRefresh: context.read<FilterCubit>().refresh,
                     child: PagedListView<int, Recipe>(
+                      key: ObjectKey(state.filter),
                       physics: const AlwaysScrollableScrollPhysics(),
                       state: state.pagingState,
                       fetchNextPage: context.read<FilterCubit>().fetchNextPage,
@@ -167,13 +180,13 @@ class _RecipesListState extends State<RecipesList> {
                           final state = context
                               .read<FilterCubit>()
                               .state;
-                          if (state.pagingState.error is ClientException) {
+                          final isConnectionError = state.pagingState.error is ClientException;
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.center,
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(
-                                  Icons.signal_wifi_connected_no_internet_4_rounded,
+                                  isConnectionError ? Icons.signal_wifi_connected_no_internet_4_rounded : Icons.error_outline_rounded,
                                   color: Theme
                                       .of(context)
                                       .colorScheme
@@ -184,7 +197,9 @@ class _RecipesListState extends State<RecipesList> {
                                 Padding(
                                   padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
                                   child: Text(
-                                    "Connexion au serveur impossible.\nVérifiez la connexion internet.",
+                                    isConnectionError
+                                        ? "Connexion au serveur impossible.\nVérifiez la connexion internet."
+                                        : "Impossible de charger les recettes.\nRéessayez dans quelques instants.",
                                     style: Theme
                                         .of(context)
                                         .textTheme
@@ -193,14 +208,11 @@ class _RecipesListState extends State<RecipesList> {
                                   ),
                                 ),
                                 OutlinedButton(
-                                  onPressed: () => context.read<FilterCubit>().update(),
+                                  onPressed: () => context.read<FilterCubit>().fetchNextPage(),
                                   child: Text("Réessayer"),
                                 ),
                               ],
                             );
-                          } else {
-                            return Text('Erreur cheloue');
-                          }
                         },
                         itemBuilder: (context, item, index) =>
                             Padding(

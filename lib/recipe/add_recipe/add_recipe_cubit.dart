@@ -123,6 +123,16 @@ class AddRecipeCubit extends Cubit<AddRecipeState> {
     changeCategory(categoryIndex, category.copyWith(ingredients: [...category.ingredients]..removeAt(index)));
   }
 
+  void reorderIngredient(int categoryIndex, int oldIndex, int newIndex) {
+    if (state.status == AddRecipeStatus.loading) return;
+    final category = state.modifiedRecipe!.ingredientCategories[categoryIndex];
+    final ingredients = List<Ingredient>.of(category.ingredients);
+    if (oldIndex == newIndex) return;
+    final ingredient = ingredients.removeAt(oldIndex);
+    ingredients.insert(newIndex, ingredient);
+    changeCategory(categoryIndex, category.copyWith(ingredients: ingredients));
+  }
+
   void changeQuantity(int categoryIndex, int index, String raw) {
     final value = raw.trim().replaceAll(',', '.');
     final fraction = RegExp(r'^(\d+)\s*/\s*(\d+)$').firstMatch(value);

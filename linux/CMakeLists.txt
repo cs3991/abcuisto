@@ -126,3 +126,16 @@ if(NOT CMAKE_BUILD_TYPE MATCHES "Debug")
   install(FILES "${AOT_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
     COMPONENT Runtime)
 endif()
+
+# Ship desktop integration alongside the relocatable Flutter bundle.
+configure_file("packaging/abcuisto.desktop.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/${APPLICATION_ID}.desktop" @ONLY)
+configure_file("packaging/install.py.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/install.py" @ONLY)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${APPLICATION_ID}.desktop"
+  DESTINATION "${CMAKE_INSTALL_PREFIX}/share/applications" COMPONENT Runtime)
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../assets/icon/icon.png"
+  DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/1024x1024/apps"
+  RENAME "${APPLICATION_ID}.png" COMPONENT Runtime)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/install.py"
+  DESTINATION "${CMAKE_INSTALL_PREFIX}" COMPONENT Runtime)

@@ -1,0 +1,46 @@
+#!/usr/bin/env python3
+"""Install a built ABCuisto bundle and its desktop launcher for one user."""
+
+import argparse
+from pathlib import Path
+import shutil
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--prefix', type=Path, default=Path.home() / '.local')
+    args = parser.parse_args()
+    bundle = Path(__file__).resolve().parent
+    prefix = args.prefix.expanduser().resolve()
+    destination = prefix / 'lib' / '@BINARY_NAME@'
+    app_id = '@APPLICATION_ID@'
+    launcher = Path('share/applications') / f'{app_id}.desktop'
+    icon = Path('share/icons/hicolor/1024x1024/apps') / f'{app_id}.png'
+
+    for required in (Path('@BINARY_NAME@'), Path('data'), Path('lib'), launcher, icon):
+        if not (bundle / required).exists():
+            parser.error(f'Bundle incomplet : {bundle / required}')
+    if destination != bundle:
+        if destination.is_relative_to(bundle) or bundle.is_relative_to(destination):
+            parser.error('Le dossier cible et le bundle source ne doivent pas être imbriqués.')
+        shutil.copytree(bundle, destination, dirs_exist_ok=True, symlinks=True)
+
+    executable = str(destination / '@BINARY_NAME@')
+    # Desktop Exec quoting has its own escaping rules, separate from shell quoting.
+    for character in ('\\', '"', '`', '$'):
+        executable = executable.replace(character, '\\' + character)
+    executable = executable.replace('%', '%%')
+    desktop = (bundle / launcher).read_text()
+    desktop = desktop.replace('Exec=@BINARY_NAME@', f'Exec="{executable}"')
+    # Backslashes are escaped once more by the desktop-entry string parser.
+    desktop = desktop.replace('\\', '\\\\')
+    (prefix / launcher).parent.mkdir(parents=True, exist_ok=True)
+    (prefix / launcher).write_text(desktop)
+    (prefix / icon).parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(bundle / icon, prefix / icon)
+    print(f'ABCuisto installé dans {destination}')
+    print(f'Lanceur : {prefix / launcher}')
+
+
+if __name__ == '__main__':
+    main()

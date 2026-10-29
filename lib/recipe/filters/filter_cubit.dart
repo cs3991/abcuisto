@@ -9,11 +9,12 @@ import 'filters.dart';
 class FilterState {
   final PagingState<int, Recipe> pagingState;
   final Filters filter;
+  final bool isCreatorSelf;
 
-  FilterState(this.pagingState, {required this.filter});
+  FilterState(this.pagingState, {required this.filter, this.isCreatorSelf = false});
 
-  FilterState copyWith({PagingState<int, Recipe>? pagingState, Filters? filter}) {
-    return FilterState(pagingState ?? this.pagingState, filter: filter ?? this.filter);
+  FilterState copyWith({PagingState<int, Recipe>? pagingState, Filters? filter, bool? isCreatorSelf}) {
+    return FilterState(pagingState ?? this.pagingState, filter: filter ?? this.filter, isCreatorSelf: isCreatorSelf ?? this.isCreatorSelf);
   }
 }
 
@@ -68,6 +69,25 @@ class FilterCubit extends Cubit<FilterState> {
     );
   }
 
+  void updateFilteredIngredients(String text) {
+    final ingredients = text.split(',').map((name) => name.trim()).where((name) => name.isNotEmpty).toSet().toList();
+    emit(
+      state.copyWith(
+        pagingState: PagingState<int, Recipe>(),
+        filter: state.filter.copyWith(ingredients: ingredients),
+      ),
+    );
+  }
+
+  void removeFilteredIngredient(String ingredient) {
+    emit(
+      state.copyWith(
+        pagingState: PagingState<int, Recipe>(),
+        filter: state.filter.copyWith(ingredients: [...?state.filter.ingredients]..remove(ingredient)),
+      ),
+    );
+  }
+
   void updateFilteredCategories(String category, bool isSelected) {
     final updatedCategories = List<String>.from(state.filter.categories ?? []);
     if (isSelected && !updatedCategories.contains(category)) {
@@ -83,12 +103,13 @@ class FilterCubit extends Cubit<FilterState> {
     );
   }
 
-  void updateFilteredCreatorName(String? name) {
+  void updateFilteredCreatorName(String? name, {bool isSelf = false}) {
     name ??= '';
     emit(
       state.copyWith(
         pagingState: PagingState<int, Recipe>(),
         filter: state.filter.copyWith(creator: name),
+        isCreatorSelf: isSelf && name.isNotEmpty,
       ),
     );
   }

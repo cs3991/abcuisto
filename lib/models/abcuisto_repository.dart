@@ -9,26 +9,27 @@ import 'package:diacritic/diacritic.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'session_storage.dart';
 
 import '../recipe/filters/filters.dart';
 
 class AbcuistoRepository extends ChangeNotifier {
   final String url;
-  SharedPreferences? prefs;
+  final SessionStorage _sessionStorage;
   String? authToken;
   String? authEmail;
   User? user;
   bool initialized = false;
 
-  AbcuistoRepository({required this.url});
+  AbcuistoRepository({required this.url, SessionStorage? sessionStorage})
+    : _sessionStorage = sessionStorage ?? SessionStorage();
 
   bool get isAuthenticated => authToken?.isNotEmpty ?? false;
 
   Future<void> init() async {
-    prefs = await SharedPreferences.getInstance();
-    authToken = prefs!.getString('api_auth_token');
-    authEmail = prefs!.getString('api_auth_email');
+    await _sessionStorage.init();
+    authToken = _sessionStorage.token;
+    authEmail = _sessionStorage.email;
 
     try {
       if (isAuthenticated) await getUserInfos();
@@ -60,13 +61,7 @@ class AbcuistoRepository extends ChangeNotifier {
   }
 
   Future<void> _saveAuthentication(String token, String email) async {
-    final preferences = prefs;
-    if (preferences == null) {
-      throw StateError('Repository must be initialized before authentication.');
-    }
-    if (!await preferences.setString('api_auth_token', token) || !await preferences.setString('api_auth_email', email)) {
-      await preferences.remove('api_auth_token');
-      await preferences.remove('api_auth_email');
+    if (!await _sessionStorage.save(token: token, email: email)) {
       throw const AuthenticationException('Impossible de sauvegarder la session.');
     }
 
@@ -76,11 +71,7 @@ class AbcuistoRepository extends ChangeNotifier {
   }
 
   Future<void> logout() async {
-    final preferences = prefs;
-    if (preferences != null) {
-      await preferences.remove('api_auth_token');
-      await preferences.remove('api_auth_email');
-    }
+    await _sessionStorage.clear();
     authToken = null;
     authEmail = null;
     user = null;
@@ -92,10 +83,6 @@ class AbcuistoRepository extends ChangeNotifier {
   Future<dynamic> _request(String method, String path, {Object? body, bool authenticated = true}) async {
     final headers = <String, String>{};
     if (body != null) headers['Content-Type'] = 'application/json';
-    if (authenticated && authToken != null) {
-      headers['Authorization'] = 'Bearer $authToken';
-    }
-
     if (authenticated && authToken != null) {
       headers['Authorization'] = 'Bearer $authToken';
     }

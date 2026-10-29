@@ -317,12 +317,17 @@ class IngredientCategoryWidget extends StatelessWidget {
               tooltip: 'Supprimer la catégorie',
               color: Theme.of(context).colorScheme.primary,
               onPressed: () => cubit.removeCategory(categoryIndex),
-              icon: const Icon(Icons.delete_outline),
+              icon: const Icon(Icons.delete_outline_rounded),
             ),
           ],
         ),
         const SizedBox(height: 8),
-        ...category.ingredients.asMap().entries.map((entry) {
+        ReorderableListView(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          buildDefaultDragHandles: false,
+          onReorderItem: (oldIndex, newIndex) => cubit.reorderIngredient(categoryIndex, oldIndex, newIndex),
+          children: category.ingredients.asMap().entries.map((entry) {
           final index = entry.key;
           final ingredient = entry.value;
           final availableUnits = units.contains(ingredient.type) ? units : [ingredient.type, ...units];
@@ -331,7 +336,17 @@ class IngredientCategoryWidget extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 8),
             child: Row(
               children: [
-                const SizedBox(width: 8),
+                ReorderableDragStartListener(
+                  index: index,
+                  enabled: category.ingredients.length > 1 && cubit.state.status != AddRecipeStatus.loading,
+                  child: const Tooltip(
+                    message: 'Déplacer l’ingrédient',
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 4),
+                      child: Icon(Icons.drag_handle_rounded, size: 20),
+                    ),
+                  ),
+                ),
                 SizedBox(
                   width: 78,
                   child: _RecipeField(
@@ -371,17 +386,18 @@ class IngredientCategoryWidget extends StatelessWidget {
                 IconButton(
                   tooltip: 'Supprimer l’ingrédient',
                   onPressed: () => cubit.removeIngredient(categoryIndex, index),
-                  icon: Icon(Icons.delete_outline, size: 20, color: Theme.of(context).colorScheme.primary),
+                  icon: Icon(Icons.delete_outline_rounded, size: 20, color: Theme.of(context).colorScheme.primary),
                 ),
               ],
             ),
           );
-        }),
+          }).toList(),
+        ),
         Align(
           alignment: Alignment.centerRight,
           child: TextButton.icon(
             onPressed: () => cubit.addIngredient(categoryIndex),
-            icon: const Icon(Icons.add),
+            icon: const Icon(Icons.add_rounded),
             label: const Text('Ajouter un ingrédient'),
           ),
         ),
@@ -424,7 +440,7 @@ class StepField extends StatelessWidget {
               border: Border(left: BorderSide(color: Theme.of(context).colorScheme.primary, width: 2)),
             ),
             padding: const EdgeInsets.only(left: 8),
-            child: _RecipeField(label: 'Étape $index', value: value, onChanged: onChanged, maxLines: 3),
+            child: _RecipeField(label: 'Étape $index', value: value, onChanged: onChanged, maxLines: null),
           ),
         ),
       ],
@@ -437,7 +453,7 @@ class _RecipeField extends StatelessWidget {
   final String value;
   final ValueChanged<String> onChanged;
   final TextInputType? keyboardType;
-  final int maxLines;
+  final int? maxLines;
 
   const _RecipeField({required this.label, required this.value, required this.onChanged, this.keyboardType, this.maxLines = 1});
 
