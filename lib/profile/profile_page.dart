@@ -78,23 +78,23 @@ class ProfilePage extends StatelessWidget {
                       ),
                       const SizedBox(height: 16),
                       Align(
-                        alignment: Alignment.centerLeft,
+                        alignment: Alignment.center,
                         child: loading
                             ? const PulsingPlaceholder(width: 180, height: 28)
-                            : Text(user!.userName ?? user.email ?? 'Mon profil', style: Theme.of(context).textTheme.headlineSmall),
+                            : Text(user!.userName ?? user.email ?? 'Mon profil', textAlign: TextAlign.center, style: Theme.of(context).textTheme.headlineSmall),
                       ),
                       if (loading || user?.email != null)
                         Align(
-                          alignment: Alignment.centerLeft,
+                          alignment: Alignment.center,
                           child: loading
                               ? const PulsingPlaceholder(width: 240, height: 16)
-                              : Text(user!.email!),
+                              : Text(user!.email!, textAlign: TextAlign.center),
                         ),
                       if (loading || (user?.bio?.isNotEmpty ?? false)) ...[
                         const SizedBox(height: 12),
                         loading
                             ? const PulsingPlaceholder(width: double.infinity, height: 16)
-                            : Text(user!.bio!),
+                            : Text(user!.bio!, textAlign: TextAlign.center),
                       ],
                       const SizedBox(height: 32),
                       Text('Mes groupes', style: Theme.of(context).textTheme.titleLarge),
@@ -103,9 +103,8 @@ class ProfilePage extends StatelessWidget {
                       for (var index = 0; index < (loading ? 3 : groups.length); index++)
                         ListTile(
                           onTap: loading || groups[index].id == null ? null : () => _openGroup(context, groups[index]),
-                          trailing: loading ? null : const Icon(Icons.chevron_right_rounded),
                           contentPadding: EdgeInsets.zero,
-                          leading: loading
+                          trailing: loading
                               ? const PulsingPlaceholder(width: 24, height: 24)
                               : const Icon(Icons.group_rounded),
                           title: loading
@@ -153,7 +152,7 @@ class ProfilePage extends StatelessWidget {
                         children: [
                           ListTile(
                             contentPadding: EdgeInsets.zero,
-                            leading: Icon(switch (themeState.mode) {
+                            trailing: Icon(switch (themeState.mode) {
                               ThemeMode.light => Icons.light_mode_rounded,
                               ThemeMode.dark => Icons.dark_mode_rounded,
                               ThemeMode.system => Icons.brightness_auto_rounded,
@@ -171,6 +170,30 @@ class ProfilePage extends StatelessWidget {
                         ],
                       ),
                     ),
+                    const ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      enabled: false,
+                      title: Text('Changer la photo de profil'),
+                      trailing: Icon(Icons.add_a_photo_rounded),
+                    ),
+                    const ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      enabled: false,
+                      title: Text('Modifier la bio'),
+                      trailing: Icon(Icons.edit_note_rounded),
+                    ),
+                    const ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      enabled: false,
+                      title: Text('Changer l’adresse e-mail'),
+                      trailing: Icon(Icons.email_rounded),
+                    ),
+                    const ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      enabled: false,
+                      title: Text('Changer le mot de passe'),
+                      trailing: Icon(Icons.lock_rounded),
+                    ),
                     const SizedBox(height: 32),
                     BlocBuilder<AuthenticationCubit, AuthenticationState>(
                       builder: (context, authState) => ListTile(
@@ -178,7 +201,7 @@ class ProfilePage extends StatelessWidget {
                         enabled: authState is AuthenticationLoggedIn,
                         iconColor: Theme.of(context).colorScheme.error,
                         textColor: Theme.of(context).colorScheme.error,
-                        leading: const Icon(Icons.logout_rounded),
+                        trailing: const Icon(Icons.logout_rounded),
                         title: const Text('Se déconnecter'),
                         onTap: authState is AuthenticationLoggedIn
                             ? () => context.read<AuthenticationCubit>().logOut()

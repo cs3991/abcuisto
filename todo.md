@@ -1,5 +1,7 @@
 # Points à améliorer
 
+- [ ] Profil : `lib/models/user.dart` ne désérialise aucune photo et `lib/profile/profile_page.dart` affiche une icône fixe. Lors du branchement de `updateImage`, identifier le champ renvoyé par `getUserInfos` et afficher la photo persistée, y compris après rechargement du profil.
+
 - [x] Filtre « Créé par moi » : utiliser le pseudo du profil plutôt que l’e-mail dans l’état d’authentification et déduire la sélection « Moi » du filtre actif à la réouverture de l’écran.
 - [ ] `lib/recipe/filters/filter_page.dart` : le champ « Ingrédients » n’a pas de `onChanged` et n’applique aucun filtre ; raccorder la saisie au `FilterCubit`.
 
