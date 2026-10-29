@@ -6,3 +6,4 @@
 - [x] `lib/recipe/recipe_cubit.dart` : gérer les erreurs de `focusRecipe` et `refreshRecipe` dans les états et proposer un retour utilisateur. Les échecs passent désormais par `RecipeError`, avec une action pour recharger la recette.
 - [ ] `lib/recipe/recipe_details.dart` : retirer le code commenté de `_submitComment` et clarifier la gestion de la note sélectionnée, actuellement conservée dans le widget alors qu’elle participe à l’envoi d’un avis.
 - [ ] `lib/models/abcuisto_repository.dart` : retirer le doublon d’affectation du header `Authorization` dans `_request`.
+- [ ] `lib/models/abcuisto_repository.dart` : la persistance des identifiants utilise encore directement `SharedPreferences` ; envisager de l’extraire dans un stockage de session dédié pour recentrer le repository sur l’API. Le thème est désormais persisté par `HydratedCubit`.

@@ -11,6 +11,7 @@ import 'groups/create_group_dialog.dart';
 import 'groups/join_group_dialog.dart';
 import 'groups/group_details_page.dart';
 import '../pulsing_placeholder.dart';
+import '../theme/theme_cubit.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -146,13 +147,42 @@ class ProfilePage extends StatelessWidget {
                       ),
                     ],
                     const SizedBox(height: 32),
+                    BlocBuilder<ThemeCubit, ThemeState>(
+                      builder: (context, themeState) => Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: Icon(switch (themeState.mode) {
+                              ThemeMode.light => Icons.light_mode_rounded,
+                              ThemeMode.dark => Icons.dark_mode_rounded,
+                              ThemeMode.system => Icons.brightness_auto_rounded,
+                            }, color: Theme.of(context).colorScheme.primary),
+                            title: const Text('Thème'),
+                            subtitle: Text(switch (themeState.mode) {
+                              ThemeMode.light => 'Clair',
+                              ThemeMode.dark => 'Sombre',
+                              ThemeMode.system => 'Système',
+                            }),
+                            onTap: context.read<ThemeCubit>().cycleTheme,
+                          ),
+                          if (themeState.errorMessage != null)
+                            Text(themeState.errorMessage!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 32),
                     BlocBuilder<AuthenticationCubit, AuthenticationState>(
-                      builder: (context, authState) => OutlinedButton.icon(
-                        onPressed: authState is AuthenticationLoggedIn
+                      builder: (context, authState) => ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        enabled: authState is AuthenticationLoggedIn,
+                        iconColor: Theme.of(context).colorScheme.error,
+                        textColor: Theme.of(context).colorScheme.error,
+                        leading: const Icon(Icons.logout_rounded),
+                        title: const Text('Se déconnecter'),
+                        onTap: authState is AuthenticationLoggedIn
                             ? () => context.read<AuthenticationCubit>().logOut()
                             : null,
-                        icon: const Icon(Icons.logout_rounded),
-                        label: const Text('Se déconnecter'),
                       ),
                     ),
                   ],

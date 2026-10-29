@@ -5,5 +5,6 @@ import 'package:flutter/material.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   AppConfig.initialize(flavor: AppFlavor.dev);
+  await app.initializeStorage();
   runApp(const app.ProvidersWidget());
 }

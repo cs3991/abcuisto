@@ -3,6 +3,10 @@ import 'dart:ui';
 import 'package:app_links/app_links.dart';
 import 'links/app_link_cubit.dart';
 import 'links/app_link_page.dart';
+import 'theme/theme_cubit.dart';
+import 'package:flutter/foundation.dart';
+import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'package:path_provider/path_provider.dart';
 
 import 'package:abcuisto/app_config.dart';
 import 'package:abcuisto/entry_page.dart';
@@ -16,7 +20,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final flavorName = const String.fromEnvironment('APP_FLAVOR', defaultValue: 'prod');
   final flavor = AppFlavor.values.firstWhere(
@@ -25,7 +29,16 @@ void main() {
   );
 
   AppConfig.initialize(flavor: flavor);
+  await initializeStorage();
   runApp(const ProvidersWidget());
+}
+
+Future<void> initializeStorage() async {
+  HydratedBloc.storage = await HydratedStorage.build(
+    storageDirectory: kIsWeb
+        ? HydratedStorageDirectory.web
+        : HydratedStorageDirectory((await getApplicationSupportDirectory()).path),
+  );
 }
 
 class ProvidersWidget extends StatelessWidget {
@@ -40,6 +53,7 @@ class ProvidersWidget extends StatelessWidget {
       },
       child: MultiBlocProvider(
         providers: [
+          BlocProvider(create: (_) => ThemeCubit()),
           BlocProvider(create: (_) => AppLinkCubit(AppLinks()), lazy: false),
           BlocProvider(create: (context) => AuthenticationCubit(context.read<AbcuistoRepository>())),
           BlocProvider(create: (context) => RecipeCubit(context.read<AbcuistoRepository>())),
@@ -73,6 +87,7 @@ class _AppState extends State<App> {
 
   @override
   Widget build(BuildContext context) {
+    final themeMode = context.select((ThemeCubit cubit) => cubit.state.mode);
     return MaterialApp(
       navigatorKey: _navigatorKey,
       initialRoute: '/',
@@ -104,6 +119,10 @@ class _AppState extends State<App> {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Color(0xff006874), brightness: Brightness.light),
       ),
+      darkTheme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Color(0xff006874), brightness: Brightness.dark),
+      ),
+      themeMode: themeMode,
       home: EntryPage(),
     );
   }
