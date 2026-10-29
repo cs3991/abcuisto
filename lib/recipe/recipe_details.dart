@@ -319,22 +319,24 @@ class RecipeDetails extends StatelessWidget {
                         recipe == null
                             ? const PulsingPlaceholder(width: 180, height: 16)
                             : Text("Recette créée par ${recipe.creatorName}", style: Theme.of(context).textTheme.labelMedium),
-                        SizedBox(height: 12),
-                        Text("Ustensiles", style: Theme.of(context).textTheme.titleMedium),
-                        SizedBox(
-                          height: 40,
-                          child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: recipe == null ? 3 : recipe.cookware.length,
-                            itemBuilder: (context, index) {
-                              final cookware = recipe?.cookware[index];
-                              return Padding(
-                                padding: const EdgeInsets.only(right: 8.0),
-                                child: Chip(label: cookware == null ? const PulsingPlaceholder(width: 64, height: 16) : Text(cookware)),
-                              );
-                            },
+                        if (recipe == null || recipe.cookware.isNotEmpty) ...[
+                          SizedBox(height: 12),
+                          Text("Ustensiles", style: Theme.of(context).textTheme.titleMedium),
+                          SizedBox(
+                            height: 40,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: recipe == null ? 3 : recipe.cookware.length,
+                              itemBuilder: (context, index) {
+                                final cookware = recipe?.cookware[index];
+                                return Padding(
+                                  padding: const EdgeInsets.only(right: 8.0),
+                                  child: Chip(label: cookware == null ? const PulsingPlaceholder(width: 64, height: 16) : Text(cookware)),
+                                );
+                              },
+                            ),
                           ),
-                        ),
+                        ],
                         if (recipe == null || recipe.tags.isNotEmpty) ...[
                           SizedBox(height: 12),
                           recipe == null
