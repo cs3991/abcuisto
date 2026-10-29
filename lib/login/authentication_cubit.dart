@@ -37,7 +37,7 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
     emit(AuthenticationLoading());
     try {
       await repository.login(email, password);
-      emit(AuthenticationLoggedIn(username: repository.authEmail ?? email));
+      emit(AuthenticationLoggedIn(username: repository.user?.userName ?? ''));
       return true;
     } on Exception catch (error) {
       emit(AuthenticationFailure(message: error.toString()));
@@ -53,7 +53,7 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
 
   void checkAuthentication() {
     if (repository.isAuthenticated) {
-      emit(AuthenticationLoggedIn(username: repository.authEmail ?? ''));
+      emit(AuthenticationLoggedIn(username: repository.user?.userName ?? ''));
     } else {
       emit(AuthenticationLoggedOut());
     }
@@ -69,7 +69,7 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
     try {
       await repository.signUp(email, password, username);
       await repository.login(email, password);
-      emit(AuthenticationLoggedIn(username: username));
+      emit(AuthenticationLoggedIn(username: repository.user?.userName ?? username));
     } on Exception catch (error) {
       emit(AuthenticationFailure(message: error.toString()));
     }

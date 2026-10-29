@@ -27,11 +27,14 @@ class FilterPage extends StatefulWidget {
 
 class _FilterPageState extends State<FilterPage> {
   final TextEditingController creatorController = TextEditingController();
-  bool isCreatorSelf = false;
   int totalTimeValue = 24;
 
   @override
   Widget build(BuildContext context) {
+    final authState = context.watch<AuthenticationCubit>().state;
+    final username = authState is AuthenticationLoggedIn ? authState.username : '';
+    final creator = context.select((FilterCubit cubit) => cubit.state.filter.creator ?? '');
+    final isCreatorSelf = username.isNotEmpty && creator == username;
     creatorController.value = context.select(
       (FilterCubit cubit) => TextEditingValue(
         text: cubit.state.filter.creator ?? '',
@@ -67,22 +70,17 @@ class _FilterPageState extends State<FilterPage> {
             SizedBox(height: 8),
             SegmentedButton(
               segments: [
-                ButtonSegment<bool>(value: true, label: Text('Moi')),
+                ButtonSegment<bool>(value: true, label: Text('Moi'), enabled: username.isNotEmpty),
                 ButtonSegment<bool>(value: false, label: Text("Quelqu'un d'autre")),
               ],
               onSelectionChanged: (value) {
                 if (value.first) {
-                  final authState = context.read<AuthenticationCubit>().state;
-                  final username = authState is AuthenticationLoggedIn ? authState.username : '';
                   creatorController.text = username;
                   context.read<FilterCubit>().updateFilteredCreatorName(username);
                 } else {
                   creatorController.clear();
                   context.read<FilterCubit>().updateFilteredCreatorName('');
                 }
-                setState(() {
-                  isCreatorSelf = value.first;
-                });
               },
               selected: {isCreatorSelf},
             ),
