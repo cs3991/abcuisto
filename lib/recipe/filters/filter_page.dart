@@ -159,6 +159,28 @@ class _FilterPageState extends State<FilterPage> {
                 fillColor: Theme.of(context).colorScheme.surfaceContainer,
               ),
             ),
+            BlocBuilder<FilterCubit, FilterState>(
+              builder: (context, state) {
+                final groups = context.read<FilterCubit>().availableGroups;
+                if (groups.isEmpty) return const SizedBox.shrink();
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 16),
+                    Text('Groupes', style: Theme.of(context).textTheme.titleMedium),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      children: groups.map((group) => FilterChip(
+                        label: Text(group.name ?? 'Groupe'),
+                        selected: state.filter.groups?.contains(group.id) ?? false,
+                        onSelected: (selected) => context.read<FilterCubit>().updateFilteredGroup(group.id!, selected),
+                      )).toList(),
+                    ),
+                  ],
+                );
+              },
+            ),
             SizedBox(height: 24),
           ],
         ),

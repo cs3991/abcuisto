@@ -65,6 +65,9 @@ class _RecipesListState extends State<RecipesList> {
   Widget build(BuildContext context) {
     return BlocBuilder<FilterCubit, FilterState>(
       builder: (context, state) {
+        final groupNames = {
+          for (final group in context.read<FilterCubit>().availableGroups) group.id: group.name ?? 'Groupe',
+        };
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
           child: Center(
@@ -144,7 +147,19 @@ class _RecipesListState extends State<RecipesList> {
                                   },
                                 ),
                               ),
-                        )
+                        ),
+                        ...(state.filter.groups ?? []).map(
+                          (groupId) => Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                            child: InputChip(
+                              label: Text(groupNames[groupId] ?? 'Groupe'),
+                              deleteIcon: const Icon(Icons.close_rounded),
+                              onDeleted: () {
+                                context.read<FilterCubit>().updateFilteredGroup(groupId, false);
+                              },
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),

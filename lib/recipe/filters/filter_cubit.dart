@@ -138,6 +138,23 @@ class FilterCubit extends Cubit<FilterState> {
     );
   }
 
+  List<RecipeGroup> get availableGroups => (repository.user?.groups ?? const <RecipeGroup>[])
+      .where((group) => group.id != null && !group.isPublic)
+      .toList();
+
+  void updateFilteredGroup(String groupId, bool isSelected) {
+    final groups = {...?state.filter.groups};
+    if (isSelected) {
+      groups.add(groupId);
+    } else {
+      groups.remove(groupId);
+    }
+    emit(state.copyWith(
+      pagingState: PagingState<int, Recipe>(),
+      filter: state.filter.copyWith(groups: groups.toList()),
+    ));
+  }
+
   Future<void> refresh() async {
     update();
     await fetchNextPage();

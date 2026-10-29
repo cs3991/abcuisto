@@ -336,20 +336,24 @@ class RecipeDetails extends StatelessWidget {
                           ),
                         ),
                         if (recipe == null || recipe.tags.isNotEmpty) ...[
-                          SizedBox(height: 4),
-                          Wrap(
-                            spacing: 4,
-                            runSpacing: 0,
-                            children: List.generate(
-                              recipe == null ? 3 : recipe.tags.length,
-                              (index) => Chip(
-                                label: recipe == null ? const PulsingPlaceholder(width: 56, height: 14) : Text(recipe.tags[index].displayName),
-                                labelStyle: Theme.of(context).textTheme.bodySmall,
-                                visualDensity: VisualDensity.compact,
-                                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              ),
+                          SizedBox(height: 12),
+                          recipe == null
+                              ? const PulsingPlaceholder(width: 180, height: 16)
+                              : Text(
+                                  recipe.tags.map((tag) => tag.displayName).join(' · '),
+                                  style: Theme.of(context).textTheme.bodyMedium,
+                                ),
+                        ],
+                        if (recipe == null || recipe.groups.isNotEmpty) ...[
+                          SizedBox(height: 12),
+                          Text("Groupes", style: Theme.of(context).textTheme.titleMedium),
+                          SizedBox(height: 8),
+                          if (recipe == null)
+                            const PulsingPlaceholder(width: 180, height: 16)
+                          else
+                            ...recipe.groups.map(
+                              (group) => Text(group.name ?? 'Groupe', style: Theme.of(context).textTheme.bodyMedium),
                             ),
-                          ),
                         ],
                         SizedBox(height: 12),
                         Text("Commentaires", style: Theme.of(context).textTheme.titleMedium),

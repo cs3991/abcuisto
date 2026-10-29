@@ -1,5 +1,7 @@
 # Points à améliorer
 
+- [x] Filtres actifs (`lib/recipe/recipes_list.dart`) : afficher les groupes sélectionnés parmi les pastilles récapitulatives de la liste, avec leur nom et la possibilité de les retirer comme les tags et ingrédients.
+
 - [ ] Sélection d’environnement (`lib/main.dart`) : une valeur `APP_FLAVOR` inconnue sélectionne silencieusement `AppFlavor.dev`, alors que l’absence de valeur sélectionne la production. Rejeter les valeurs invalides avec un message explicite pour éviter de lancer une build contre le mauvais serveur.
 
 - [ ] Backend photo (`pi`, `backend-dev/src/ABCuisto/Services/UserService.cs`, `UpdateImage`) : `oldImage == null` passe le contrôle `oldImage != ""` et entraîne `DeleteImage(null)`. Le client envoie désormais une chaîne vide en l’absence de photo. Corriger aussi le serveur avec un contrôle de valeur vide, conserver l’exception d’origine dans le contrôleur et supprimer l’ancienne photo seulement après enregistrement réussi de la nouvelle (actuellement supprimée avant validation de l’envoi).
