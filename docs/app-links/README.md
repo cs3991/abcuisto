@@ -11,8 +11,10 @@ sa configuration dev, la version prod utilise sa configuration prod.
 
 ## Association des domaines (nécessaire pour l’ouverture automatique)
 
-Les fichiers de ce dossier sont des modèles à compléter, pas des fichiers déjà
-publiés. Ils doivent être servis sur **chacun des deux domaines**, en HTTPS,
+Les fichiers à la racine de ce dossier sont des modèles à compléter.
+Le sous-dossier `production/` contient la configuration déployée pour Android
+sur `abcuisto.fr` ; iOS et le domaine dev restent en attente.
+Les fichiers doivent être servis sur **chacun des deux domaines**, en HTTPS,
 sans authentification ni redirection, avec un type `application/json`.
 
 ### Android
@@ -36,6 +38,33 @@ Associated Domains pour cet App ID dans le compte Apple et utiliser un profil de
 signature qui l’inclut. Le projet référence déjà `Runner.entitlements`.
 
 Publier à `https://DOMAINE/.well-known/apple-app-site-association`, sans extension.
+
+## Hébergement de production
+
+Sur `ssh pi`, le frontend se trouve dans `/home/cedric/dev/abcuisto/frontend`.
+Son `docker-compose.yml` monte en lecture seule :
+
+- `./nginx.conf` vers `/etc/nginx/conf.d/default.conf` ;
+- `./app-links` vers `/usr/share/nginx/html/.well-known`.
+
+Le fichier `production/nginx.conf` conserve le frontend et ajoute deux routes
+exactes pour les fichiers d'association, servies en JSON. Un fichier absent
+renvoie une 404 plutôt que la page HTML de l'application.
+
+`production/assetlinks.json` utilise l'empreinte de la clé debug locale extraite
+le 29 octobre 2026, également utilisée par la release dans la configuration
+Android actuelle. Une application signée avec une autre clé nécessitera son
+empreinte dans ce fichier. Pour une publication Play Store, remplacer cette
+association par celle de Play App Signing.
+
+Le fichier Android est copié dans `app-links/assetlinks.json` sur le serveur.
+Les modifications de son contenu sont prises en compte sans reconstruire le
+frontend. Le fichier iOS n'est pas publié tant que le préfixe App ID Apple
+n'est pas disponible ; la route correspondante renvoie donc une 404.
+
+Les configurations précédentes ont été sauvegardées sur le serveur dans
+`app-links-backup-20261029-184015/`. Le conteneur frontend a été recréé pour
+activer les montages. Le routage Traefik et les API n'ont pas été modifiés.
 
 ## Vérification manuelle
 

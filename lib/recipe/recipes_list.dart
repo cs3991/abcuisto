@@ -126,7 +126,7 @@ class _RecipesListState extends State<RecipesList> {
                               Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 2.0),
                                 child: InputChip(
-                                  label: Text(tag),
+                                  label: Text(tag.displayName),
                                   onDeleted: () {
                                     context.read<FilterCubit>().updateFilteredTags(tag, false);
                                   },

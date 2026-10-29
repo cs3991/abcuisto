@@ -102,8 +102,8 @@ class FilterCubit extends Cubit<FilterState> {
     );
   }
 
-  void updateFilteredTags(String tag, bool isSelected) {
-    final updatedTags = List<String>.from(state.filter.tags ?? []);
+  void updateFilteredTags(RecipeTag tag, bool isSelected) {
+    final updatedTags = List<RecipeTag>.from(state.filter.tags ?? []);
     if (isSelected && !updatedTags.contains(tag)) {
       updatedTags.add(tag);
     } else if (!isSelected && updatedTags.contains(tag)) {

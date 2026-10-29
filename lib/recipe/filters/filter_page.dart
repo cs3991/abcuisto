@@ -1,4 +1,5 @@
 import 'package:abcuisto/login/authentication_cubit.dart';
+import 'package:abcuisto/models/recipe.dart';
 import 'package:abcuisto/recipe/filters/filter_cubit.dart';
 import 'package:abcuisto/recipe/search_app_bar.dart';
 import 'package:flutter/material.dart';
@@ -18,7 +19,7 @@ class FilterPage extends StatefulWidget {
     "Sauce",
   ];
 
-  static const List<String> tags = ["Végétarien", "Végan", "Alcoolisé", "Sans gluten", "Thermomix"];
+  static const List<RecipeTag> tags = [RecipeTag.vegetarien, RecipeTag.vegan, RecipeTag.alcool, RecipeTag.sansgluten, RecipeTag.thermomix];
 
   @override
   State<FilterPage> createState() => _FilterPageState();
@@ -122,7 +123,7 @@ class _FilterPageState extends State<FilterPage> {
                   children: FilterPage.tags.map((tag) {
                     final isSelected = state.filter.tags?.contains(tag) ?? false;
                     return CheckboxListTile(
-                      title: Text(tag),
+                      title: Text(tag.displayName),
                       value: isSelected,
                       onChanged: (selected) {
                         context.read<FilterCubit>().updateFilteredTags(tag, selected ?? false);

@@ -14,9 +14,19 @@ class RecipeLoading extends RecipeState {}
 class RecipeLoaded extends RecipeState {
   final RecipeFull recipe;
   final bool canEdit;
+  final bool canDelete;
 
-  RecipeLoaded({required this.recipe, this.canEdit = false});
+  RecipeLoaded({required this.recipe, this.canEdit = false, this.canDelete = false});
 }
+
+class RecipeError extends RecipeState {
+  final String message;
+  final String recipeId;
+
+  RecipeError({required this.message, required this.recipeId});
+}
+
+class RecipeDeleted extends RecipeState {}
 
 class RecipeCubit extends Cubit<RecipeState> {
   final AbcuistoRepository repository;
@@ -34,21 +44,44 @@ class RecipeCubit extends Cubit<RecipeState> {
     final current = state;
     if (current is! RecipeLoaded) return;
     final canEdit = _canEdit(current.recipe);
-    if (canEdit != current.canEdit) emit(RecipeLoaded(recipe: current.recipe, canEdit: canEdit));
+    final canDelete = _canDelete(current.recipe);
+    if (canEdit != current.canEdit || canDelete != current.canDelete) {
+      emit(RecipeLoaded(recipe: current.recipe, canEdit: canEdit, canDelete: canDelete));
+    }
   }
 
-  void showRecipe(RecipeFull recipe) => emit(RecipeLoaded(recipe: recipe, canEdit: _canEdit(recipe)));
+  bool _canDelete(RecipeFull recipe) => repository.user != null && recipe.creatorId == repository.user!.id;
 
-  Future<void> focusRecipe(Recipe item) async {
+  void showRecipe(RecipeFull recipe) => emit(RecipeLoaded(recipe: recipe, canEdit: _canEdit(recipe), canDelete: _canDelete(recipe)));
+
+  Future<void> deleteRecipe() async {
+    final current = state;
+    if (current is! RecipeLoaded || !_canDelete(current.recipe)) return;
     emit(RecipeLoading());
-    final recipeFull = await repository.getRecipe(item.id);
-    showRecipe(recipeFull);
+    try {
+      await repository.deleteRecipe(id: current.recipe.id);
+      if (!isClosed) emit(RecipeDeleted());
+    } catch (error) {
+      if (!isClosed) emit(RecipeError(message: 'Impossible de supprimer la recette : $error', recipeId: current.recipe.id));
+    }
   }
+
+  Future<void> focusRecipe(Recipe item) => refreshRecipe(recipeId: item.id);
 
   Future<void> refreshRecipe({String? recipeId}) async {
-    if (recipeId == null && state is! RecipeLoaded) return;
-    recipeId ??= (state as RecipeLoaded).recipe.id;
-    final recipeFull = await repository.getRecipe(recipeId);
-    showRecipe(recipeFull);
+    if (state is RecipeLoading) return;
+    recipeId ??= switch (state) {
+      RecipeLoaded current => current.recipe.id,
+      RecipeError current => current.recipeId,
+      _ => null,
+    };
+    if (recipeId == null) return;
+    emit(RecipeLoading());
+    try {
+      final recipeFull = await repository.getRecipe(recipeId);
+      if (!isClosed) showRecipe(recipeFull);
+    } catch (error) {
+      if (!isClosed) emit(RecipeError(message: 'Impossible de charger la recette : $error', recipeId: recipeId));
+    }
   }
 }

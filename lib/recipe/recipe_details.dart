@@ -3,7 +3,9 @@ import 'package:abcuisto/recipe/comment_cubit.dart';
 import 'package:abcuisto/recipe/recipe_cubit.dart';
 import 'package:abcuisto/recipe/recipes_list.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:transparent_pointer/transparent_pointer.dart';
 
 import '../login/authentication_cubit.dart';
@@ -11,11 +13,72 @@ import '../login/login_page.dart';
 import '../profile/profile_page.dart';
 import '../models/abcuisto_repository.dart';
 import '../models/recipe.dart';
+import '../app_config.dart';
+import 'filters/filter_cubit.dart';
+
+enum _RecipeAction { edit, share, link, delete }
 
 class RecipeDetailsPage extends StatelessWidget {
   // final Recipe recipe;
 
   const RecipeDetailsPage({super.key});
+
+  Future<void> _handleAction(BuildContext context, RecipeLoaded state, _RecipeAction action) async {
+    final colors = Theme.of(context).colorScheme;
+    final recipe = state.recipe;
+    final link = Uri.https(AppConfig.instance.flavor == AppFlavor.prod ? 'abcuisto.fr' : 'dev.abcuisto.fr', '/recette/${recipe.id}').toString();
+    switch (action) {
+      case _RecipeAction.edit:
+        Navigator.push(context, MaterialPageRoute(builder: (_) => AddRecipePage(initialRecipe: recipe)));
+        return;
+      case _RecipeAction.share:
+        try {
+          final box = context.findRenderObject() as RenderBox?;
+          await SharePlus.instance.share(
+            ShareParams(
+              text: '${recipe.name} sur ABCuisto : $link',
+              subject: recipe.name,
+              sharePositionOrigin: box == null ? null : box.localToGlobal(Offset.zero) & box.size,
+            ),
+          );
+        } catch (_) {
+          if (!context.mounted) return;
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Impossible de partager la recette. Vous pouvez copier son lien.')));
+        }
+        return;
+      case _RecipeAction.link:
+        try {
+          await Clipboard.setData(ClipboardData(text: link));
+          if (!context.mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Lien de la recette copié.')));
+        } catch (_) {
+          if (!context.mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Impossible de copier le lien.')));
+        }
+        return;
+      case _RecipeAction.delete:
+        final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            title: const Text('Supprimer la recette ?'),
+            content: Text('« ${recipe.name} » sera supprimée définitivement. Cette action est irréversible.'),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Annuler')),
+              FilledButton(
+                style: FilledButton.styleFrom(backgroundColor: colors.error, foregroundColor: colors.onError),
+                onPressed: () => Navigator.pop(dialogContext, true),
+                child: const Text('Supprimer'),
+              ),
+            ],
+          ),
+        );
+        if (!context.mounted || confirmed != true) return;
+        await context.read<RecipeCubit>().deleteRecipe();
+        return;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,63 +88,152 @@ class RecipeDetailsPage extends StatelessWidget {
           context.read<RecipeCubit>().refreshPermissions();
         }
       },
-      child: BlocBuilder<RecipeCubit, RecipeState>(
-      builder: (context, state) {
-        if (state is RecipeInitial || state is RecipeLoading) {
-          return Center(child: CircularProgressIndicator());
-        }
-        if (state is RecipeLoaded) {
-          final recipe = state.recipe;
-          final canEdit = state.canEdit;
-          return Scaffold(
-            appBar: AppBar(
-              toolbarHeight: 65,
-              title: Text(recipe.name),
-              actions: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    child: BlocBuilder<AuthenticationCubit, AuthenticationState>(
-                      builder: (context, state) {
-                        final canEditRecipe = state is AuthenticationLoggedIn && canEdit;
-                        return Row(
-                          children: [
-                            if (canEditRecipe)
-                              IconButton(
-                                icon: const Icon(Icons.edit_rounded),
-                                tooltip: "Modifier la recette",
-                                onPressed: () {
-                                  Navigator.push(context, MaterialPageRoute(builder: (context) => AddRecipePage(initialRecipe: recipe)));
-                                },
-                              ),
-                            IconButton(
-                              icon: Icon(state is AuthenticationLoggedIn ? Icons.person_rounded : Icons.login_rounded),
-                              tooltip: state is AuthenticationLoggedIn ? "Connecté" : "Se connecter",
-                              onPressed: () async {
-                                if (state is AuthenticationLoggedOut || state is AuthenticationInitial) {
-                                  Navigator.push(context, MaterialPageRoute(builder: (context) => LoginPage()));
-                                } else if (state is AuthenticationLoggedIn) {
-                                  await Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfilePage()));
-                                  if (!context.mounted) return;
-                                  context.read<RecipeCubit>().refreshPermissions();
-                                }
-                              },
-                            ),
-                          ],
-                        );
-                      },
+      child: BlocConsumer<RecipeCubit, RecipeState>(
+        listener: (context, state) {
+          if (state is RecipeDeleted) {
+            context.read<FilterCubit>().update();
+            final messenger = ScaffoldMessenger.of(context);
+            Navigator.of(context).pop();
+            messenger.showSnackBar(const SnackBar(content: Text('Recette supprimée.')));
+          }
+        },
+        builder: (context, state) {
+          if (state is RecipeInitial || state is RecipeLoading) {
+            return const PopScope(
+              canPop: false,
+              child: Scaffold(body: Center(child: CircularProgressIndicator())),
+            );
+          }
+          if (state is RecipeLoaded) {
+            final recipe = state.recipe;
+            final recipeState = state;
+            return Scaffold(
+                appBar: AppBar(
+                  toolbarHeight: 65,
+                  title: Text(recipe.name),
+                  actions: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        child: BlocBuilder<AuthenticationCubit, AuthenticationState>(
+                          builder: (context, state) {
+                            return Row(
+                              children: [
+                                PopupMenuButton<_RecipeAction>(
+                                  icon: const Icon(Icons.more_vert_rounded),
+                                  tooltip: 'Options de la recette',
+                                  position: PopupMenuPosition.under,
+                                  constraints: const BoxConstraints(minWidth: 280, maxWidth: 360),
+                                  shape: const RoundedRectangleBorder(borderRadius: BorderRadiusGeometry.all(Radius.circular(8))),
+                                  color: Theme.of(context).colorScheme.surface,
+                                  surfaceTintColor: Colors.transparent,
+                                  onSelected: (action) => _handleAction(context, recipeState, action),
+                                  itemBuilder: (context) => [
+                                    if (recipeState.canEdit)
+                                      const PopupMenuItem(
+                                        value: _RecipeAction.edit,
+                                        child: _RecipeActionTile(
+                                          title: 'Éditer',
+                                          description: 'Modifier les ingrédients et les étapes.',
+                                          icon: Icons.edit_rounded,
+                                        ),
+                                      ),
+                                    const PopupMenuItem(
+                                      value: _RecipeAction.share,
+                                      child: _RecipeActionTile(
+                                        title: 'Partager',
+                                        description: 'Envoyer cette recette à vos proches.',
+                                        icon: Icons.share_rounded,
+                                      ),
+                                    ),
+                                    const PopupMenuItem(
+                                      value: _RecipeAction.link,
+                                      child: _RecipeActionTile(
+                                        title: 'Lien vers la recette',
+                                        description: 'Copier le lien dans le presse-papiers.',
+                                        icon: Icons.link_rounded,
+                                      ),
+                                    ),
+                                    if (recipeState.canDelete)
+                                      PopupMenuItem(
+                                        value: _RecipeAction.delete,
+                                        child: _RecipeActionTile(
+                                          title: 'Supprimer',
+                                          description: 'Supprimer définitivement cette recette.',
+                                          icon: Icons.delete_rounded,
+                                          color: Theme.of(context).colorScheme.error,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                                IconButton(
+                                  icon: Icon(state is AuthenticationLoggedIn ? Icons.person_rounded : Icons.login_rounded),
+                                  tooltip: state is AuthenticationLoggedIn ? "Connecté" : "Se connecter",
+                                  onPressed: () async {
+                                          if (state is AuthenticationLoggedOut || state is AuthenticationInitial) {
+                                            Navigator.push(context, MaterialPageRoute(builder: (context) => LoginPage()));
+                                          } else if (state is AuthenticationLoggedIn) {
+                                            await Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfilePage()));
+                                            if (!context.mounted) return;
+                                            context.read<RecipeCubit>().refreshPermissions();
+                                          }
+                                        },
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                      ),
                     ),
+                  ],
+                ),
+                body: RecipeDetails(recipe: state.recipe),
+            );
+          }
+          if (state is RecipeError) {
+            return Scaffold(
+              appBar: AppBar(title: const Text('Recette')),
+              body: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(state.message),
+                      TextButton(
+                        onPressed: () => context.read<RecipeCubit>().refreshRecipe(),
+                        child: const Text('Recharger la recette'),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
-            body: RecipeDetails(recipe: state.recipe),
-          );
-        }
-        return Text("Unexpected Error");
-      },
+              ),
+            );
+          }
+          if (state is RecipeDeleted) return const Scaffold();
+          return Text("Unexpected Error");
+        },
       ),
+    );
+  }
+}
+
+class _RecipeActionTile extends StatelessWidget {
+  final String title;
+  final String description;
+  final IconData icon;
+  final Color? color;
+
+  const _RecipeActionTile({required this.title, required this.description, required this.icon, this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      title: Text(title, style: TextStyle(color: color)),
+      subtitle: Text(description),
+      trailing: Icon(icon, color: color),
     );
   }
 }

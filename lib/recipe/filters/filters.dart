@@ -1,3 +1,5 @@
+import '../../models/recipe.dart';
+
 abstract class Filter {
   final String name;
   final String apiParameter;
@@ -36,7 +38,7 @@ class TextFilter extends Filter {
 class Filters {
   final String? searchText;
   final int? totalTime;
-  final List<String>? tags;
+  final List<RecipeTag>? tags;
   final List<String>? ingredients;
   final List<String>? ingredientsToExclude;
   final String? creator;
@@ -62,7 +64,7 @@ class Filters {
     String? searchText,
     int? totalTime,
     bool clearTotalTime = false,
-    List<String>? tags,
+    List<RecipeTag>? tags,
     List<String>? ingredients,
     List<String>? ingredientsToExclude,
     String? creator,
@@ -89,7 +91,7 @@ class Filters {
     return {
       if (searchText != null) 'searchText': searchText,
       if (totalTime != null) 'totalTime': totalTime,
-      if (tags != null) 'tags': tags,
+      if (tags != null) 'tags': tags!.map((tag) => tag.label).toList(),
       if (ingredients != null) 'ingredients': ingredients,
       if (ingredientsToExclude != null) 'ingredientsToExclude': ingredientsToExclude,
       if (creator != null) 'creator': creator,

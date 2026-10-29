@@ -32,10 +32,10 @@ enum RecipeCategory {
 
 enum RecipeTag {
   thermomix('THERMOMIX', 'Thermomix'),
-  vegan('VEGAN', 'Vegan'),
-  vegetarien('VEGETARIEN', 'Vegetarien'),
-  // sansgluten('SANSGLUTEN', 'Sans Gluten'); # Problème dans le backend avec ce tag
-  alcool('ALCOOL', 'Alcool');
+  vegan('VEGAN', 'Végan'),
+  vegetarien('VEGETARIEN', 'Végétarien'),
+  sansgluten('SANSGLUTEN', 'Sans gluten'),
+  alcool('ALCOOL', 'Alcoolisé');
 
   final String label;
   final String displayName;

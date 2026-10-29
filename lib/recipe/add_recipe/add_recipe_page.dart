@@ -42,14 +42,12 @@ class _AddRecipePageState extends State<AddRecipePage> {
           final recipeId = state.modifiedRecipe!.id;
           var message = recipeId.isEmpty ? 'Recette créée.' : 'Recette modifiée.';
           if (recipeId.isNotEmpty) {
-            try {
-              await context.read<RecipeCubit>().refreshRecipe(recipeId: recipeId);
-            } catch (error) {
-              message = 'Recette enregistrée, mais impossible de la recharger : $error';
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
-              }
-              rethrow;
+            final recipeCubit = context.read<RecipeCubit>();
+            await recipeCubit.refreshRecipe(recipeId: recipeId);
+            if (!context.mounted) return;
+            final recipeState = recipeCubit.state;
+            if (recipeState is RecipeError) {
+              message = 'Recette enregistrée. ${recipeState.message}';
             }
           }
           if (!context.mounted) return;
