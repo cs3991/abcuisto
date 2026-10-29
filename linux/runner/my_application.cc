@@ -40,12 +40,16 @@ static void my_application_activate(GApplication* application) {
   if (use_header_bar) {
     GtkHeaderBar* header_bar = GTK_HEADER_BAR(gtk_header_bar_new());
     gtk_widget_show(GTK_WIDGET(header_bar));
-    gtk_header_bar_set_title(header_bar, "abcuisto");
+    gtk_header_bar_set_title(header_bar, "ABCuisto");
     gtk_header_bar_set_show_close_button(header_bar, TRUE);
     gtk_window_set_titlebar(window, GTK_WIDGET(header_bar));
   } else {
-    gtk_window_set_title(window, "abcuisto");
+    gtk_window_set_title(window, "ABCuisto");
   }
+
+  g_autoptr(GdkPixbuf) icon = gdk_pixbuf_new_from_resource(
+      "/fr/abcuisto/icon.png", nullptr);
+  gtk_window_set_icon(window, icon);
 
   gtk_window_set_default_size(window, 1280, 720);
   gtk_widget_show(GTK_WIDGET(window));
@@ -122,6 +126,7 @@ MyApplication* my_application_new() {
   // corresponding .desktop file. This ensures better integration by allowing
   // the application to be recognized beyond its binary name.
   g_set_prgname(APPLICATION_ID);
+  g_set_application_name("ABCuisto");
 
   return MY_APPLICATION(g_object_new(my_application_get_type(),
                                      "application-id", APPLICATION_ID,

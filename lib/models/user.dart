@@ -5,9 +5,10 @@ class User {
   final String? userName;
   final String? email;
   final String? bio;
+  final String? image;
   final List<RecipeGroup> groups;
 
-  const User({required this.id, this.userName, this.email, this.bio, this.groups = const []});
+  const User({required this.id, this.userName, this.email, this.bio, this.image, this.groups = const []});
 
   factory User.fromJson(Map<String, dynamic> json) {
     final id = json['id'];
@@ -25,6 +26,7 @@ class User {
       userName: json['userName'] as String?,
       email: json['email'] as String?,
       bio: json['bio'] as String?,
+      image: json['image'] as String?,
       groups: groups,
     );
   }

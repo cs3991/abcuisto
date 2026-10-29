@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../models/abcuisto_repository.dart';
 import '../models/user.dart';
@@ -35,6 +36,26 @@ class ProfileCubit extends Cubit<ProfileState> {
   }
 
   Future<void> updateBio(String bio) => _save(() => repository.updateBio(bio: bio.trim()));
+
+  Future<void> changePhoto() async {
+    if (state.saveStatus == ProfileSaveStatus.saving) return;
+    emit(state.copyWith(saveStatus: ProfileSaveStatus.saving, errorMessage: state.errorMessage));
+    try {
+      final file = await ImagePicker().pickImage(source: ImageSource.gallery);
+      if (isClosed) return;
+      if (file == null) {
+        emit(state.copyWith(saveStatus: ProfileSaveStatus.initial, errorMessage: state.errorMessage));
+        return;
+      }
+      await repository.updateProfileImage(file);
+      if (isClosed) return;
+      emit(state.copyWith(saveStatus: ProfileSaveStatus.success, errorMessage: state.errorMessage));
+      await loadProfile();
+    } catch (error) {
+      if (isClosed) return;
+      emit(state.copyWith(saveStatus: ProfileSaveStatus.failure, saveError: error.toString(), errorMessage: state.errorMessage));
+    }
+  }
 
   Future<void> updateEmail(String email) async {
     final value = email.trim();

@@ -281,10 +281,19 @@ class AbcuistoRepository extends ChangeNotifier {
   Future<dynamic> updatePassword({required String lastPassword, required String newPassword, required String confirmNewPassword}) =>
       _post('/api/User/updatePassword', {'lastPassword': lastPassword, 'newPassword': newPassword, 'confirmNewPassword': confirmNewPassword});
 
+  Future<void> updateProfileImage(XFile file) async {
+    if (await file.length() > 5 * 1024 * 1024) {
+      throw const FormatException('La photo ne doit pas dépasser 5 Mo.');
+    }
+    final image = await ApiImageInput.fromXFile(file);
+    await updateImage(imageBase64: image.imageBase64, extension: image.extension,
+      fileType: image.fileType, oldImage: user?.image);
+  }
+
   Future<dynamic> updateImage({required String imageBase64, required String extension, required String fileType, String? oldImage}) =>
       _post('/api/User/updateImage', {
         'image': {'imageBase64': imageBase64, 'extension': extension, 'fileType': fileType},
-        if (oldImage != null) 'oldImage': oldImage,
+        'oldImage': oldImage ?? '',
       });
 
   Future<dynamic> getFavorites() => _get('/api/User/getFavs');

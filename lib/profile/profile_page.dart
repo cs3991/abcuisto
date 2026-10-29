@@ -57,6 +57,13 @@ class ProfilePage extends StatelessWidget {
             builder: (context, state) {
               final user = state.user;
               final loading = state.status == ProfileStatus.loading;
+              final saving = state.saveStatus == ProfileSaveStatus.saving;
+              final primary = Theme.of(context).colorScheme.primary;
+              final image = user?.image;
+              final imageUrl = image == null || image.isEmpty ? null
+                  : Uri.parse(context.read<AbcuistoRepository>().url).resolve(
+                      image.startsWith('http://') || image.startsWith('https://') || image.startsWith('/')
+                          ? image : '/images/$image').toString();
               final groups = user?.groups.where((group) => !group.isPublic).toList() ?? [];
               return RefreshIndicator(
                 onRefresh: context.read<ProfileCubit>().loadProfile,
@@ -74,8 +81,13 @@ class ProfilePage extends StatelessWidget {
                     if (loading || user != null) ...[
                       Center(
                         child: loading
-                            ? const PulsingPlaceholder(width: 72, height: 72)
-                            : const Icon(Icons.account_circle_rounded, size: 72),
+                            ? const PulsingPlaceholder(width: 88, height: 88)
+                            : imageUrl == null
+                                ? Icon(Icons.account_circle_rounded, size: 88, color: primary)
+                                : ClipOval(
+                                    child: Image.network(imageUrl, width: 88, height: 88, fit: BoxFit.cover,
+                                      errorBuilder: (_, error, stackTrace) => Icon(Icons.account_circle_rounded, size: 88, color: primary)),
+                                  ),
                       ),
                       const SizedBox(height: 16),
                       Align(
@@ -107,7 +119,7 @@ class ProfilePage extends StatelessWidget {
                           contentPadding: EdgeInsets.zero,
                           trailing: loading
                               ? const PulsingPlaceholder(width: 24, height: 24)
-                              : const Icon(Icons.group_rounded),
+                              : Icon(Icons.group_rounded, color: primary),
                           title: loading
                               ? const Align(
                                   alignment: Alignment.centerLeft,
@@ -171,32 +183,46 @@ class ProfilePage extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const ListTile(
+                    ListTile(
                       contentPadding: EdgeInsets.zero,
-                      enabled: false,
-                      title: Text('Changer la photo de profil'),
-                      trailing: Icon(Icons.add_a_photo_rounded),
+                      enabled: !loading && !saving && user != null,
+                      title: const Text('Changer la photo de profil'),
+                      trailing: saving
+                          ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
+                          : Icon(Icons.add_a_photo_rounded, color: primary),
+                      onTap: loading || saving || user == null ? null : () async {
+                        final cubit = context.read<ProfileCubit>();
+                        await cubit.changePhoto();
+                        if (!context.mounted) return;
+                        final result = cubit.state;
+                        if (result.saveStatus == ProfileSaveStatus.initial) return;
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(
+                          result.saveStatus == ProfileSaveStatus.failure
+                              ? result.saveError ?? 'Impossible de modifier la photo.'
+                              : 'Photo de profil modifiée.',
+                        )));
+                      },
                     ),
                     ListTile(
                       contentPadding: EdgeInsets.zero,
-                      enabled: !loading && user != null,
+                      enabled: !loading && !saving && user != null,
                       title: const Text('Modifier la bio'),
-                      trailing: const Icon(Icons.edit_note_rounded),
-                      onTap: loading || user == null ? null : () => showEditProfileDialog(context, ProfileEdit.bio),
+                      trailing: Icon(Icons.edit_note_rounded, color: primary),
+                      onTap: loading || saving || user == null ? null : () => showEditProfileDialog(context, ProfileEdit.bio),
                     ),
                     ListTile(
                       contentPadding: EdgeInsets.zero,
-                      enabled: !loading && user != null,
+                      enabled: !loading && !saving && user != null,
                       title: const Text('Changer l’adresse e-mail'),
-                      trailing: const Icon(Icons.email_rounded),
-                      onTap: loading || user == null ? null : () => showEditProfileDialog(context, ProfileEdit.email),
+                      trailing: Icon(Icons.email_rounded, color: primary),
+                      onTap: loading || saving || user == null ? null : () => showEditProfileDialog(context, ProfileEdit.email),
                     ),
                     ListTile(
                       contentPadding: EdgeInsets.zero,
-                      enabled: !loading && user != null,
+                      enabled: !loading && !saving && user != null,
                       title: const Text('Changer le mot de passe'),
-                      trailing: const Icon(Icons.lock_rounded),
-                      onTap: loading || user == null ? null : () => showEditProfileDialog(context, ProfileEdit.password),
+                      trailing: Icon(Icons.lock_rounded, color: primary),
+                      onTap: loading || saving || user == null ? null : () => showEditProfileDialog(context, ProfileEdit.password),
                     ),
                     const SizedBox(height: 32),
                     BlocBuilder<AuthenticationCubit, AuthenticationState>(

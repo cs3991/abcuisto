@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../login/authentication_cubit.dart';
 import '../login/login_page.dart';
 import '../models/abcuisto_repository.dart';
-import '../profile/groups/join_group_dialog.dart';
+import '../profile/groups/join_group_cubit.dart';
 import '../profile/profile_page.dart';
 import '../recipe/filters/filter_cubit.dart';
 import '../recipe/recipe_cubit.dart';
@@ -64,7 +64,16 @@ class AppLinkPage extends StatelessWidget {
         ),
       );
     }
-    return Scaffold(
+    return BlocProvider(
+      create: (context) => JoinGroupCubit(context.read<AbcuistoRepository>()),
+      child: BlocConsumer<JoinGroupCubit, JoinGroupState>(
+        listener: (context, state) {
+          if (state.status == JoinGroupStatus.success) {
+            context.read<FilterCubit>().update();
+            Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const ProfilePage()));
+          }
+        },
+        builder: (context, joinState) => Scaffold(
       appBar: AppBar(title: const Text('Invitation à un groupe')),
       body: BlocBuilder<AuthenticationCubit, AuthenticationState>(
         builder: (context, state) => Padding(
@@ -80,13 +89,10 @@ class AppLinkPage extends StatelessWidget {
               const SizedBox(height: 24),
               if (state is AuthenticationLoggedIn)
                 FilledButton(
-                  onPressed: () async {
-                    final joined = await showJoinGroupDialog(context, initialInvitation: link.uri.toString());
-                    if (!context.mounted || joined != true) return;
-                    context.read<FilterCubit>().update();
-                    Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const ProfilePage()));
-                  },
-                  child: const Text('Rejoindre ce groupe'),
+                  onPressed: joinState.status == JoinGroupStatus.loading
+                      ? null
+                      : () => context.read<JoinGroupCubit>().joinGroup(link.uri.toString()),
+                  child: Text(joinState.status == JoinGroupStatus.loading ? 'Adhésion…' : 'Rejoindre ce groupe'),
                 )
               else if (state is AuthenticationLoggedOut)
                 FilledButton(
@@ -95,8 +101,14 @@ class AppLinkPage extends StatelessWidget {
                 )
               else
                 const Center(child: CircularProgressIndicator()),
+              if (joinState.errorMessage != null) ...[
+                const SizedBox(height: 12),
+                Text(joinState.errorMessage!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              ],
             ],
           ),
+        ),
+      ),
         ),
       ),
     );
