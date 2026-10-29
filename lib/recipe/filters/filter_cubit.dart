@@ -64,7 +64,7 @@ class FilterCubit extends Cubit<FilterState> {
     emit(
       state.copyWith(
         pagingState: PagingState<int, Recipe>(),
-        filter: state.filter.copyWith(searchText: pattern ?? ''),
+        filter: state.filter.copyWith(searchText: pattern?.trim() ?? ''),
       ),
     );
   }
