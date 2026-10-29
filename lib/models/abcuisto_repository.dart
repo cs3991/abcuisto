@@ -259,8 +259,8 @@ class AbcuistoRepository extends ChangeNotifier {
   Future<dynamic> updateBio({required String bio, String? userName}) =>
       _post('/api/User/updateBio', {'bio': bio, if (userName != null) 'userName': userName});
 
-  Future<dynamic> updateEmail({required String email, required String lastPassword}) =>
-      _post('/api/User/updateEmail', {'email': email, 'lastPassword': lastPassword});
+  Future<dynamic> updateEmail({required String email}) =>
+      _post('/api/User/updateEmail', {'email': email});
 
   Future<dynamic> confirmUpdateEmail(String token) => _post('/api/User/confirmUpdateEmail', token);
 

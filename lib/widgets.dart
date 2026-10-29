@@ -8,6 +8,11 @@ class RoundedTextField extends StatelessWidget {
   final TextInputType? keyboardType;
   final List<String>? autofillHints;
   final int? maxLines;
+  final int? minLines;
+  final bool enabled;
+  final bool autofocus;
+  final bool autocorrect;
+  final bool enableSuggestions;
 
   const RoundedTextField({
     super.key,
@@ -18,6 +23,11 @@ class RoundedTextField extends StatelessWidget {
     this.keyboardType,
     this.autofillHints,
     this.maxLines = 1,
+    this.minLines,
+    this.enabled = true,
+    this.autofocus = false,
+    this.autocorrect = true,
+    this.enableSuggestions = true,
   });
 
   @override
@@ -28,6 +38,11 @@ class RoundedTextField extends StatelessWidget {
       keyboardType: keyboardType,
       autofillHints: autofillHints,
       maxLines: maxLines,
+      minLines: minLines,
+      enabled: enabled,
+      autofocus: autofocus,
+      autocorrect: autocorrect,
+      enableSuggestions: enableSuggestions,
       decoration: InputDecoration(
         hintText: hintText,
         filled: true,

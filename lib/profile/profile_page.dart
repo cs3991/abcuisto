@@ -7,6 +7,7 @@ import '../models/recipe.dart';
 import '../recipe/filters/filter_cubit.dart';
 import '../recipe/recipe_cubit.dart';
 import 'profile_cubit.dart';
+import 'edit_profile_dialog.dart';
 import 'groups/create_group_dialog.dart';
 import 'groups/join_group_dialog.dart';
 import 'groups/group_details_page.dart';
@@ -38,7 +39,7 @@ class ProfilePage extends StatelessWidget {
       child: MultiBlocListener(
         listeners: [
           BlocListener<ProfileCubit, ProfileState>(
-            listenWhen: (previous, current) => current.status == ProfileStatus.success,
+            listenWhen: (previous, current) => previous.status != current.status && current.status == ProfileStatus.success,
             listener: (context, state) => context.read<RecipeCubit>().refreshPermissions(),
           ),
           BlocListener<AuthenticationCubit, AuthenticationState>(
@@ -176,23 +177,26 @@ class ProfilePage extends StatelessWidget {
                       title: Text('Changer la photo de profil'),
                       trailing: Icon(Icons.add_a_photo_rounded),
                     ),
-                    const ListTile(
+                    ListTile(
                       contentPadding: EdgeInsets.zero,
-                      enabled: false,
-                      title: Text('Modifier la bio'),
-                      trailing: Icon(Icons.edit_note_rounded),
+                      enabled: !loading && user != null,
+                      title: const Text('Modifier la bio'),
+                      trailing: const Icon(Icons.edit_note_rounded),
+                      onTap: loading || user == null ? null : () => showEditProfileDialog(context, ProfileEdit.bio),
                     ),
-                    const ListTile(
+                    ListTile(
                       contentPadding: EdgeInsets.zero,
-                      enabled: false,
-                      title: Text('Changer l’adresse e-mail'),
-                      trailing: Icon(Icons.email_rounded),
+                      enabled: !loading && user != null,
+                      title: const Text('Changer l’adresse e-mail'),
+                      trailing: const Icon(Icons.email_rounded),
+                      onTap: loading || user == null ? null : () => showEditProfileDialog(context, ProfileEdit.email),
                     ),
-                    const ListTile(
+                    ListTile(
                       contentPadding: EdgeInsets.zero,
-                      enabled: false,
-                      title: Text('Changer le mot de passe'),
-                      trailing: Icon(Icons.lock_rounded),
+                      enabled: !loading && user != null,
+                      title: const Text('Changer le mot de passe'),
+                      trailing: const Icon(Icons.lock_rounded),
+                      onTap: loading || user == null ? null : () => showEditProfileDialog(context, ProfileEdit.password),
                     ),
                     const SizedBox(height: 32),
                     BlocBuilder<AuthenticationCubit, AuthenticationState>(

@@ -1,5 +1,7 @@
 # Points à améliorer
 
+- [ ] Changement d’e-mail : le repository expose `confirmUpdateEmail`, mais aucun parcours de confirmation n’est raccordé dans le profil. Clarifier le retour de l’API et la réception du token ; après confirmation, synchroniser aussi `authEmail` et `api_auth_email` avec l’adresse effective (actuellement enregistrée seulement à la connexion).
+
 - [ ] Profil : `lib/models/user.dart` ne désérialise aucune photo et `lib/profile/profile_page.dart` affiche une icône fixe. Lors du branchement de `updateImage`, identifier le champ renvoyé par `getUserInfos` et afficher la photo persistée, y compris après rechargement du profil.
 
 - [x] Filtre « Créé par moi » : utiliser le pseudo du profil plutôt que l’e-mail dans l’état d’authentification et déduire la sélection « Moi » du filtre actif à la réouverture de l’écran.
