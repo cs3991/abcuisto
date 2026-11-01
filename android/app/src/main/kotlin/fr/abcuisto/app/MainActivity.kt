@@ -1,4 +1,4 @@
-package com.example.abcuisto
+package fr.abcuisto.app
 
 import io.flutter.embedding.android.FlutterActivity
 

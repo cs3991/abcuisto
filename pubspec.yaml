@@ -3,7 +3,7 @@ description: "Application to search for recipes from ABCuisto"
 
 publish_to: "none"
 
-version: 1.0.0+1
+version: 5.0.0+50
 
 environment:
   sdk: ^3.12.0

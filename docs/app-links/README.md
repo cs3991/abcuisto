@@ -20,12 +20,12 @@ sans authentification ni redirection, avec un type `application/json`.
 ### Android
 
 Compléter `assetlinks.json` avec l’empreinte SHA-256 du certificat qui signe
-l’application installée. Le package actuel est `com.example.abcuisto` ; le mettre
-à jour ici si l’identifiant de l’application change.
+l’application installée. Le package Android est `fr.abcuisto.app`, comme dans
+la Play Console. Les modèles Android utilisent cet identifiant.
 
 Publier à `https://DOMAINE/.well-known/assetlinks.json`.
 
-La configuration actuelle signe aussi la release avec la clé debug. Pour une
+La release utilise le keystore privé configuré dans `android/key.properties`. Pour une
 publication Play Store, utiliser l’empreinte de la clé de signature de l’app
 Play App Signing. Plusieurs empreintes peuvent être déclarées ; réserver les clés
 de développement au domaine dev lorsque l’application sera publiée.
@@ -52,10 +52,10 @@ exactes pour les fichiers d'association, servies en JSON. Un fichier absent
 renvoie une 404 plutôt que la page HTML de l'application.
 
 `production/assetlinks.json` utilise l'empreinte de la clé debug locale extraite
-le 29 octobre 2026, également utilisée par la release dans la configuration
-Android actuelle. Une application signée avec une autre clé nécessitera son
-empreinte dans ce fichier. Pour une publication Play Store, remplacer cette
-association par celle de Play App Signing.
+le 29 octobre 2026. Le modèle utilise désormais `fr.abcuisto.app`, mais cette
+modification locale reste à déployer sur le serveur. Pour les installations Google
+Play, remplacer l’empreinte debug par celle du certificat Play App Signing.
+Pour une installation directe du build release, utiliser celle du keystore local.
 
 Le fichier Android est copié dans `app-links/assetlinks.json` sur le serveur.
 Les modifications de son contenu sont prises en compte sans reconstruire le

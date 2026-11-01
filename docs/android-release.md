@@ -45,7 +45,7 @@ Repérer l’alias d’une entrée `PrivateKeyEntry`. Adapter le chemin au fichi
 
 ## Préparer la première publication
 
-L’identifiant actuel est `com.example.abcuisto` dans `android/app/build.gradle.kts`. Choisir un identifiant définitif avant la première publication et coordonner ce changement avec la configuration des liens partagés (voir [App Links](app-links/README.md)). L’identifiant doit correspondre à l’application Play Console existante s’il s’agit d’une mise à jour.
+L’identifiant Android est `fr.abcuisto.app`, aligné sur l’application existante dans la Play Console. Le namespace, l’activité Kotlin et les modèles Android App Links utilisent le même identifiant (voir [App Links](app-links/README.md)).
 
 Avec Play App Signing, la clé locale sert à signer l’envoi ; Google signe les applications distribuées avec la clé de signature de l’application. Pour une application déjà publiée, utiliser la clé d’importation enregistrée dans sa Play Console. Les empreintes App Links doivent correspondre au certificat de signature de Google Play pour les installations depuis le Store.
 
