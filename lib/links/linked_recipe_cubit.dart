@@ -27,6 +27,8 @@ class LinkedRecipeCubit extends Cubit<LinkedRecipeState> {
     _loading = true;
     emit(const LinkedRecipeState());
     try {
+      if (repository.isAuthenticated) await repository.getUserInfos();
+      if (isClosed) return;
       final recipe = await repository.getRecipe(recipeId);
       if (!isClosed) emit(LinkedRecipeState(status: LinkedRecipeStatus.success, recipe: recipe));
     } catch (error) {

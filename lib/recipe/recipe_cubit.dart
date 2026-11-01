@@ -80,7 +80,8 @@ class RecipeCubit extends Cubit<RecipeState> {
     if (recipeId == null) return;
     emit(RecipeLoading());
     try {
-      // await Future.pause(Duration(seconds: 2));
+      if (repository.isAuthenticated) await repository.getUserInfos();
+      if (isClosed) return;
       final recipeFull = await repository.getRecipe(recipeId);
       if (!isClosed) showRecipe(recipeFull);
     } catch (error) {
