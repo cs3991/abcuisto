@@ -1,3 +1,4 @@
+import '../favorites_cubit.dart';
 import 'package:abcuisto/login/authentication_cubit.dart';
 import 'package:abcuisto/models/recipe.dart';
 import 'package:abcuisto/recipe/filters/filter_cubit.dart';
@@ -59,6 +60,21 @@ class _FilterPageState extends State<FilterPage> {
         child: ListView(
           children: [
             SizedBox(height: 16),
+            BlocBuilder<FavoritesCubit, FavoritesState>(
+              builder: (context, favorites) {
+                final selected = context.select((FilterCubit cubit) => cubit.state.favoritesOnly);
+                return SwitchListTile(
+                  title: const Text('Favoris uniquement'),
+                  secondary: const Icon(Icons.favorite_rounded),
+                  value: selected,
+                  onChanged: authState is AuthenticationLoggedIn && favorites.isLoaded
+                      ? (value) => context.read<FilterCubit>().updateFavoritesOnly(value, ids: favorites.ids)
+                      : null,
+                  subtitle: authState is! AuthenticationLoggedIn
+                      ? const Text('Connectez-vous pour retrouver vos favoris.') : null,
+                );
+              },
+            ),
             ExpansionTile(
               initiallyExpanded: true,
               title: Text('Catégories', style: Theme.of(context).textTheme.titleMedium),

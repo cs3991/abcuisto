@@ -10,11 +10,12 @@ class FilterState {
   final PagingState<int, Recipe> pagingState;
   final Filters filter;
   final bool isCreatorSelf;
+  final bool favoritesOnly;
 
-  FilterState(this.pagingState, {required this.filter, this.isCreatorSelf = false});
+  FilterState(this.pagingState, {required this.filter, this.isCreatorSelf = false, this.favoritesOnly = false});
 
-  FilterState copyWith({PagingState<int, Recipe>? pagingState, Filters? filter, bool? isCreatorSelf}) {
-    return FilterState(pagingState ?? this.pagingState, filter: filter ?? this.filter, isCreatorSelf: isCreatorSelf ?? this.isCreatorSelf);
+  FilterState copyWith({PagingState<int, Recipe>? pagingState, Filters? filter, bool? isCreatorSelf, bool? favoritesOnly}) {
+    return FilterState(pagingState ?? this.pagingState, filter: filter ?? this.filter, isCreatorSelf: isCreatorSelf ?? this.isCreatorSelf, favoritesOnly: favoritesOnly ?? this.favoritesOnly);
   }
 }
 
@@ -32,6 +33,10 @@ class FilterCubit extends Cubit<FilterState> {
 
   Future<void> fetchNextPage() async {
     if (state.pagingState.isLoading) return;
+    if (state.favoritesOnly && (state.filter.ids?.isEmpty ?? true)) {
+      emit(state.copyWith(pagingState: PagingState<int, Recipe>(pages: const [[]], keys: const [1], hasNextPage: false)));
+      return;
+    }
     emit(state.copyWith(pagingState: state.pagingState.copyWith(isLoading: true, error: null)));
 
     final loadingState = state.pagingState;
@@ -153,6 +158,21 @@ class FilterCubit extends Cubit<FilterState> {
       pagingState: PagingState<int, Recipe>(),
       filter: state.filter.copyWith(groups: groups.toList()),
     ));
+  }
+
+  void updateFavoritesOnly(bool selected, {Iterable<String> ids = const []}) {
+    emit(state.copyWith(
+      favoritesOnly: selected,
+      filter: state.filter.copyWith(ids: selected ? ids.toList() : []),
+      pagingState: PagingState<int, Recipe>(),
+    ));
+  }
+
+  void updateFavoriteIds(Iterable<String> ids) {
+    if (!state.favoritesOnly) return;
+    final currentIds = state.filter.ids ?? [];
+    if (currentIds.length == ids.length && ids.every(currentIds.contains)) return;
+    updateFavoritesOnly(true, ids: ids);
   }
 
   Future<void> refresh() async {

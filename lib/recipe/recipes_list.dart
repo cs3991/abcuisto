@@ -88,6 +88,16 @@ class _RecipesListState extends State<RecipesList> {
                           },
                         ),
                         const SizedBox(width: 8),
+                        if (state.favoritesOnly)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                            child: InputChip(
+                              avatar: const Icon(Icons.favorite_rounded),
+                              label: const Text('Favoris uniquement'),
+                              deleteIcon: const Icon(Icons.close_rounded),
+                              onDeleted: () => context.read<FilterCubit>().updateFavoritesOnly(false),
+                            ),
+                          ),
                         ...(state.filter.ingredients ?? []).map(
                           (ingredient) => Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 2.0),
