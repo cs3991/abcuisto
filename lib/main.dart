@@ -1,3 +1,4 @@
+import 'recipe/favorites_cubit.dart';
 import 'dart:ui';
 
 import 'package:app_links/app_links.dart';
@@ -56,6 +57,7 @@ class ProvidersWidget extends StatelessWidget {
           BlocProvider(create: (_) => ThemeCubit()),
           BlocProvider(create: (_) => AppLinkCubit(AppLinks()), lazy: false),
           BlocProvider(create: (context) => AuthenticationCubit(context.read<AbcuistoRepository>())),
+          BlocProvider(create: (context) => FavoritesCubit(context.read<AbcuistoRepository>())),
           BlocProvider(create: (context) => RecipeCubit(context.read<AbcuistoRepository>())),
           BlocProvider(create: (context) => CommentCubit(context.read<AbcuistoRepository>())),
           BlocProvider(create: (context) => FilterCubit(context.read<AbcuistoRepository>())),

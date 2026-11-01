@@ -283,7 +283,19 @@ class AbcuistoRepository extends ChangeNotifier {
         'oldImage': oldImage ?? '',
       });
 
-  Future<dynamic> getFavorites() => _get('/api/User/getFavs');
+  Future<List<String>> getFavorites() async {
+    final response = await _get('/api/User/getFavs');
+    if (response is! List) {
+      throw const FormatException('Réponse invalide : liste de favoris manquante.');
+    }
+    return response.map<String>((favorite) {
+      final id = favorite is String ? favorite : favorite is Map<String, dynamic> ? favorite['id'] : null;
+      if (id is! String || id.isEmpty) {
+        throw const FormatException('Réponse invalide : identifiant de favori manquant.');
+      }
+      return id;
+    }).toList();
+  }
 
   Future<dynamic> contactSupport({required String userEmail, required String userObject, required String userMessage}) =>
       _post('/api/User/contact', {'userEmail': userEmail, 'userObject': userObject, 'userMessage': userMessage});

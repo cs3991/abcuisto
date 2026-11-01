@@ -1,3 +1,4 @@
+import 'favorite_button.dart';
 import 'package:abcuisto/login/authentication_cubit.dart';
 import 'package:abcuisto/models/recipe.dart';
 import 'package:abcuisto/recipe/add_recipe/add_recipe_page.dart';
@@ -321,7 +322,7 @@ class RecipeCard extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                IconButton(icon: Icon(Icons.favorite_border_rounded), onPressed: () {}),
+                FavoriteButton(recipeId: recipe.id),
                 Text(recipe.totalTimeFormatted!, style: Theme.of(context).textTheme.labelLarge),
                 RatingStars(note: recipe.note),
               ],

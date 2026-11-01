@@ -1,3 +1,4 @@
+import 'favorite_button.dart';
 import 'package:abcuisto/recipe/add_recipe/add_recipe_page.dart';
 import 'package:abcuisto/recipe/comment_cubit.dart';
 import 'package:abcuisto/recipe/recipe_cubit.dart';
@@ -119,6 +120,7 @@ class RecipeDetailsPage extends StatelessWidget {
                           builder: (context, state) {
                             return Row(
                               children: [
+                                if (recipe != null) FavoriteButton(recipeId: recipe.id),
                                 PopupMenuButton<_RecipeAction>(
                                   icon: const Icon(Icons.more_vert_rounded),
                                   tooltip: 'Options de la recette',
