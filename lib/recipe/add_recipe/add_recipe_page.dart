@@ -96,164 +96,170 @@ class _AddRecipePageState extends State<AddRecipePage> {
                   padding: EdgeInsets.zero,
                   children: [
                     const SizedBox(height: 350),
-              Padding(
-                padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainerLow,
-                    border: Border.all(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3)),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const SizedBox(height: 16),
-                      _RecipeField(
-                        label: 'Nom de la recette',
-                        value: modifiedRecipe.name,
-                        onChanged: (value) => cubit.modify(modifiedRecipe.copyWith(name: value)),
-                      ),
-                      const SizedBox(height: 16),
-                      const SectionTitle(title: 'Catégorie de la recette'),
-                      const SizedBox(height: 8),
-                      DropdownButtonFormField<RecipeCategory>(
-                        initialValue: modifiedRecipe.category,
-                        decoration: const InputDecoration(border: OutlineInputBorder(), hintText: 'Choisir une catégorie'),
-                        items: RecipeCategory.values.map((category) => DropdownMenuItem(value: category, child: Text(category.displayName))).toList(),
-                        onChanged: (category) => cubit.modify(modifiedRecipe.copyWith(category: category)),
-                      ),
-                      const SizedBox(height: 16),
-                      Wrap(
-                        alignment: WrapAlignment.spaceAround,
-                        runSpacing: 8,
-                        children: [
-                          DurationPicker(
-                            label: 'Préparation',
-                            initialDuration: modifiedRecipe.prepTime,
-                            onDurationChanged: (duration) => cubit.modify(modifiedRecipe.copyWith(prepTime: duration)),
-                          ),
-                          const SizedBox(width: 8),
-                          DurationPicker(
-                            label: 'Cuisson',
-                            initialDuration: modifiedRecipe.cookTime,
-                            onDurationChanged: (duration) => cubit.modify(modifiedRecipe.copyWith(cookTime: duration)),
-                          ),
-                          const SizedBox(width: 8),
-                          DurationPicker(
-                            label: 'Repos',
-                            initialDuration: modifiedRecipe.restTime,
-                            onDurationChanged: (duration) => cubit.modify(modifiedRecipe.copyWith(restTime: duration)),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      const SectionTitle(title: 'Visibilité de la recette'),
-                      Material(
-                        type: MaterialType.transparency,
-                        child: SwitchListTile(
-                          contentPadding: EdgeInsets.zero,
-                          secondary: const Icon(Icons.public),
-                          title: const Text('Public'),
-                          subtitle: const Text('Visible par tout le monde, quels que soient les groupes sélectionnés.'),
-                          value: modifiedRecipe.groups.any((group) => group.isPublic),
-                          onChanged: loading ? null : cubit.setPublic,
+                    Padding(
+                      padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surfaceContainerLow,
+                          border: Border.all(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3)),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                      ),
-                      if (groups.isNotEmpty) ...[
-                        const Divider(),
-                        const SectionTitle(title: 'Partager avec des groupes'),
-                        const SizedBox(height: 8),
-                        Text(modifiedRecipe.groups.any((group) => group.isPublic)
-                            ? 'La recette est publique : ces groupes ne limitent pas sa visibilité.'
-                            : 'La recette est visible uniquement par les groupes sélectionnés.'),
-                        const SizedBox(height: 8),
-                        Wrap(
-                          spacing: 8,
-                          children: groups.map((group) {
-                            final id = group.id!;
-                            return FilterChip(
-                              label: Text(group.name ?? 'Groupe'),
-                              selected: modifiedRecipe.groups.any((selected) => selected.id == id),
-                              onSelected: loading ? null : (selected) => cubit.selectGroup(group, selected),
-                            );
-                          }).toList(),
-                        ),
-                      ],
-                      const SizedBox(height: 16),
-                      const SectionTitle(title: 'Tags'),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 4,
-                        children: RecipeTag.values.map((tag) {
-                          return FilterChip(
-                            label: Text(tag.displayName),
-                            selected: modifiedRecipe.tags.contains(tag),
-                            onSelected: (selected) => cubit.modify(
-                              modifiedRecipe.copyWith(tags: [...modifiedRecipe.tags.where((value) => value != tag), if (selected) tag]),
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            const SizedBox(height: 16),
+                            _RecipeField(
+                              label: 'Nom de la recette',
+                              value: modifiedRecipe.name,
+                              onChanged: (value) => cubit.modify(modifiedRecipe.copyWith(name: value)),
                             ),
-                          );
-                        }).toList(),
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _RecipeField(
-                              label: 'Pour combien ?',
-                              value: modifiedRecipe.forNumber?.toString() ?? '',
-                              keyboardType: TextInputType.number,
-                              onChanged: (value) => cubit.modify(modifiedRecipe.copyWith(forNumber: int.tryParse(value.trim()) ?? 0)),
+                            const SizedBox(height: 16),
+                            const SectionTitle(title: 'Catégorie de la recette'),
+                            const SizedBox(height: 8),
+                            DropdownButtonFormField<RecipeCategory>(
+                              initialValue: modifiedRecipe.category,
+                              decoration: const InputDecoration(border: OutlineInputBorder(), hintText: 'Choisir une catégorie'),
+                              items: RecipeCategory.values
+                                  .map((category) => DropdownMenuItem(value: category, child: Text(category.displayName)))
+                                  .toList(),
+                              onChanged: (category) => cubit.modify(modifiedRecipe.copyWith(category: category)),
                             ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: DropdownButtonFormField<RecipeServingType>(
-                              initialValue: modifiedRecipe.typeNumber ?? RecipeServingType.personnes,
-                              decoration: const InputDecoration(border: OutlineInputBorder()),
-                              items: RecipeServingType.values.map((type) => DropdownMenuItem(value: type, child: Text(type.label))).toList(),
-                              onChanged: (type) {
-                                if (type != null) cubit.modify(modifiedRecipe.copyWith(typeNumber: type));
-                              },
+                            const SizedBox(height: 16),
+                            Wrap(
+                              alignment: WrapAlignment.spaceAround,
+                              runSpacing: 8,
+                              children: [
+                                DurationPicker(
+                                  label: 'Préparation',
+                                  initialDuration: modifiedRecipe.prepTime,
+                                  onDurationChanged: (duration) => cubit.modify(modifiedRecipe.copyWith(prepTime: duration)),
+                                ),
+                                const SizedBox(width: 8),
+                                DurationPicker(
+                                  label: 'Cuisson',
+                                  initialDuration: modifiedRecipe.cookTime,
+                                  onDurationChanged: (duration) => cubit.modify(modifiedRecipe.copyWith(cookTime: duration)),
+                                ),
+                                const SizedBox(width: 8),
+                                DurationPicker(
+                                  label: 'Repos',
+                                  initialDuration: modifiedRecipe.restTime,
+                                  onDurationChanged: (duration) => cubit.modify(modifiedRecipe.copyWith(restTime: duration)),
+                                ),
+                              ],
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-                      const SectionTitle(title: 'Ingrédients'),
-                      const SizedBox(height: 8),
-                      for (var i = 0; i < modifiedRecipe.ingredientCategories.length; i++)
-                        IngredientCategoryWidget(
-                          key: ValueKey(modifiedRecipe.ingredientCategories[i].index),
-                          category: modifiedRecipe.ingredientCategories[i],
-                          categoryIndex: i,
+                            const SizedBox(height: 16),
+                            const SectionTitle(title: 'Visibilité de la recette'),
+                            Material(
+                              type: MaterialType.transparency,
+                              child: SwitchListTile(
+                                contentPadding: EdgeInsets.zero,
+                                secondary: const Icon(Icons.public),
+                                title: const Text('Public'),
+                                subtitle: const Text('Visible par tout le monde, quels que soient les groupes sélectionnés.'),
+                                value: modifiedRecipe.groups.any((group) => group.isPublic),
+                                onChanged: loading ? null : cubit.setPublic,
+                              ),
+                            ),
+                            if (groups.isNotEmpty) ...[
+                              const Divider(),
+                              const SectionTitle(title: 'Partager avec des groupes'),
+                              const SizedBox(height: 8),
+                              Text(
+                                modifiedRecipe.groups.any((group) => group.isPublic)
+                                    ? 'La recette est publique : ces groupes ne limitent pas sa visibilité.'
+                                    : 'La recette est visible uniquement par les groupes sélectionnés.',
+                              ),
+                              const SizedBox(height: 8),
+                              Wrap(
+                                spacing: 8,
+                                children: groups.map((group) {
+                                  final id = group.id!;
+                                  return FilterChip(
+                                    label: Text(group.name ?? 'Groupe'),
+                                    selected: modifiedRecipe.groups.any((selected) => selected.id == id),
+                                    onSelected: loading ? null : (selected) => cubit.selectGroup(group, selected),
+                                  );
+                                }).toList(),
+                              ),
+                            ],
+                            const SizedBox(height: 16),
+                            const SectionTitle(title: 'Tags'),
+                            const SizedBox(height: 8),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 4,
+                              children: RecipeTag.values.map((tag) {
+                                return FilterChip(
+                                  label: Text(tag.displayName),
+                                  selected: modifiedRecipe.tags.contains(tag),
+                                  onSelected: (selected) => cubit.modify(
+                                    modifiedRecipe.copyWith(tags: [...modifiedRecipe.tags.where((value) => value != tag), if (selected) tag]),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _RecipeField(
+                                    label: 'Pour combien ?',
+                                    value: modifiedRecipe.forNumber?.toString() ?? '',
+                                    keyboardType: TextInputType.number,
+                                    onChanged: (value) => cubit.modify(modifiedRecipe.copyWith(forNumber: int.tryParse(value.trim()) ?? 0)),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: DropdownButtonFormField<RecipeServingType>(
+                                    initialValue: modifiedRecipe.typeNumber ?? RecipeServingType.personnes,
+                                    decoration: const InputDecoration(border: OutlineInputBorder()),
+                                    items: RecipeServingType.values.map((type) => DropdownMenuItem(value: type, child: Text(type.label))).toList(),
+                                    onChanged: (type) {
+                                      if (type != null) cubit.modify(modifiedRecipe.copyWith(typeNumber: type));
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 24),
+                            const SectionTitle(title: 'Ingrédients'),
+                            const SizedBox(height: 8),
+                            for (var i = 0; i < modifiedRecipe.ingredientCategories.length; i++)
+                              IngredientCategoryWidget(
+                                key: ValueKey(modifiedRecipe.ingredientCategories[i].index),
+                                category: modifiedRecipe.ingredientCategories[i],
+                                categoryIndex: i,
+                              ),
+                            TextButton.icon(
+                              onPressed: cubit.addCategory,
+                              icon: const Icon(Icons.add),
+                              label: const Text("Ajouter une catégorie d'ingrédients"),
+                            ),
+                            const SizedBox(height: 24),
+                            const SectionTitle(title: 'Étapes'),
+                            const SizedBox(height: 8),
+                            ..._buildSteps(modifiedRecipe, cubit),
+                            TextButton.icon(onPressed: cubit.addStep, icon: const Icon(Icons.add), label: const Text('Ajouter une étape')),
+                            const SizedBox(height: 24),
+                            const SectionTitle(title: 'Ustensiles'),
+                            const SizedBox(height: 8),
+                            _RecipeField(
+                              label: 'Ex: fouet, casserole...',
+                              value: modifiedRecipe.cookware.join(', '),
+                              onChanged: (value) => cubit.modify(
+                                modifiedRecipe.copyWith(
+                                  cookware: value.split(',').map((item) => item.trim()).where((item) => item.isNotEmpty).toList(),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 32),
+                          ],
                         ),
-                      TextButton.icon(
-                        onPressed: cubit.addCategory,
-                        icon: const Icon(Icons.add),
-                        label: const Text("Ajouter une catégorie d'ingrédients"),
                       ),
-                      const SizedBox(height: 24),
-                      const SectionTitle(title: 'Étapes'),
-                      const SizedBox(height: 8),
-                      ..._buildSteps(modifiedRecipe, cubit),
-                      TextButton.icon(onPressed: cubit.addStep, icon: const Icon(Icons.add), label: const Text('Ajouter une étape')),
-                      const SizedBox(height: 24),
-                      const SectionTitle(title: 'Ustensiles'),
-                      const SizedBox(height: 8),
-                      _RecipeField(
-                        label: 'Ex: fouet, casserole...',
-                        value: modifiedRecipe.cookware.join(', '),
-                        onChanged: (value) => cubit.modify(
-                          modifiedRecipe.copyWith(cookware: value.split(',').map((item) => item.trim()).where((item) => item.isNotEmpty).toList()),
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-                    ],
-                  ),
-                ),
-              ),
+                    ),
                   ],
                 ),
               ),
@@ -269,13 +275,18 @@ class _AddRecipePageState extends State<AddRecipePage> {
       key: ValueKey('step-${modifiedRecipe.instructions.length}-$index'),
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
             child: StepField(index: index + 1, value: modifiedRecipe.instructions[index], onChanged: (value) => cubit.changeStep(index, value)),
           ),
           if (modifiedRecipe.instructions.length > 1)
-            IconButton(tooltip: 'Supprimer l’étape', onPressed: () => cubit.removeStep(index), icon: const Icon(Icons.delete_outline)),
+            IconButton(
+              tooltip: 'Supprimer l’étape',
+              color: Theme.of(context).colorScheme.primary,
+              onPressed: () => cubit.removeStep(index),
+              icon: const Icon(Icons.delete_outline),
+            ),
         ],
       ),
     );
@@ -321,76 +332,96 @@ class IngredientCategoryWidget extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 16),
         ReorderableListView(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           buildDefaultDragHandles: false,
           onReorderItem: (oldIndex, newIndex) => cubit.reorderIngredient(categoryIndex, oldIndex, newIndex),
           children: category.ingredients.asMap().entries.map((entry) {
-          final index = entry.key;
-          final ingredient = entry.value;
-          final availableUnits = units.contains(ingredient.type) ? units : [ingredient.type, ...units];
-          return Padding(
-            key: ValueKey(ingredient.index),
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Row(
-              children: [
-                ReorderableDragStartListener(
-                  index: index,
-                  enabled: category.ingredients.length > 1 && cubit.state.status != AddRecipeStatus.loading,
-                  child: const Tooltip(
-                    message: 'Déplacer l’ingrédient',
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 4),
-                      child: Icon(Icons.drag_handle_rounded, size: 20),
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  width: 78,
-                  child: _RecipeField(
+            final index = entry.key;
+            final ingredient = entry.value;
+            final availableUnits = units.contains(ingredient.type) ? units : [ingredient.type, ...units];
+            return Padding(
+              key: ValueKey(ingredient.index),
+              padding: const EdgeInsets.only(bottom: 16),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final compact = constraints.maxWidth < 500;
+                  final nameField = _RecipeField(
+                    label: 'Ingrédient',
+                    value: ingredient.name,
+                    onChanged: (value) => cubit.changeIngredient(categoryIndex, index, ingredient.copyWith(name: value)),
+                  );
+                  final quantityField = _RecipeField(
                     label: 'Qté',
                     value: ingredient.quantity?.toString() ?? '',
                     onChanged: (value) => cubit.changeQuantity(categoryIndex, index, value),
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                SizedBox(
-                  width: 112,
-                  child: DropdownButtonFormField<String>(
+                  );
+                  final unitField = DropdownButtonFormField<String>(
                     initialValue: ingredient.type,
+                    isExpanded: true,
                     decoration: const InputDecoration(border: OutlineInputBorder()),
                     items: availableUnits
                         .map(
                           (unit) => DropdownMenuItem(
                             value: unit,
-                            child: SizedBox(width: 50, child: Text(unit.isEmpty ? 'Unité' : unit, overflow: TextOverflow.fade)),
+                            child: Text(unit.isEmpty ? 'Unité' : unit, overflow: TextOverflow.ellipsis),
                           ),
                         )
                         .toList(),
                     onChanged: (unit) {
                       if (unit != null) cubit.changeIngredient(categoryIndex, index, ingredient.copyWith(type: unit));
                     },
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _RecipeField(
-                    label: 'Ingrédient',
-                    value: ingredient.name,
-                    onChanged: (value) => cubit.changeIngredient(categoryIndex, index, ingredient.copyWith(name: value)),
-                  ),
-                ),
-                IconButton(
-                  tooltip: 'Supprimer l’ingrédient',
-                  onPressed: () => cubit.removeIngredient(categoryIndex, index),
-                  icon: Icon(Icons.delete_outline_rounded, size: 20, color: Theme.of(context).colorScheme.primary),
-                ),
-              ],
-            ),
-          );
+                  );
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      ReorderableDragStartListener(
+                        index: index,
+                        enabled: category.ingredients.length > 1 && cubit.state.status != AddRecipeStatus.loading,
+                        child: const Tooltip(
+                          message: 'Déplacer l’ingrédient',
+                          child: Padding(padding: EdgeInsets.symmetric(horizontal: 4), child: Icon(Icons.drag_handle_rounded, size: 20)),
+                        ),
+                      ),
+                      Expanded(
+                        child: compact
+                            ? Column(
+                                children: [
+                                  nameField,
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      Expanded(child: quantityField),
+                                      const SizedBox(width: 8),
+                                      Expanded(flex: 2, child: unitField),
+                                    ],
+                                  ),
+                                ],
+                              )
+                            : Row(
+                                children: [
+                                  SizedBox(width: 78, child: quantityField),
+                                  const SizedBox(width: 8),
+                                  SizedBox(width: 180, child: unitField),
+                                  const SizedBox(width: 8),
+                                  Expanded(child: nameField),
+                                ],
+                              ),
+                      ),
+                      IconButton(
+                        tooltip: 'Supprimer l’ingrédient',
+                        color: Theme.of(context).colorScheme.primary,
+                        onPressed: () => cubit.removeIngredient(categoryIndex, index),
+                        icon: Icon(Icons.delete_outline_rounded),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            );
           }).toList(),
         ),
         Align(

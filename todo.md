@@ -1,5 +1,7 @@
 # Points à améliorer
 
+- [x] Saisie des ingrédients sur téléphone (`lib/recipe/add_recipe/add_recipe_page.dart`, `IngredientCategoryWidget`) : la quantité (78 px), l’unité (112 px), la poignée et la suppression sont sur la même ligne que le nom, qui reçoit seulement la largeur restante et devient illisible. Disposition sur deux lignes ajoutée sous 500 px de largeur disponible, avec poignée et suppression centrées sur l’ensemble. Le sélecteur d’unité occupe deux tiers de la seconde ligne ; validation visuelle dans l’application à effectuer.
+
 - [ ] Synchronisation du curseur de durée (`lib/recipe/filters/filter_page.dart`, `MaxTimeSlider`) : sa valeur locale est initialisée à la création du widget mais n’est pas resynchronisée lorsque `totalTimeValue` change dans le parent. Prévoir une synchronisation avec le filtre du Cubit hors glissement pour éviter un curseur décalé après une modification externe du filtre.
 
 - [ ] Droits de modification des recettes (`lib/recipe/recipe_cubit.dart`, `User.groups`) : le calcul autorise déjà les membres d’un groupe partagé avec `canEdit == true`. Le backend de développement inclut bien ce champ dans `getUserInfos`, mais le client conservait les droits de la connexion jusqu’au prochain chargement du profil. Le chargement d’une recette (liste ou lien) recharge désormais le profil connecté avant de calculer les droits. Valider dans l’application l’activation et la révocation par un autre propriétaire ; le cas signalé reste à confirmer en conditions réelles.
