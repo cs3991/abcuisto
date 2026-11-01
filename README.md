@@ -18,7 +18,7 @@ Feature availability depends on authentication and API permissions.
 
 ## Requirements
 
-- Flutter with a bundled Dart SDK compatible with `^3.8.1` (see `pubspec.yaml`).
+- Flutter 3.47 or later with a bundled Dart SDK compatible with `^3.12.0` (see `pubspec.yaml`).
 - The Flutter platform toolchain for your target device or desktop.
 - Access to an ABCuisto API server. This repository contains the client, and does not include the backend.
 - Python 3.9 or later for the optional Linux installation script.
@@ -64,6 +64,8 @@ flutter run --dart-define=APP_FLAVOR=prod
 Prefer the explicit entry points to make the intended environment clear. A shared link does not switch the app's API environment.
 
 ## Release builds
+
+For Android signing and Play Store uploads, follow [the Android publication guide](docs/android-release.md). Release builds require a local `android/key.properties` and your keystore; debug builds do not.
 
 Build a production Android APK:
 

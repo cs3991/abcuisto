@@ -1,0 +1,6 @@
+# Copy this file to key.properties and replace the values locally.
+# Paths are relative to android/ (absolute paths are also supported).
+storeFile=keystore/upload-key.jks
+storePassword=REPLACE_WITH_KEYSTORE_PASSWORD
+keyAlias=REPLACE_WITH_KEY_ALIAS
+keyPassword=REPLACE_WITH_KEY_PASSWORD
