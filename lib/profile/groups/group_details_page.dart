@@ -175,8 +175,33 @@ class GroupDetailsPage extends StatelessWidget {
                           onTap: deleting ? null : () => _shareInvitation(context, state.group),
                         ),
                       ),
+                    if (!state.group.isPublic) ...[
+                      if (state.canDelete)
+                        SwitchListTile(
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          title: const Text('Autoriser la modification des recettes'),
+                          subtitle: const Text('Les membres peuvent modifier les recettes partagées avec le groupe.'),
+                          value: state.group.canEdit ?? false,
+                          onChanged: loading || deleting ? null : context.read<GroupCubit>().updateCanEdit,
+                        )
+                      else
+                        ListTile(
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          trailing: Icon(
+                            state.group.canEdit == null
+                                ? Icons.help_outline_rounded
+                                : state.group.canEdit == true ? Icons.edit_rounded : Icons.lock_outline_rounded,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          title: const Text('Modification des recettes'),
+                          subtitle: Text(state.group.canEdit == null
+                              ? 'Le réglage de ce groupe n’est pas disponible.'
+                              : state.group.canEdit == true
+                                  ? 'Autorisée · Vous pouvez modifier les recettes partagées avec ce groupe.'
+                                  : 'Non autorisée · Ce groupe ne donne pas le droit de modifier les recettes des autres.'),
+                        ),
+                    ],
                     if (state.canLeave) ...[
-                      const SizedBox(height: 24),
                       ListTile(
                         contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         minVerticalPadding: 4,
@@ -204,14 +229,6 @@ class GroupDetailsPage extends StatelessWidget {
                       ),
                     ],
                     if (state.canDelete) ...[
-                      const SizedBox(height: 24),
-                      SwitchListTile(
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        title: const Text('Autoriser la modification des recettes'),
-                        subtitle: const Text('Les membres peuvent modifier les recettes partagées avec le groupe.'),
-                        value: state.group.canEdit ?? false,
-                        onChanged: loading || deleting ? null : context.read<GroupCubit>().updateCanEdit,
-                      ),
                       ListTile(
                         contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         minVerticalPadding: 4,
