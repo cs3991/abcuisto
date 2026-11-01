@@ -124,13 +124,18 @@ class GroupDetailsPage extends StatelessWidget {
                     if (state.status == GroupStatus.success && state.members.isEmpty)
                       const Padding(padding: EdgeInsets.only(top: 16), child: Text('Aucun membre.')),
                     for (var index = 0; index < (loading ? 3 : state.members.length); index++)
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: loading ? const PulsingPlaceholder(width: 24, height: 24) : const Icon(Icons.person_rounded),
-                        title: loading
-                            ? const Align(alignment: Alignment.centerLeft, child: PulsingPlaceholder(width: 180, height: 20))
-                            : Text(state.members[index].userName),
-                        subtitle: !loading && state.members[index].id == state.group.owner ? const Text('Propriétaire') : null,
+                      Container(
+                        decoration: BoxDecoration(
+                          border: Border(left: BorderSide(color: Theme.of(context).colorScheme.primary, width: 2)),
+                        ),
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.only(left: 16, right: 16),
+                          textColor: Theme.of(context).colorScheme.onSurfaceVariant,
+                          title: loading
+                              ? const Align(alignment: Alignment.centerLeft, child: PulsingPlaceholder(width: 180, height: 20))
+                              : Text(state.members[index].userName),
+                          subtitle: !loading && state.members[index].id == state.group.owner ? const Text('Propriétaire') : null,
+                        ),
                       ),
                     const SizedBox(height: 24),
                     ListTile(

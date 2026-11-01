@@ -114,12 +114,14 @@ class ProfilePage extends StatelessWidget {
                       const SizedBox(height: 8),
                       if (!loading && groups.isEmpty) const Text('Vous ne faites partie d’aucun groupe.'),
                       for (var index = 0; index < (loading ? 3 : groups.length); index++)
-                        ListTile(
+                        Container(
+                          decoration: BoxDecoration(
+                            border: Border(left: BorderSide(color: primary, width: 2)),
+                          ),
+                          child: ListTile(
                           onTap: loading || groups[index].id == null ? null : () => _openGroup(context, groups[index]),
-                          contentPadding: EdgeInsets.zero,
-                          trailing: loading
-                              ? const PulsingPlaceholder(width: 24, height: 24)
-                              : Icon(Icons.group_rounded, color: primary),
+                          contentPadding: const EdgeInsets.only(left: 16, right: 16),
+                          textColor: Theme.of(context).colorScheme.onSurfaceVariant,
                           title: loading
                               ? const Align(
                                   alignment: Alignment.centerLeft,
@@ -127,6 +129,7 @@ class ProfilePage extends StatelessWidget {
                                 )
                               : Text(groups[index].name ?? 'Groupe'),
                           subtitle: !loading && groups[index].owner == user?.id ? const Text('Propriétaire') : null,
+                          ),
                         ),
                       const SizedBox(height: 8),
                       ListTile(
