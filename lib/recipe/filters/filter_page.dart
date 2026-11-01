@@ -9,16 +9,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class FilterPage extends StatefulWidget {
   const FilterPage({super.key});
 
-  static const List<String> categories = [
-    "Apéritif",
-    "Entrée",
-    "Plat",
-    "Fromage",
-    "Dessert",
-    "Petit-déjeuner",
-    "Boisson",
-    "Sauce",
-  ];
+  static const List<String> categories = ["Apéritif", "Entrée", "Plat", "Fromage", "Dessert", "Petit-déjeuner", "Boisson", "Sauce"];
 
   static const List<RecipeTag> tags = [RecipeTag.vegetarien, RecipeTag.vegan, RecipeTag.alcool, RecipeTag.sansgluten, RecipeTag.thermomix];
 
@@ -35,9 +26,7 @@ class _FilterPageState extends State<FilterPage> {
   void initState() {
     super.initState();
     creatorController.text = context.read<FilterCubit>().state.filter.creator ?? '';
-    ingredientsController = TextEditingController(
-      text: (context.read<FilterCubit>().state.filter.ingredients ?? []).join(', '),
-    );
+    ingredientsController = TextEditingController(text: (context.read<FilterCubit>().state.filter.ingredients ?? []).join(', '));
   }
 
   @override
@@ -70,26 +59,29 @@ class _FilterPageState extends State<FilterPage> {
                   onChanged: authState is AuthenticationLoggedIn && favorites.isLoaded
                       ? (value) => context.read<FilterCubit>().updateFavoritesOnly(value, ids: favorites.ids)
                       : null,
-                  subtitle: authState is! AuthenticationLoggedIn
-                      ? const Text('Connectez-vous pour retrouver vos favoris.') : null,
+                  subtitle: authState is! AuthenticationLoggedIn ? const Text('Connectez-vous pour retrouver vos favoris.') : null,
                 );
               },
             ),
-            ExpansionTile(
-              initiallyExpanded: true,
-              title: Text('Catégories', style: Theme.of(context).textTheme.titleMedium),
-              children: FilterPage.categories.map((category) {
-                final isSelected = context.select(
-                  (FilterCubit cubit) => cubit.state.filter.categories?.contains(category) ?? false,
+            const SizedBox(height: 16),
+            Text('Catégories', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 8),
+            BlocBuilder<FilterCubit, FilterState>(
+              builder: (context, state) {
+                return Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  children: FilterPage.categories
+                      .map(
+                        (category) => FilterChip(
+                          label: Text(category),
+                          selected: state.filter.categories?.contains(category) ?? false,
+                          onSelected: (selected) => context.read<FilterCubit>().updateFilteredCategories(category, selected),
+                        ),
+                      )
+                      .toList(),
                 );
-                return CheckboxListTile(
-                  title: Text(category),
-                  value: isSelected,
-                  onChanged: (selected) {
-                    context.read<FilterCubit>().updateFilteredCategories(category, selected ?? false);
-                  },
-                );
-              }).toList(),
+              },
             ),
             SizedBox(height: 16),
             Text('Créé par', style: Theme.of(context).textTheme.titleMedium),
@@ -115,10 +107,7 @@ class _FilterPageState extends State<FilterPage> {
               controller: creatorController,
               decoration: InputDecoration(
                 hintText: "Nom du créateur...",
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
                 isDense: true,
                 filled: true,
                 enabled: !isCreatorSelf,
@@ -131,29 +120,28 @@ class _FilterPageState extends State<FilterPage> {
             SizedBox(height: 16),
             BlocBuilder<FilterCubit, FilterState>(
               builder: (context, state) {
-                final text = state.filter.totalTime == 24 || state.filter.totalTime == null
-                    ? "Pas de limite"
-                    : "${state.filter.totalTime}h";
+                final text = state.filter.totalTime == 24 || state.filter.totalTime == null ? "Pas de limite" : "${state.filter.totalTime}h";
                 return Text('Temps total maximum : $text', style: Theme.of(context).textTheme.titleMedium);
               },
             ),
             MaxTimeSlider(totalTimeValue: totalTimeValue),
             SizedBox(height: 16),
+            Text('Caractéristiques', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 8),
             BlocBuilder<FilterCubit, FilterState>(
               builder: (context, state) {
-                return ExpansionTile(
-                  initiallyExpanded: true,
-                  title: Text('Caractéristiques', style: Theme.of(context).textTheme.titleMedium),
-                  children: FilterPage.tags.map((tag) {
-                    final isSelected = state.filter.tags?.contains(tag) ?? false;
-                    return CheckboxListTile(
-                      title: Text(tag.displayName),
-                      value: isSelected,
-                      onChanged: (selected) {
-                        context.read<FilterCubit>().updateFilteredTags(tag, selected ?? false);
-                      },
-                    );
-                  }).toList(),
+                return Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  children: FilterPage.tags
+                      .map(
+                        (tag) => FilterChip(
+                          label: Text(tag.displayName),
+                          selected: state.filter.tags?.contains(tag) ?? false,
+                          onSelected: (selected) => context.read<FilterCubit>().updateFilteredTags(tag, selected),
+                        ),
+                      )
+                      .toList(),
                 );
               },
             ),
@@ -166,10 +154,7 @@ class _FilterPageState extends State<FilterPage> {
               decoration: InputDecoration(
                 hintText: "Ex. : tomate, oignon",
                 helperText: 'Séparez les ingrédients par des virgules.',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
                 isDense: true,
                 filled: true,
                 fillColor: Theme.of(context).colorScheme.surfaceContainer,
@@ -186,12 +171,17 @@ class _FilterPageState extends State<FilterPage> {
                     Text('Groupes', style: Theme.of(context).textTheme.titleMedium),
                     const SizedBox(height: 8),
                     Wrap(
+                      runSpacing: 4,
                       spacing: 8,
-                      children: groups.map((group) => FilterChip(
-                        label: Text(group.name ?? 'Groupe'),
-                        selected: state.filter.groups?.contains(group.id) ?? false,
-                        onSelected: (selected) => context.read<FilterCubit>().updateFilteredGroup(group.id!, selected),
-                      )).toList(),
+                      children: groups
+                          .map(
+                            (group) => FilterChip(
+                              label: Text(group.name ?? 'Groupe'),
+                              selected: state.filter.groups?.contains(group.id) ?? false,
+                              onSelected: (selected) => context.read<FilterCubit>().updateFilteredGroup(group.id!, selected),
+                            ),
+                          )
+                          .toList(),
                     ),
                   ],
                 );
