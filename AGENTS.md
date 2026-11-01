@@ -51,4 +51,4 @@ For a requested refactor, simplify the code in place when practical. Avoid intro
 
 ## Modification and verification workflow
 
-For requested modifications, work “blindly”: do not run the app or tests, add tests, or format files. Inspect the relevant implementation before editing and keep changes focused. The user validates behavior by running the app and reports issues. State clearly when runtime behavior was not verified. If the user explicitly asks to test or verify, follow that instruction for the requested checks.
+For requested modifications, work “blindly”: do not run the app or tests, or add tests files. Inspect the relevant implementation before editing and keep changes focused. The user validates behavior by running the app and reports issues. State clearly when runtime behavior was not verified. If the user explicitly asks to test or verify, follow that instruction for the requested checks.
