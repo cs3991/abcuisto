@@ -232,11 +232,14 @@ class _AddRecipePageState extends State<AddRecipePage> {
                                 key: ValueKey(modifiedRecipe.ingredientCategories[i].index),
                                 category: modifiedRecipe.ingredientCategories[i],
                                 categoryIndex: i,
+                                showCategory: modifiedRecipe.ingredientCategories.length > 1,
                               ),
                             TextButton.icon(
                               onPressed: cubit.addCategory,
-                              icon: const Icon(Icons.add),
-                              label: const Text("Ajouter une catégorie d'ingrédients"),
+                              icon: Icon(modifiedRecipe.ingredientCategories.length > 1 ? Icons.add_rounded : Icons.folder_open_rounded),
+                              label: Text(modifiedRecipe.ingredientCategories.length > 1
+                                  ? "Ajouter une catégorie d'ingrédients"
+                                  : 'Organiser les ingrédients en catégories'),
                             ),
                             const SizedBox(height: 24),
                             const SectionTitle(title: 'Étapes'),
@@ -305,9 +308,10 @@ class SectionTitle extends StatelessWidget {
 class IngredientCategoryWidget extends StatelessWidget {
   final RecipeIngredientCategory category;
   final int categoryIndex;
+  final bool showCategory;
   static const units = ['g', 'kg', 'mg', 'L', 'cL', 'mL', 'pièce(s)', 'cuillère à café', 'cuillère à soupe', 'pincée(s)'];
 
-  const IngredientCategoryWidget({super.key, required this.category, required this.categoryIndex});
+  const IngredientCategoryWidget({super.key, required this.category, required this.categoryIndex, required this.showCategory});
 
   @override
   Widget build(BuildContext context) {
@@ -315,6 +319,7 @@ class IngredientCategoryWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (showCategory) ...[
         Row(
           children: [
             Expanded(
@@ -333,6 +338,7 @@ class IngredientCategoryWidget extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
+        ],
         ReorderableListView(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),

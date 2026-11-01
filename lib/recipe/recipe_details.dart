@@ -779,12 +779,13 @@ class _ServingsDialogState extends State<_ServingsDialog> {
                 const SizedBox(height: 32),
                 const Text("À partir d’un ingrédient : indiquez la quantité dont vous disposez d'un ingrédient"),
                 for (final category in recipe.ingredientCategories) ...[
-                  if (category.name.isNotEmpty)
+                  if (recipe.ingredientCategories.length > 1 && category.name.isNotEmpty) ...[
                     const SizedBox(height: 12),
                     Padding(
                       padding: const EdgeInsets.only(top: 12),
                       child: Text(category.name, style: Theme.of(context).textTheme.labelLarge),
                     ),
+                  ],
                   for (final ingredient in category.ingredients) ...[
                     ListTile(
                       minTileHeight: 24,
@@ -825,7 +826,7 @@ class IngredientView extends StatelessWidget {
     var children = <Widget>[];
     for (var categoryIndex = 0; categoryIndex < (categories?.length ?? 1); categoryIndex++) {
       final ingredientCategory = categories?[categoryIndex];
-      children.add(
+      if (categories == null || categories.length > 1) children.add(
         Padding(
           padding: const EdgeInsets.only(left: 4, top: 12, bottom: 4),
           child: ingredientCategory == null

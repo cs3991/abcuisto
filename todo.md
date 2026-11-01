@@ -1,5 +1,7 @@
 # Points à améliorer
 
+- [x] Catégorie d’ingrédients unique (`add_recipe_page.dart`, `add_recipe_cubit.dart`, `recipe_details.dart`) : masquer son champ et son titre tant qu’elle est seule ; à la création comme à la modification, nommer la catégorie unique conservée avec le nom de la recette. Le sélecteur d’adaptation des quantités suit la même règle d’affichage. Validation dans l’application à effectuer.
+
 - [x] Saisie des ingrédients sur téléphone (`lib/recipe/add_recipe/add_recipe_page.dart`, `IngredientCategoryWidget`) : la quantité (78 px), l’unité (112 px), la poignée et la suppression sont sur la même ligne que le nom, qui reçoit seulement la largeur restante et devient illisible. Disposition sur deux lignes ajoutée sous 500 px de largeur disponible, avec poignée et suppression centrées sur l’ensemble. Le sélecteur d’unité occupe deux tiers de la seconde ligne ; validation visuelle dans l’application à effectuer.
 
 - [ ] Synchronisation du curseur de durée (`lib/recipe/filters/filter_page.dart`, `MaxTimeSlider`) : sa valeur locale est initialisée à la création du widget mais n’est pas resynchronisée lorsque `totalTimeValue` change dans le parent. Prévoir une synchronisation avec le filtre du Cubit hors glissement pour éviter un curseur décalé après une modification externe du filtre.
