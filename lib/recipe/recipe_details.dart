@@ -1,4 +1,4 @@
-import 'favorite_button.dart';
+import 'favorites_cubit.dart';
 import 'package:abcuisto/recipe/add_recipe/add_recipe_page.dart';
 import 'package:abcuisto/recipe/comment_cubit.dart';
 import 'package:abcuisto/recipe/recipe_cubit.dart';
@@ -20,7 +20,7 @@ import '../pulsing_placeholder.dart';
 import 'filters/filter_cubit.dart';
 import 'recipe_quantities_cubit.dart';
 
-enum _RecipeAction { edit, share, link, delete }
+enum _RecipeAction { favorite, edit, share, link, delete }
 
 class RecipeDetailsPage extends StatelessWidget {
   // final Recipe recipe;
@@ -32,6 +32,10 @@ class RecipeDetailsPage extends StatelessWidget {
     final recipe = state.recipe;
     final link = Uri.https(AppConfig.instance.flavor == AppFlavor.prod ? 'abcuisto.fr' : 'dev.abcuisto.fr', '/recette/${recipe.id}').toString();
     switch (action) {
+      case _RecipeAction.favorite:
+        final cubit = context.read<FavoritesCubit>();
+        cubit.state.isLoaded ? cubit.toggleFavorite(recipe.id) : cubit.reload();
+        return;
       case _RecipeAction.edit:
         Navigator.push(context, MaterialPageRoute(builder: (_) => AddRecipePage(initialRecipe: recipe)));
         return;
@@ -120,54 +124,74 @@ class RecipeDetailsPage extends StatelessWidget {
                           builder: (context, state) {
                             return Row(
                               children: [
-                                if (recipe != null) FavoriteButton(recipeId: recipe.id),
-                                PopupMenuButton<_RecipeAction>(
-                                  icon: const Icon(Icons.more_vert_rounded),
-                                  tooltip: 'Options de la recette',
-                                  position: PopupMenuPosition.under,
-                                  constraints: const BoxConstraints(minWidth: 280, maxWidth: 360),
-                                  shape: const RoundedRectangleBorder(borderRadius: BorderRadiusGeometry.all(Radius.circular(8))),
-                                  color: Theme.of(context).colorScheme.surface,
-                                  surfaceTintColor: Colors.transparent,
-                                  enabled: recipeState != null,
-                                  onSelected: (action) => _handleAction(context, recipeState!, action),
-                                  itemBuilder: (context) => [
-                                    if (recipeState?.canEdit == true)
-                                      const PopupMenuItem(
-                                        value: _RecipeAction.edit,
-                                        child: _RecipeActionTile(
-                                          title: 'Éditer',
-                                          description: 'Modifier les ingrédients et les étapes.',
-                                          icon: Icons.edit_rounded,
-                                        ),
-                                      ),
-                                    const PopupMenuItem(
-                                      value: _RecipeAction.share,
-                                      child: _RecipeActionTile(
-                                        title: 'Partager',
-                                        description: 'Envoyer cette recette à vos proches.',
-                                        icon: Icons.share_rounded,
-                                      ),
-                                    ),
-                                    const PopupMenuItem(
-                                      value: _RecipeAction.link,
-                                      child: _RecipeActionTile(
-                                        title: 'Lien vers la recette',
-                                        description: 'Copier le lien dans le presse-papiers.',
-                                        icon: Icons.link_rounded,
-                                      ),
-                                    ),
-                                    if (recipeState?.canDelete == true)
+                                BlocBuilder<FavoritesCubit, FavoritesState>(
+                                  builder: (context, favorites) {
+                                    final selected = recipe != null && favorites.ids.contains(recipe.id);
+                                    final busy = favorites.isLoading || (recipe != null && favorites.pendingIds.contains(recipe.id));
+                                    return PopupMenuButton<_RecipeAction>(
+                                    icon: const Icon(Icons.more_vert_rounded),
+                                    tooltip: 'Options de la recette',
+                                    position: PopupMenuPosition.under,
+                                    constraints: const BoxConstraints(minWidth: 280, maxWidth: 360),
+                                    shape: const RoundedRectangleBorder(borderRadius: BorderRadiusGeometry.all(Radius.circular(8))),
+                                    color: Theme.of(context).colorScheme.surface,
+                                    surfaceTintColor: Colors.transparent,
+                                    enabled: recipeState != null,
+                                    onSelected: (action) => _handleAction(context, recipeState!, action),
+                                    itemBuilder: (context) => [
                                       PopupMenuItem(
-                                        value: _RecipeAction.delete,
+                                        value: _RecipeAction.favorite,
+                                        enabled: state is AuthenticationLoggedIn && !busy,
                                         child: _RecipeActionTile(
-                                          title: 'Supprimer',
-                                          description: 'Supprimer définitivement cette recette.',
-                                          icon: Icons.delete_rounded,
-                                          color: Theme.of(context).colorScheme.error,
+                                          title: selected ? 'Retirer des favoris' : 'Ajouter aux favoris',
+                                          description: state is! AuthenticationLoggedIn
+                                              ? 'Connectez-vous pour gérer vos favoris.'
+                                              : busy
+                                                  ? 'Chargement des favoris…'
+                                                  : !favorites.isLoaded
+                                                      ? 'Réessayer de charger les favoris.'
+                                                      : 'Retrouver cette recette dans vos favoris.',
+                                          icon: selected ? Icons.favorite_rounded : Icons.favorite_border_rounded,
                                         ),
                                       ),
-                                  ],
+                                      if (recipeState?.canEdit == true)
+                                        const PopupMenuItem(
+                                          value: _RecipeAction.edit,
+                                          child: _RecipeActionTile(
+                                            title: 'Éditer',
+                                            description: 'Modifier les ingrédients et les étapes.',
+                                            icon: Icons.edit_rounded,
+                                          ),
+                                        ),
+                                      const PopupMenuItem(
+                                        value: _RecipeAction.share,
+                                        child: _RecipeActionTile(
+                                          title: 'Partager',
+                                          description: 'Envoyer cette recette à vos proches.',
+                                          icon: Icons.share_rounded,
+                                        ),
+                                      ),
+                                      const PopupMenuItem(
+                                        value: _RecipeAction.link,
+                                        child: _RecipeActionTile(
+                                          title: 'Lien vers la recette',
+                                          description: 'Copier le lien dans le presse-papiers.',
+                                          icon: Icons.link_rounded,
+                                        ),
+                                      ),
+                                      if (recipeState?.canDelete == true)
+                                        PopupMenuItem(
+                                          value: _RecipeAction.delete,
+                                          child: _RecipeActionTile(
+                                            title: 'Supprimer',
+                                            description: 'Supprimer définitivement cette recette.',
+                                            icon: Icons.delete_rounded,
+                                            color: Theme.of(context).colorScheme.error,
+                                          ),
+                                        ),
+                                    ],
+                                    );
+                                  },
                                 ),
                                 IconButton(
                                   icon: Icon(state is AuthenticationLoggedIn ? Icons.person_rounded : Icons.login_rounded),
