@@ -12,6 +12,7 @@ import 'package:transparent_pointer/transparent_pointer.dart';
 import '../login/authentication_cubit.dart';
 import '../login/login_page.dart';
 import '../profile/profile_page.dart';
+import '../profile/ingredient_prices/ingredient_prices_page.dart';
 import '../models/abcuisto_repository.dart';
 import '../models/recipe.dart';
 import '../models/ingredient.dart';
@@ -89,15 +90,33 @@ class RecipeDetailsPage extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => BlocProvider(
+    create: (context) {
+      final current = context.read<RecipeCubit>().state;
+      return RecipeQuantitiesCubit(context.read<AbcuistoRepository>())
+        ..setRecipe(current is RecipeLoaded ? current.recipe : null);
+    },
+    child: Builder(builder: _buildPage),
+  );
+
+  Widget _buildPage(BuildContext context) {
     return BlocListener<AuthenticationCubit, AuthenticationState>(
       listener: (context, state) {
+        if (state is AuthenticationLoggedIn) {
+          context.read<RecipeQuantitiesCubit>().loadPrices();
+        } else {
+          context.read<RecipeQuantitiesCubit>().clearPrices();
+        }
         if (state is AuthenticationLoggedIn || state is AuthenticationLoggedOut) {
           context.read<RecipeCubit>().refreshPermissions();
         }
       },
       child: BlocConsumer<RecipeCubit, RecipeState>(
         listener: (context, state) {
+          if (state is RecipeLoaded) context.read<RecipeQuantitiesCubit>().setRecipe(state.recipe);
+          if (state is RecipeLoading || state is RecipeError || state is RecipeDeleted) {
+            context.read<RecipeQuantitiesCubit>().setRecipe(null);
+          }
           if (state is RecipeDeleted) {
             context.read<FilterCubit>().update();
             final messenger = ScaffoldMessenger.of(context);
@@ -203,6 +222,7 @@ class RecipeDetailsPage extends StatelessWidget {
                                       await Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfilePage()));
                                       if (!context.mounted) return;
                                       context.read<RecipeCubit>().refreshPermissions();
+                                      context.read<RecipeQuantitiesCubit>().loadPrices();
                                     }
                                   },
                                 ),
@@ -332,11 +352,7 @@ class RecipeDetails extends StatelessWidget {
                           const PulsingPlaceholder(width: 200, height: 24),
                           const IngredientView(recipe: null),
                         ] else
-                          BlocProvider(
-                            key: ObjectKey(recipe),
-                            create: (_) => RecipeQuantitiesCubit(),
-                            child: _RecipeQuantities(recipe: recipe),
-                          ),
+                          _RecipeQuantities(recipe: recipe),
                         SizedBox(height: 12),
                         Text("Instructions", style: Theme.of(context).textTheme.titleMedium),
                         SizedBox(height: 8),
@@ -698,9 +714,106 @@ class _RecipeQuantities extends StatelessWidget {
                 label: const Text('Quantités d’origine'),
               ),
             IngredientView(recipe: recipe, factor: state.factor),
+            const SizedBox(height: 4),
+            _RecipeCost(state: state),
           ],
         );
       },
+    );
+  }
+}
+
+class _RecipeCost extends StatefulWidget {
+  final RecipeQuantitiesState state;
+
+  const _RecipeCost({required this.state});
+
+  @override
+  State<_RecipeCost> createState() => _RecipeCostState();
+}
+
+class _RecipeCostState extends State<_RecipeCost> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final state = widget.state;
+    final authenticated = context.select((AuthenticationCubit cubit) => cubit.state is AuthenticationLoggedIn);
+    final total = state.totalCost;
+    final label = !authenticated
+        ? 'Coût : se connecter'
+        : switch (state.priceStatus) {
+            RecipePriceStatus.loading => 'Coût : chargement…',
+            RecipePriceStatus.success when state.pricedIngredients > 0 && total != null =>
+              'Coût : ${total.toStringAsFixed(2).replaceAll('.', ',')} €${state.unpricedIngredients.isEmpty ? '' : ' (partiel)'}',
+            _ => 'Coût : indisponible',
+          };
+    final discreetStyle = Theme.of(context).textTheme.bodySmall?.copyWith(
+      color: Theme.of(context).colorScheme.onSurfaceVariant,
+    );
+    return Material(
+      type: MaterialType.transparency,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Semantics(
+            button: true,
+            expanded: _expanded,
+            child: InkWell(
+              onTap: () => setState(() => _expanded = !_expanded),
+              borderRadius: BorderRadius.circular(4),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(child: Text(label, style: discreetStyle)),
+                    const SizedBox(width: 4),
+                    Icon(_expanded ? Icons.expand_less_rounded : Icons.expand_more_rounded,
+                      size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          if (_expanded) ...[
+            if (!authenticated)
+              const Text('Connectez-vous et renseignez vos prix dans le profil pour estimer le coût de cette recette.')
+            else ...[
+              if (state.priceStatus == RecipePriceStatus.loading)
+                const Padding(padding: EdgeInsets.symmetric(vertical: 8), child: LinearProgressIndicator()),
+              if (state.priceStatus == RecipePriceStatus.failure) ...[
+                Text(state.priceError ?? 'Impossible de charger les prix.', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                TextButton(onPressed: context.read<RecipeQuantitiesCubit>().loadPrices, child: const Text('Réessayer')),
+              ],
+              if (state.priceStatus == RecipePriceStatus.success) ...[
+                if (state.pricedIngredients == 0)
+                  const Text('Coût indisponible : aucun ingrédient chiffré.')
+                else if (total == null)
+                  const Text('Coût indisponible : les quantités dépassent les limites de calcul.')
+                else
+                  Text(state.unpricedIngredients.isEmpty
+                    ? 'Estimation selon mes prix, pour les quantités affichées.'
+                    : 'Estimation partielle selon mes prix, pour les quantités affichées.'),
+                if (state.unpricedIngredients.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text('${state.unpricedIngredients.length} ${state.unpricedIngredients.length == 1 ? 'ingrédient non chiffré' : 'ingrédients non chiffrés'}'),
+                  for (final reason in state.unpricedIngredients)
+                    Text(reason, style: discreetStyle),
+                ],
+              ],
+              TextButton.icon(
+                icon: const Icon(Icons.euro_rounded),
+                label: const Text('Mes prix d’ingrédients'),
+                onPressed: () async {
+                  await Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const IngredientPricesPage()));
+                  if (context.mounted) context.read<RecipeQuantitiesCubit>().loadPrices();
+                },
+              ),
+            ],
+          ],
+        ],
+      ),
     );
   }
 }
