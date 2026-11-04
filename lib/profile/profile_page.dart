@@ -7,6 +7,7 @@ import '../models/recipe.dart';
 import '../recipe/filters/filter_cubit.dart';
 import '../recipe/recipe_cubit.dart';
 import 'profile_cubit.dart';
+import 'ingredient_prices/ingredient_prices_page.dart';
 import 'edit_profile_dialog.dart';
 import 'groups/create_group_dialog.dart';
 import 'groups/join_group_dialog.dart';
@@ -161,7 +162,16 @@ class ProfilePage extends StatelessWidget {
                         },
                       ),
                     ],
-                    const SizedBox(height: 32),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      enabled: !loading && user != null,
+                      title: const Text('Mes prix d’ingrédients'),
+                      subtitle: const Text('Renseigner mes prix au kilo, au litre ou à la pièce.'),
+                      trailing: Icon(Icons.euro_rounded, color: primary),
+                      onTap: loading || user == null ? null : () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(builder: (_) => const IngredientPricesPage()),
+                      ),
+                    ),
                     BlocBuilder<ThemeCubit, ThemeState>(
                       builder: (context, themeState) => Column(
                         crossAxisAlignment: CrossAxisAlignment.start,

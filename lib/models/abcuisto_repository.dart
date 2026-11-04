@@ -214,7 +214,19 @@ class AbcuistoRepository extends ChangeNotifier {
   Future<dynamic> quitGroup({required String groupId, required String memberId}) =>
       _post('/api/Groups/quitGroup', {'id': groupId, 'memberId': memberId});
 
-  Future<dynamic> getIngredientsPrices() => _get('/api/Prices/getIngredients');
+  Future<List<IngredientPriceInput>> getIngredientsPrices() async {
+    final response = await _get('/api/Prices/getIngredients');
+    final ingredients = response is Map<String, dynamic> ? response['ingredients'] : response;
+    if (ingredients is! List) {
+      throw const FormatException('Réponse invalide : liste des prix manquante.');
+    }
+    return List.unmodifiable(ingredients.map((value) {
+      if (value is! Map<String, dynamic>) {
+        throw const FormatException('Réponse invalide : prix d’ingrédient mal formé.');
+      }
+      return IngredientPriceInput.fromJson(value);
+    }));
+  }
 
   Future<dynamic> editIngredientsPrices({required List<IngredientPriceInput> ingredients}) =>
       _post('/api/Prices/editIngredients', {'ingredients': ingredients.map((ingredient) => ingredient.toJson()).toList()});
@@ -417,6 +429,19 @@ class IngredientPriceInput {
   final double price;
 
   const IngredientPriceInput({this.id, this.name, this.unit, required this.price});
+
+  factory IngredientPriceInput.fromJson(Map<String, dynamic> json) {
+    final price = json['price'];
+    if (price is! num || !price.isFinite || price < 0) {
+      throw const FormatException('Réponse invalide : prix d’ingrédient invalide.');
+    }
+    return IngredientPriceInput(
+      id: json['id'] as String?,
+      name: json['name'] as String?,
+      unit: json['unit'] as String?,
+      price: price.toDouble(),
+    );
+  }
 
   Map<String, dynamic> toJson() => {if (id != null) 'id': id, if (name != null) 'name': name, if (unit != null) 'unit': unit, 'price': price};
 }
