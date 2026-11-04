@@ -637,23 +637,32 @@ class _RecipeQuantities extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                Expanded(
-                  child: Text(
-                    servings == null ? 'Ingrédients' : 'Ingrédients pour ${_formatQuantity(servings)} $label',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
+                Text(
+                  servings == null ? 'Ingrédients ' : 'Ingrédients pour ',
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
-                IconButton(
-                  icon: const Icon(Icons.edit_rounded),
-                  tooltip: 'Adapter les quantités',
-                  onPressed: () => showDialog<void>(
+                InkWell(
+                  onTap: () => showDialog<void>(
                     context: context,
                     builder: (_) => BlocProvider.value(
                       value: context.read<RecipeQuantitiesCubit>(),
                       child: _ServingsDialog(recipe: recipe, factor: state.factor),
                     ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (servings != null)
+                        Text(
+                          '${_formatQuantity(servings)} $label',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Theme.of(context).colorScheme.primary),
+                        ),
+                      const SizedBox(width: 4),
+                      Icon(Icons.edit_rounded, size: Theme.of(context).textTheme.titleMedium?.fontSize, color: Theme.of(context).colorScheme.onSurfaceVariant.withAlpha(150)),
+                    ],
                   ),
                 ),
               ],
