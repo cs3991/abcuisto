@@ -4,7 +4,7 @@
     "target": {
       "namespace": "android_app",
       "package_name": "fr.abcuisto.app",
-      "sha256_cert_fingerprints": ["7B:56:F4:3B:8C:15:A2:85:8D:E4:2D:2E:F3:A3:8A:43:16:DD:9E:66:C6:06:39:E4:9A:59:51:58:9D:46:26:B2"]
+      "sha256_cert_fingerprints": ["93:32:4A:2E:37:64:79:A9:57:86:36:37:C4:84:55:B9:2C:E0:F8:E5:17:13:B3:92:92:D4:09:F8:51:D2:43:EF"]
     }
   }
 ]

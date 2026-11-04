@@ -51,10 +51,11 @@ Le fichier `production/nginx.conf` conserve le frontend et ajoute deux routes
 exactes pour les fichiers d'association, servies en JSON. Un fichier absent
 renvoie une 404 plutôt que la page HTML de l'application.
 
-`production/assetlinks.json` utilise l'empreinte de la clé debug locale extraite
-le 29 octobre 2026. Le modèle utilise désormais `fr.abcuisto.app`, mais cette
-modification locale reste à déployer sur le serveur. Pour les installations Google
-Play, remplacer l’empreinte debug par celle du certificat Play App Signing.
+`production/assetlinks.json` utilise `fr.abcuisto.app` et l’empreinte de signature
+Google Play fournie depuis la Play Console. Ce fichier a été déployé le 1er novembre
+2026 sur `abcuisto.fr` : la réponse HTTPS publique renvoie le même JSON, avec un
+statut 200 et le type `application/json`, sans redirection. Le fichier précédent
+a été sauvegardé à côté sur le serveur sous `assetlinks.json.backup-DATE-HEURE`.
 Pour une installation directe du build release, utiliser celle du keystore local.
 
 Le fichier Android est copié dans `app-links/assetlinks.json` sur le serveur.

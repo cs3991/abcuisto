@@ -16,7 +16,7 @@
 
 - [x] Identifiant Android : `applicationId`, namespace, activité Kotlin et modèles Android App Links alignés sur `fr.abcuisto.app`, identifiant communiqué depuis la Play Console.
 
-- [ ] App Links de production (`docs/app-links/production/assetlinks.json`) : déployer le package `fr.abcuisto.app` et remplacer l’empreinte debug par celle du certificat Play App Signing pour les installations Google Play. Le serveur n’a pas été modifié dans ce jalon.
+- [x] App Links de production (`docs/app-links/production/assetlinks.json`) : package `fr.abcuisto.app` et empreinte Play App Signing déployés sur `abcuisto.fr` le 1er novembre 2026, après sauvegarde du fichier précédent. Réponse HTTPS vérifiée : 200, `application/json`, sans redirection, JSON identique au fichier local. Ouverture effective des liens à valider depuis une installation Google Play.
 
 - [x] Filtres actifs (`lib/recipe/recipes_list.dart`) : afficher les groupes sélectionnés parmi les pastilles récapitulatives de la liste, avec leur nom et la possibilité de les retirer comme les tags et ingrédients.
 
