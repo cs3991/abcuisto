@@ -1,5 +1,11 @@
 # Points à améliorer
 
+- [ ] Cohérence du créateur dénormalisé : le stockage séparé du pseudo et de l'ID du créateur dans `recipes` a été confirmé. Le script `../abcuisto_scripts/apply_recipe_attributions.py` met désormais à jour les deux et permet de réparer les pseudos après le premier import. Validation manuelle à effectuer ; vérifier aussi côté backend la synchronisation lors d'un changement de pseudo utilisateur.
+
+- [ ] Réattribution des recettes (`../abcuisto_scripts/apply_recipe_attributions.py`, `lib/models/recipe.dart:140`, `lib/recipe/recipe_details.dart:363`) : le script modifie uniquement `recipes.creator`, tandis que le texte « Recette créée par » affiche `creatorPseudo` fourni par l'API. Après réattribution en production, l'ancien pseudo reste signalé dans Flutter. Inspecter le backend pour déterminer si `creatorPseudo` est stocké séparément, calculé via une jointure ou mis en cache ; confirmer également l'environnement de l'application. Ne pas supposer le nom d'une colonne SQL à partir du champ JSON, ni corriger la production avant cette vérification.
+
+- [ ] Scripts PostgreSQL (`../abcuisto_scripts/photo_import.py`) : les mises à jour de `recipes` concatènent les noms de recettes et les noms de fichiers dans le SQL. Utiliser des paramètres psycopg2 et son adaptation native des listes pour gérer correctement les caractères spéciaux et éviter l’injection SQL.
+
 - [ ] Anciennes saisies d’ingrédients : la capture fournie montre des noms comme « 80g Beurre » avec une unité structurée égale à la chaîne `null`. Les informations écrites dans le nom ne garantissent pas une quantité ou une unité exploitable pour calculer le coût. Prévoir une correction des données dans l’éditeur ou une migration dédiée, sans deviner silencieusement les valeurs pendant le calcul. Les messages du coût distinguent désormais quantité manquante, unité manquante et unité non prise en charge, sans afficher `null` ; validation dans l’application à effectuer.
 
 - [x] Volet des ingrédients non chiffrés (`lib/recipe/recipe_details.dart`, `_RecipeCost`) : le `ListTile` interne d’`ExpansionTile` déclenche une assertion Flutter car le fond décoré de la recette masque les effets d’encre du `Material` ancêtre. Ajout d’un `Material` transparent directement autour du volet. Validation dans l’application à effectuer.
@@ -53,3 +59,5 @@
   - Après ce découpage, une bande d’un pixel reste signalée : le masque devient désormais entièrement transparent à 94 % de sa largeur, avec une marge transparente jusqu’au bord pour éviter le raccord sur un pixel partiellement masqué. À confirmer dans l’application.
 
   - La capture suivante montre encore la ligne : remplacement du masque de transparence final par un dégradé superposé vers la couleur exacte du fond, opaque avant le bord de l’image. Le masque interne sert uniquement à la transition net/flou. Validation visuelle toujours en attente.
+
+- [x] Effet de touche des cartes de recettes (`lib/recipe/recipes_list.dart`) : la photo et les couches du fondu masquaient l’encre du `Card`, visible uniquement à droite. Surface `Material` transparente et `InkWell` placés au-dessus du contenu, avec le favori au premier plan pour conserver son action indépendante. Rendu à confirmer dans l’application.

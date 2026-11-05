@@ -391,128 +391,138 @@ class _RecipeCardState extends State<RecipeCard> {
           surfaceTintColor: Colors.transparent,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) {
-                    context.read<RecipeCubit>().focusRecipe(recipe);
-                    return RecipeDetailsPage();
-                  },
-                ),
-              );
-            },
-            child: SizedBox(
-              height: height,
-              child: Stack(
-                children: [
-                  Positioned(
-                    left: 0,
-                    top: 0,
-                    bottom: 0,
-                    width: constraints.maxWidth * 0.62,
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        ClipRect(
-                          child: ImageFiltered(
-                            imageFilter: ui.ImageFilter.blur(sigmaX: 8, sigmaY: 8, tileMode: TileMode.clamp),
-                            child: _photo(height),
-                          ),
-                        ),
-                        ShaderMask(
-                          blendMode: BlendMode.dstIn,
-                          shaderCallback: (bounds) => const LinearGradient(
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
-                            stops: [0, 0.45, 0.82, 1],
-                            colors: [Colors.white, Colors.white, Colors.transparent, Colors.transparent],
-                          ).createShader(bounds),
+          child: SizedBox(
+            height: height,
+            child: Stack(
+              children: [
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: constraints.maxWidth * 0.5,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      ClipRect(
+                        child: ImageFiltered(
+                          imageFilter: ui.ImageFilter.blur(sigmaX: 4, sigmaY: 4, tileMode: TileMode.clamp),
                           child: _photo(height),
                         ),
-                        // Cover the image edge with the exact card color instead
-                        // of relying on a transparency mask at the layer boundary.
-                        DecoratedBox(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
-                              stops: const [0, 0.48, 0.94, 1],
-                              colors: [
-                                background.withValues(alpha: 0),
-                                background.withValues(alpha: 0),
-                                background,
-                                background,
-                              ],
-                            ),
+                      ),
+                      ShaderMask(
+                        blendMode: BlendMode.dstIn,
+                        shaderCallback: (bounds) => const LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          stops: [0, 0.45, 0.82, 1],
+                          colors: [Colors.white, Colors.white, Colors.transparent, Colors.transparent],
+                        ).createShader(bounds),
+                        child: _photo(height),
+                      ),
+                      // Cover the image edge with the exact card color instead
+                      // of relying on a transparency mask at the layer boundary.
+                      DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                            stops: const [0, 0.48, 0.94, 1],
+                            colors: [
+                              background.withValues(alpha: 0),
+                              background.withValues(alpha: 0),
+                              background,
+                              background,
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Positioned(
+                  left: constraints.maxWidth * 0.40,
+                  top: 4,
+                  right: 0,
+                  bottom: 0,
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          recipe.name,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.headlineSmall?.copyWith(color: foreground),
+                        ),
+                        const Spacer(),
+                        Align(
+                          alignment: Alignment.bottomRight,
+                          child: Wrap(
+                            alignment: WrapAlignment.end,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            spacing: 12,
+                            runSpacing: 4,
+                            children: [
+                              if (recipe.totalTimeFormatted case final duration?)
+                                Text(
+                                  duration,
+                                  style: theme.textTheme.labelLarge?.copyWith(color: foreground.withValues(alpha: 0.8)),
+                                ),
+                              RatingStars(note: recipe.note, size: 20, color: foreground),
+                            ],
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const Positioned(
-                    top: 0,
-                    left: 0,
-                    width: 60,
-                    height: 60,
-                    child: IgnorePointer(
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: RadialGradient(
-                            center: Alignment.topLeft,
-                            radius: 1.2,
-                            colors: [Color(0x66000000), Colors.transparent],
+                ),
+                Positioned.fill(
+                  child: Material(
+                    type: MaterialType.transparency,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(16),
+                      splashColor: foreground.withValues(alpha: 0.16),
+                      highlightColor: foreground.withValues(alpha: 0.08),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) {
+                              context.read<RecipeCubit>().focusRecipe(recipe);
+                              return RecipeDetailsPage();
+                            },
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 4,
+                  left: 4,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      IgnorePointer(
+                        child: SizedBox.square(
+                          dimension: 36,
+                          child: ClipOval(
+                            child: BackdropFilter(
+                              filter: ui.ImageFilter.blur(sigmaX: 8, sigmaY: 8, tileMode: TileMode.clamp),
+                              child: const ColoredBox(color: Color(0x00000000)),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ),
-                  Positioned(
-                    top: 0,
-                    left: 0,
-                    child: FavoriteButton(recipeId: recipe.id, foregroundColor: Colors.white),
-                  ),
-                  Positioned(
-                    left: constraints.maxWidth * 0.35,
-                    top: 0,
-                    right: 0,
-                    bottom: 0,
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            recipe.name,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.headlineSmall?.copyWith(color: foreground),
-                          ),
-                          const Spacer(),
-                          Align(
-                            alignment: Alignment.bottomRight,
-                            child: Wrap(
-                              alignment: WrapAlignment.end,
-                              crossAxisAlignment: WrapCrossAlignment.center,
-                              spacing: 12,
-                              runSpacing: 4,
-                              children: [
-                                if (recipe.totalTimeFormatted case final duration?)
-                                  Text(
-                                    duration,
-                                    style: theme.textTheme.labelLarge?.copyWith(color: foreground.withValues(alpha: 0.8)),
-                                  ),
-                                RatingStars(note: recipe.note, size: 20, color: foreground),
-                              ],
-                            ),
-                          ),
-                        ],
+                      Material(
+                        type: MaterialType.transparency,
+                        child: FavoriteButton(recipeId: recipe.id, foregroundColor: foreground),
                       ),
-                    ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         );
