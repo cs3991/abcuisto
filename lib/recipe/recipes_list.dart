@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'favorite_button.dart';
 import 'package:abcuisto/login/authentication_cubit.dart';
 import 'package:abcuisto/models/recipe.dart';
@@ -43,7 +45,7 @@ class _RecipePageState extends State<RecipePage> {
               onPressed: () {
                 Navigator.push(context, MaterialPageRoute(builder: (context) => AddRecipePage()));
               },
-              child: const Icon(Icons.add),
+              child: const Icon(Icons.add_rounded),
             );
           }
           return const SizedBox.shrink();
@@ -240,38 +242,15 @@ class _RecipesListState extends State<RecipesList> {
                               ],
                             );
                         },
-                        itemBuilder: (context, item, index) =>
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Padding(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: MediaQuery
-                                      .of(context)
-                                      .size
-                                      .width > 400
-                                      ? (MediaQuery
-                                      .of(context)
-                                      .size
-                                      .width - 400) / 2
-                                      : 0,
-                                ),
-
-                                child: InkWell(
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) {
-                                          context.read<RecipeCubit>().focusRecipe(item);
-                                          return RecipeDetailsPage();
-                                        },
-                                      ),
-                                    );
-                                  },
-                                  child: RecipeCard(recipe: item),
-                                ),
-                              ),
+                        itemBuilder: (context, item, index) => Center(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 760),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              child: RecipeCard(recipe: item),
                             ),
+                          ),
+                        ),
                       ),
                       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                     ),
@@ -286,60 +265,258 @@ class _RecipesListState extends State<RecipesList> {
   }
 }
 
-class RecipeCard extends StatelessWidget {
+class RecipeCard extends StatefulWidget {
   final Recipe recipe;
 
   const RecipeCard({super.key, required this.recipe});
 
   @override
+  State<RecipeCard> createState() => _RecipeCardState();
+}
+
+class _RecipeCardState extends State<RecipeCard> {
+  Color? _averageColor;
+  String? _imageUrl;
+  ImageStream? _imageStream;
+  ImageStreamListener? _imageListener;
+
+  Recipe get recipe => widget.recipe;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _loadImageColor();
+  }
+
+  @override
+  void didUpdateWidget(covariant RecipeCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _loadImageColor();
+  }
+
+  void _loadImageColor() {
+    final url = recipe.documents.firstOrNull?.toString();
+    if (url == _imageUrl) return;
+    _removeImageListener();
+    _imageUrl = url;
+    _averageColor = null;
+    if (url == null) return;
+
+    // A small decode keeps this purely visual calculation inexpensive.
+    final stream = ResizeImage(NetworkImage(url), width: 16, height: 16)
+        .resolve(createLocalImageConfiguration(context));
+    late final ImageStreamListener listener;
+    listener = ImageStreamListener(
+      (info, _) {
+        stream.removeListener(listener);
+        _readImageColor(info, url);
+      },
+      onError: (Object error, StackTrace? stackTrace) {
+        stream.removeListener(listener);
+        // The photo's errorBuilder supplies the visible fallback.
+      },
+    );
+    _imageStream = stream;
+    _imageListener = listener;
+    stream.addListener(listener);
+  }
+
+  Future<void> _readImageColor(ImageInfo info, String url) async {
+    try {
+      final data = await info.image.toByteData(format: ui.ImageByteFormat.rawRgba);
+      if (data == null || !mounted || _imageUrl != url) return;
+      var red = 0.0;
+      var green = 0.0;
+      var blue = 0.0;
+      var weight = 0.0;
+      for (var i = 0; i < data.lengthInBytes; i += 4) {
+        final alpha = data.getUint8(i + 3) / 255;
+        red += data.getUint8(i) * alpha;
+        green += data.getUint8(i + 1) * alpha;
+        blue += data.getUint8(i + 2) * alpha;
+        weight += alpha;
+      }
+      if (weight == 0) return;
+      setState(() {
+        _averageColor = Color.fromARGB(
+          255,
+          (red / weight).round(),
+          (green / weight).round(),
+          (blue / weight).round(),
+        );
+      });
+    } finally {
+      info.dispose();
+    }
+  }
+
+  void _removeImageListener() {
+    final listener = _imageListener;
+    if (listener != null) _imageStream?.removeListener(listener);
+    _imageStream = null;
+    _imageListener = null;
+  }
+
+  @override
+  void dispose() {
+    _removeImageListener();
+    super.dispose();
+  }
+
+  Widget _photo(double height) => recipe.documents.isNotEmpty
+      ? Image.network(
+          recipe.documents.first.toString(),
+          fit: BoxFit.cover,
+          errorBuilder: (context, _, _) => NoImageBuilder(height: height),
+        )
+      : NoImageBuilder(height: height);
+
+  @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            clipBehavior: Clip.antiAlias,
-            borderRadius: const BorderRadius.all(Radius.circular(12)),
-            child: Container(
-              width: MediaQuery
-                  .of(context)
-                  .size
-                  .width,
-              decoration: BoxDecoration(color: Theme
-                  .of(context)
-                  .colorScheme
-                  .secondaryContainer),
-              child: recipe.documents.isNotEmpty
-                  ? Image.network(
-                recipe.documents.first.toString(),
-                height: 200,
-                width: MediaQuery
-                    .of(context)
-                    .size
-                    .width,
-                fit: BoxFit.cover,
-                errorBuilder: (context, _, _) => NoImageBuilder(height: 200),
-              )
-                  : NoImageBuilder(height: 200),
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final background = _averageColor ?? colors.secondaryContainer;
+    final foreground = ThemeData.estimateBrightnessForColor(background) == Brightness.dark
+        ? Colors.white
+        : Colors.black87;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final height = (constraints.maxWidth > 600 ? 190.0 : 160.0) +
+            MediaQuery.textScalerOf(context).scale(80) - 80;
+        return Card(
+          margin: EdgeInsets.zero,
+          elevation: 1,
+          shadowColor: colors.shadow.withValues(alpha: 0.12),
+          color: background,
+          surfaceTintColor: Colors.transparent,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) {
+                    context.read<RecipeCubit>().focusRecipe(recipe);
+                    return RecipeDetailsPage();
+                  },
+                ),
+              );
+            },
+            child: SizedBox(
+              height: height,
+              child: Stack(
+                children: [
+                  Positioned(
+                    left: 0,
+                    top: 0,
+                    bottom: 0,
+                    width: constraints.maxWidth * 0.62,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        ClipRect(
+                          child: ImageFiltered(
+                            imageFilter: ui.ImageFilter.blur(sigmaX: 8, sigmaY: 8, tileMode: TileMode.clamp),
+                            child: _photo(height),
+                          ),
+                        ),
+                        ShaderMask(
+                          blendMode: BlendMode.dstIn,
+                          shaderCallback: (bounds) => const LinearGradient(
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                            stops: [0, 0.45, 0.82, 1],
+                            colors: [Colors.white, Colors.white, Colors.transparent, Colors.transparent],
+                          ).createShader(bounds),
+                          child: _photo(height),
+                        ),
+                        // Cover the image edge with the exact card color instead
+                        // of relying on a transparency mask at the layer boundary.
+                        DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                              stops: const [0, 0.48, 0.94, 1],
+                              colors: [
+                                background.withValues(alpha: 0),
+                                background.withValues(alpha: 0),
+                                background,
+                                background,
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Positioned(
+                    top: 0,
+                    left: 0,
+                    width: 60,
+                    height: 60,
+                    child: IgnorePointer(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: RadialGradient(
+                            center: Alignment.topLeft,
+                            radius: 1.2,
+                            colors: [Color(0x66000000), Colors.transparent],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    child: FavoriteButton(recipeId: recipe.id, foregroundColor: Colors.white),
+                  ),
+                  Positioned(
+                    left: constraints.maxWidth * 0.35,
+                    top: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            recipe.name,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.headlineSmall?.copyWith(color: foreground),
+                          ),
+                          const Spacer(),
+                          Align(
+                            alignment: Alignment.bottomRight,
+                            child: Wrap(
+                              alignment: WrapAlignment.end,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              spacing: 12,
+                              runSpacing: 4,
+                              children: [
+                                if (recipe.totalTimeFormatted case final duration?)
+                                  Text(
+                                    duration,
+                                    style: theme.textTheme.labelLarge?.copyWith(color: foreground.withValues(alpha: 0.8)),
+                                  ),
+                                RatingStars(note: recipe.note, size: 20, color: foreground),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text(recipe.name, style: Theme.of(context).textTheme.headlineMedium),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                FavoriteButton(recipeId: recipe.id),
-                Text(recipe.totalTimeFormatted!, style: Theme.of(context).textTheme.labelLarge),
-                RatingStars(note: recipe.note),
-              ],
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -370,20 +547,25 @@ class NoImageBuilder extends StatelessWidget {
 class RatingStars extends StatelessWidget {
   final double? note;
   final double size;
+  final Color? color;
 
-  const RatingStars({super.key, required this.note, this.size = 24});
+  const RatingStars({super.key, required this.note, this.size = 24, this.color});
 
   @override
   Widget build(BuildContext context) {
+    final starColor = color ?? Colors.orange.withValues(alpha: 0.5);
     return note != null
         ? Row(
-      children: List.generate(
-        5,
-            (index) => index < note!
-            ? Icon(Icons.star_rounded, color: Colors.orange.withValues(alpha: 0.5), size: size)
-            : Icon(Icons.star_border_rounded, color: Colors.orange.withValues(alpha: 0.5), size: size),
-      ),
-    )
-        : Text('Aucune note', style: Theme.of(context).textTheme.labelMedium);
+            mainAxisSize: MainAxisSize.min,
+            children: List.generate(
+              5,
+              (index) => Icon(
+                index < note! ? Icons.star_rounded : Icons.star_border_rounded,
+                color: starColor,
+                size: size,
+              ),
+            ),
+          )
+        : Text('Aucune note', style: Theme.of(context).textTheme.labelMedium?.copyWith(color: color));
   }
 }

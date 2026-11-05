@@ -45,3 +45,11 @@
 - [ ] Contrat API des favoris (`swagger.json`, `/api/User/getFavs`) : la réponse 200 ne décrit aucun schéma. Le client accepte une liste d’identifiants ou d’objets avec `id` ; documenter le format effectif côté serveur pour fiabiliser cette conversion.
 
 - [ ] Migration DSL Android : `android.newDsl=false` reste requis par le plugin Gradle de Flutter 3.47.7. Lors d’une mise à jour Flutter prenant en charge les nouvelles interfaces AGP, retirer ce réglage après validation des plugins ; ne pas le supprimer isolément avec la version actuelle.
+
+- [ ] Contrôleur de recherche (`lib/recipe/search_app_bar.dart`) : `SearchAppBar` est un `StatelessWidget` qui crée un `TextEditingController` sans le libérer. Donner au contrôleur un cycle de vie avec `dispose`, en conservant la synchronisation avec `FilterCubit`.
+
+- [ ] Fondu des photos de la liste (`lib/recipe/recipes_list.dart`) : le flou débordait de la zone couverte par le masque et créait une bande verticale au raccord avec le fond moyen. Ajout d’un `ClipRect` autour de la couche floutée, avant application du masque. Correction visuelle à confirmer dans l’application.
+
+  - Après ce découpage, une bande d’un pixel reste signalée : le masque devient désormais entièrement transparent à 94 % de sa largeur, avec une marge transparente jusqu’au bord pour éviter le raccord sur un pixel partiellement masqué. À confirmer dans l’application.
+
+  - La capture suivante montre encore la ligne : remplacement du masque de transparence final par un dégradé superposé vers la couleur exacte du fond, opaque avant le bord de l’image. Le masque interne sert uniquement à la transition net/flou. Validation visuelle toujours en attente.

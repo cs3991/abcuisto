@@ -6,8 +6,9 @@ import 'favorites_cubit.dart';
 
 class FavoriteButton extends StatelessWidget {
   final String recipeId;
+  final Color? foregroundColor;
 
-  const FavoriteButton({super.key, required this.recipeId});
+  const FavoriteButton({super.key, required this.recipeId, this.foregroundColor});
 
   @override
   Widget build(BuildContext context) {
@@ -21,9 +22,10 @@ class FavoriteButton extends StatelessWidget {
               : !state.isLoaded && !busy ? 'Réessayer de charger les favoris'
               : selected ? 'Retirer des favoris' : 'Ajouter aux favoris',
           icon: busy
-              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+              ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: foregroundColor))
               : Icon(selected ? Icons.favorite_rounded : Icons.favorite_border_rounded),
-          color: selected ? Theme.of(context).colorScheme.primary : null,
+          color: foregroundColor ?? (selected ? Theme.of(context).colorScheme.primary : null),
+          disabledColor: foregroundColor?.withValues(alpha: 0.6),
           onPressed: !loggedIn || busy ? null : () {
             final cubit = context.read<FavoritesCubit>();
             state.isLoaded ? cubit.toggleFavorite(recipeId) : cubit.reload();
