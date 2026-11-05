@@ -745,7 +745,7 @@ class _RecipeCostState extends State<_RecipeCost> {
         : switch (state.priceStatus) {
             RecipePriceStatus.loading => 'Coût : chargement…',
             RecipePriceStatus.success when state.pricedIngredients > 0 && total != null =>
-              'Coût : ${total.toStringAsFixed(2).replaceAll('.', ',')} €${state.unpricedIngredients.isEmpty ? '' : ' (partiel)'}',
+              'Coût : ${total.toStringAsFixed(2).replaceAll('.', ',')} €${state.hasUnpricedIngredients ? ' (partiel)' : ''}',
             _ => 'Coût : indisponible',
           };
     final discreetStyle = Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -787,20 +787,8 @@ class _RecipeCostState extends State<_RecipeCost> {
                 TextButton(onPressed: context.read<RecipeQuantitiesCubit>().loadPrices, child: const Text('Réessayer')),
               ],
               if (state.priceStatus == RecipePriceStatus.success) ...[
-                if (state.pricedIngredients == 0)
-                  const Text('Coût indisponible : aucun ingrédient chiffré.')
-                else if (total == null)
-                  const Text('Coût indisponible : les quantités dépassent les limites de calcul.')
-                else
-                  Text(state.unpricedIngredients.isEmpty
-                    ? 'Estimation selon mes prix, pour les quantités affichées.'
-                    : 'Estimation partielle selon mes prix, pour les quantités affichées.'),
-                if (state.unpricedIngredients.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  Text('${state.unpricedIngredients.length} ${state.unpricedIngredients.length == 1 ? 'ingrédient non chiffré' : 'ingrédients non chiffrés'}'),
-                  for (final reason in state.unpricedIngredients)
-                    Text(reason, style: discreetStyle),
-                ],
+                for (final ingredient in state.ingredientCosts)
+                  Text(_ingredientCostLabel(ingredient, state.factor), style: discreetStyle),
               ],
               TextButton.icon(
                 icon: const Icon(Icons.euro_rounded),
@@ -815,6 +803,12 @@ class _RecipeCostState extends State<_RecipeCost> {
         ],
       ),
     );
+  }
+
+  String _ingredientCostLabel(RecipeIngredientCost ingredient, double factor) {
+    final cost = ingredient.baseCost;
+    if (cost == null) return '${ingredient.name} : ${ingredient.issue ?? 'prix non renseigné'}';
+    return '${ingredient.name} : ${(cost * factor).toStringAsFixed(2).replaceAll('.', ',')} €';
   }
 }
 

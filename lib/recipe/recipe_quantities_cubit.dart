@@ -7,36 +7,45 @@ import '../models/recipe.dart';
 
 enum RecipePriceStatus { initial, loading, success, failure }
 
+class RecipeIngredientCost {
+  final String name;
+  final double? baseCost;
+  final String? issue;
+
+  const RecipeIngredientCost({required this.name, this.baseCost, this.issue});
+}
+
 class RecipeQuantitiesState {
   final double factor;
   final RecipePriceStatus priceStatus;
-  final double baseCost;
-  final int pricedIngredients;
-  final List<String> unpricedIngredients;
+  final List<RecipeIngredientCost> ingredientCosts;
   final String? priceError;
 
   const RecipeQuantitiesState({
     this.factor = 1,
     this.priceStatus = RecipePriceStatus.initial,
-    this.baseCost = 0,
-    this.pricedIngredients = 0,
-    this.unpricedIngredients = const [],
+    this.ingredientCosts = const [],
     this.priceError,
   });
 
   double? get totalCost {
-    final total = baseCost * factor;
+    var total = 0.0;
+    for (final ingredient in ingredientCosts) {
+      if (ingredient.baseCost != null) total += ingredient.baseCost!;
+    }
+    total *= factor;
     return total.isFinite ? total : null;
   }
 
+  int get pricedIngredients => ingredientCosts.where((ingredient) => ingredient.baseCost != null).length;
+  bool get hasUnpricedIngredients => ingredientCosts.any((ingredient) => ingredient.baseCost == null);
+
   RecipeQuantitiesState copyWith({double? factor, RecipePriceStatus? priceStatus,
-    double? baseCost, int? pricedIngredients, List<String>? unpricedIngredients,
+    List<RecipeIngredientCost>? ingredientCosts,
     String? priceError}) => RecipeQuantitiesState(
       factor: factor ?? this.factor,
       priceStatus: priceStatus ?? this.priceStatus,
-      baseCost: baseCost ?? this.baseCost,
-      pricedIngredients: pricedIngredients ?? this.pricedIngredients,
-      unpricedIngredients: unpricedIngredients ?? this.unpricedIngredients,
+      ingredientCosts: ingredientCosts ?? this.ingredientCosts,
       priceError: priceError,
     );
 }
@@ -71,9 +80,7 @@ class RecipeQuantitiesCubit extends Cubit<RecipeQuantitiesState> {
     try {
       final prices = await repository.getIngredientsPrices();
       if (isClosed || request != _priceRequest || token != repository.authToken) return;
-      double total = 0;
-      var count = 0;
-      final missing = <String>[];
+      final ingredientCosts = <RecipeIngredientCost>[];
       for (final ingredient in recipe.ingredientCategories.expand((category) => category.ingredients)) {
         final quantity = ingredient.quantity;
         final name = ingredient.name;
@@ -90,7 +97,8 @@ class RecipeQuantitiesCubit extends Cubit<RecipeQuantitiesState> {
             'calcul impossible avec l’unité « $unit »',
         ];
         if (details.isNotEmpty) {
-          missing.add('$name : ${details.join(', ')}');
+          final issue = details.join(', ');
+          ingredientCosts.add(RecipeIngredientCost(name: name, issue: issue));
           continue;
         }
         // The checks above guarantee a quantity and a supported unit.
@@ -103,22 +111,24 @@ class RecipeQuantitiesCubit extends Cubit<RecipeQuantitiesState> {
             'volume' => 'au litre',
             _ => 'à la pièce',
           };
-          missing.add('$name : ${namedPrices.isEmpty ? 'prix non renseigné' : compatible.isEmpty ? 'prix à renseigner $priceUnit' : 'plusieurs prix pour cet ingrédient'}');
+          final issue = namedPrices.isEmpty ? 'prix non renseigné' : compatible.isEmpty ? 'prix à renseigner $priceUnit' : 'plusieurs prix pour cet ingrédient';
+          ingredientCosts.add(RecipeIngredientCost(name: name, issue: issue));
           continue;
         }
         final price = compatible.single;
         final priceMeasure = _measure(price.unit!)!;
         final cost = quantity * (measure.$2 / priceMeasure.$2) * price.price;
         if (!cost.isFinite) {
-          missing.add('$name : quantité trop grande pour calculer le coût');
+          const issue = 'quantité trop grande pour calculer le coût';
+          ingredientCosts.add(RecipeIngredientCost(name: name, issue: issue));
           continue;
         }
-        total += cost;
-        count++;
+        ingredientCosts.add(RecipeIngredientCost(name: name, baseCost: cost));
       }
+      final result = List<RecipeIngredientCost>.unmodifiable(ingredientCosts);
+      final total = result.fold<double>(0, (sum, ingredient) => sum + (ingredient.baseCost ?? 0));
       if (!total.isFinite) throw const FormatException('Le coût dépasse les limites de calcul.');
-      emit(state.copyWith(priceStatus: RecipePriceStatus.success, baseCost: total,
-        pricedIngredients: count, unpricedIngredients: List.unmodifiable(missing)));
+      emit(state.copyWith(priceStatus: RecipePriceStatus.success, ingredientCosts: result));
     } catch (error) {
       if (isClosed || request != _priceRequest || token != repository.authToken) return;
       emit(state.copyWith(priceStatus: RecipePriceStatus.failure,
