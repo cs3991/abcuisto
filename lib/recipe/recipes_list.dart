@@ -345,11 +345,9 @@ class _RecipeCardState extends State<RecipeCard> {
     _averageColor = null;
     if (url == null) return;
 
-    // A small decode keeps this purely visual calculation inexpensive.
-    final stream = ResizeImage(
-      NetworkImage(url),
-      width: 16,
-      height: 16,
+    // Use the same cache key as Image.network so both share one load.
+    final stream = NetworkImage(
+      url,
     ).resolve(createLocalImageConfiguration(context));
     late final ImageStreamListener listener;
     listener = ImageStreamListener(
@@ -368,8 +366,25 @@ class _RecipeCardState extends State<RecipeCard> {
   }
 
   Future<void> _readImageColor(ImageInfo info, String url) async {
+    ui.Picture? picture;
+    ui.Image? sample;
     try {
-      final data = await info.image.toByteData(
+      // Sample the already loaded photo instead of downloading a second decode.
+      final recorder = ui.PictureRecorder();
+      Canvas(recorder).drawImageRect(
+        info.image,
+        Rect.fromLTWH(
+          0,
+          0,
+          info.image.width.toDouble(),
+          info.image.height.toDouble(),
+        ),
+        const Rect.fromLTWH(0, 0, 16, 16),
+        Paint()..filterQuality = FilterQuality.low,
+      );
+      picture = recorder.endRecording();
+      sample = await picture.toImage(16, 16);
+      final data = await sample.toByteData(
         format: ui.ImageByteFormat.rawRgba,
       );
       if (data == null || !mounted || _imageUrl != url) return;
@@ -393,7 +408,11 @@ class _RecipeCardState extends State<RecipeCard> {
           (blue / weight).round(),
         );
       });
+    } catch (_) {
+      // Keep the theme background if the visual sampling fails.
     } finally {
+      sample?.dispose();
+      picture?.dispose();
       info.dispose();
     }
   }

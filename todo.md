@@ -1,5 +1,7 @@
 # Points à améliorer
 
+- [x] Double chargement des photos de la liste (`lib/recipe/recipes_list.dart`, `_RecipeCardState`) : calcul de couleur et affichage utilisent désormais la même clé de cache `NetworkImage`. L’échantillon de 16 × 16 pixels est créé à partir de l’image déjà chargée, sans second téléchargement. Validation dans l’application à effectuer.
+
 - [ ] Cohérence du créateur dénormalisé : le stockage séparé du pseudo et de l'ID du créateur dans `recipes` a été confirmé. Le script `../abcuisto_scripts/apply_recipe_attributions.py` met désormais à jour les deux et permet de réparer les pseudos après le premier import. Validation manuelle à effectuer ; vérifier aussi côté backend la synchronisation lors d'un changement de pseudo utilisateur.
 
 - [ ] Réattribution des recettes (`../abcuisto_scripts/apply_recipe_attributions.py`, `lib/models/recipe.dart:140`, `lib/recipe/recipe_details.dart:363`) : le script modifie uniquement `recipes.creator`, tandis que le texte « Recette créée par » affiche `creatorPseudo` fourni par l'API. Après réattribution en production, l'ancien pseudo reste signalé dans Flutter. Inspecter le backend pour déterminer si `creatorPseudo` est stocké séparément, calculé via une jointure ou mis en cache ; confirmer également l'environnement de l'application. Ne pas supposer le nom d'une colonne SQL à partir du champ JSON, ni corriger la production avant cette vérification.
