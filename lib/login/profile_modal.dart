@@ -8,7 +8,8 @@ void showProfilePopup(BuildContext context) {
   showDialog(
     context: context,
     builder: (context) {
-      final state = context.read<AuthenticationCubit>().state as AuthenticationLoggedIn;
+      final state =
+          context.read<AuthenticationCubit>().state as AuthenticationLoggedIn;
       return AlertDialog(
         title: Icon(Icons.person_rounded, size: 48),
         content: Text(state.username, textAlign: TextAlign.center),

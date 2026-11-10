@@ -30,31 +30,28 @@ class _RecipePageState extends State<RecipePage> {
     return Scaffold(
       appBar: SearchAppBar(),
       body: RecipesList(),
-      floatingActionButton: BlocBuilder<AuthenticationCubit, AuthenticationState>(
-        builder: (context, state) {
-          if (state is AuthenticationLoggedIn) {
-            return FloatingActionButton(
-              backgroundColor: Theme
-                  .of(context)
-                  .colorScheme
-                  .primary,
-              foregroundColor: Theme
-                  .of(context)
-                  .colorScheme
-                  .onPrimary,
-              onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => AddRecipePage()));
-              },
-              child: const Icon(Icons.add_rounded),
-            );
-          }
-          return const SizedBox.shrink();
-        },
-      ),
+      floatingActionButton:
+          BlocBuilder<AuthenticationCubit, AuthenticationState>(
+            builder: (context, state) {
+              if (state is AuthenticationLoggedIn) {
+                return FloatingActionButton(
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => AddRecipePage()),
+                    );
+                  },
+                  child: const Icon(Icons.add_rounded),
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
     );
   }
 }
-
 
 class RecipesList extends StatefulWidget {
   const RecipesList({super.key});
@@ -69,7 +66,8 @@ class _RecipesListState extends State<RecipesList> {
     return BlocBuilder<FilterCubit, FilterState>(
       builder: (context, state) {
         final groupNames = {
-          for (final group in context.read<FilterCubit>().availableGroups) group.id: group.name ?? 'Groupe',
+          for (final group in context.read<FilterCubit>().availableGroups)
+            group.id: group.name ?? 'Groupe',
         };
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -86,89 +84,129 @@ class _RecipesListState extends State<RecipesList> {
                         FilterChip(
                           label: Text('Filtres'),
                           onSelected: (_) {
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => FilterPage()));
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => FilterPage(),
+                              ),
+                            );
                           },
                         ),
                         const SizedBox(width: 8),
                         if (state.favoritesOnly)
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 2.0,
+                            ),
                             child: InputChip(
                               avatar: const Icon(Icons.favorite_rounded),
                               label: const Text('Favoris uniquement'),
                               deleteIcon: const Icon(Icons.close_rounded),
-                              onDeleted: () => context.read<FilterCubit>().updateFavoritesOnly(false),
+                              onDeleted: () => context
+                                  .read<FilterCubit>()
+                                  .updateFavoritesOnly(false),
                             ),
                           ),
                         ...(state.filter.ingredients ?? []).map(
                           (ingredient) => Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 2.0,
+                            ),
                             child: InputChip(
                               label: Text("Avec : $ingredient"),
                               deleteIcon: const Icon(Icons.close_rounded),
                               onDeleted: () {
-                                context.read<FilterCubit>().removeFilteredIngredient(ingredient);
+                                context
+                                    .read<FilterCubit>()
+                                    .removeFilteredIngredient(ingredient);
                               },
                             ),
                           ),
                         ),
                         ...(state.filter.categories ?? []).map(
-                              (category) => Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                          (category) => Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 2.0,
+                            ),
                             child: InputChip(
                               label: Text(category),
                               onDeleted: () {
-                                context.read<FilterCubit>().updateFilteredCategories(category, false);
+                                context
+                                    .read<FilterCubit>()
+                                    .updateFilteredCategories(category, false);
                               },
                             ),
                           ),
                         ),
-                        ...state.filter.creator != null && state.filter.creator!.isNotEmpty
+                        ...state.filter.creator != null &&
+                                state.filter.creator!.isNotEmpty
                             ? [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 2.0),
-                            child: InputChip(
-                              label: Text('Créé par ${state.filter.creator}'),
-                              onDeleted: () {
-                                context.read<FilterCubit>().updateFilteredCreatorName(null);
-                              },
-                            ),
-                          ),
-                        ]
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 2.0,
+                                  ),
+                                  child: InputChip(
+                                    label: Text(
+                                      'Créé par ${state.filter.creator}',
+                                    ),
+                                    onDeleted: () {
+                                      context
+                                          .read<FilterCubit>()
+                                          .updateFilteredCreatorName(null);
+                                    },
+                                  ),
+                                ),
+                              ]
                             : [],
-                        ...state.filter.totalTime != null && state.filter.totalTime! < 24
+                        ...state.filter.totalTime != null &&
+                                state.filter.totalTime! < 24
                             ? [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 2.0),
-                            child: InputChip(
-                              label: Text('Moins de ${state.filter.totalTime}h'),
-                              onDeleted: () {
-                                context.read<FilterCubit>().updateFilteredMaxTime(null);
-                              },
-                            ),
-                          ),
-                        ]
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 2.0,
+                                  ),
+                                  child: InputChip(
+                                    label: Text(
+                                      'Moins de ${state.filter.totalTime}h',
+                                    ),
+                                    onDeleted: () {
+                                      context
+                                          .read<FilterCubit>()
+                                          .updateFilteredMaxTime(null);
+                                    },
+                                  ),
+                                ),
+                              ]
                             : [],
                         ...(state.filter.tags ?? []).map(
-                              (tag) =>
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 2.0),
-                                child: InputChip(
-                                  label: Text(tag.displayName),
-                                  onDeleted: () {
-                                    context.read<FilterCubit>().updateFilteredTags(tag, false);
-                                  },
-                                ),
-                              ),
+                          (tag) => Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 2.0,
+                            ),
+                            child: InputChip(
+                              label: Text(tag.displayName),
+                              onDeleted: () {
+                                context.read<FilterCubit>().updateFilteredTags(
+                                  tag,
+                                  false,
+                                );
+                              },
+                            ),
+                          ),
                         ),
                         ...(state.filter.groups ?? []).map(
                           (groupId) => Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 2.0,
+                            ),
                             child: InputChip(
                               label: Text(groupNames[groupId] ?? 'Groupe'),
                               deleteIcon: const Icon(Icons.close_rounded),
                               onDeleted: () {
-                                context.read<FilterCubit>().updateFilteredGroup(groupId, false);
+                                context.read<FilterCubit>().updateFilteredGroup(
+                                  groupId,
+                                  false,
+                                );
                               },
                             ),
                           ),
@@ -205,54 +243,59 @@ class _RecipesListState extends State<RecipesList> {
                           ),
                         ),
                         firstPageErrorIndicatorBuilder: (context) {
-                          final state = context
-                              .read<FilterCubit>()
-                              .state;
-                          final isConnectionError = state.pagingState.error is ClientException;
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  isConnectionError ? Icons.signal_wifi_connected_no_internet_4_rounded : Icons.error_outline_rounded,
-                                  color: Theme
-                                      .of(context)
-                                      .colorScheme
-                                      .onSurface
-                                      .withAlpha(100),
-                                  size: 60,
+                          final state = context.read<FilterCubit>().state;
+                          final isConnectionError =
+                              state.pagingState.error is ClientException;
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                isConnectionError
+                                    ? Icons
+                                          .signal_wifi_connected_no_internet_4_rounded
+                                    : Icons.error_outline_rounded,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withAlpha(100),
+                                size: 60,
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 40,
+                                  vertical: 10,
                                 ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
-                                  child: Text(
-                                    isConnectionError
-                                        ? "Connexion au serveur impossible.\nVérifiez la connexion internet."
-                                        : "Impossible de charger les recettes.\nRéessayez dans quelques instants.",
-                                    style: Theme
-                                        .of(context)
-                                        .textTheme
-                                        .bodyMedium,
-                                    textAlign: TextAlign.center,
-                                  ),
+                                child: Text(
+                                  isConnectionError
+                                      ? "Connexion au serveur impossible.\nVérifiez la connexion internet."
+                                      : "Impossible de charger les recettes.\nRéessayez dans quelques instants.",
+                                  style: Theme.of(context).textTheme.bodyMedium,
+                                  textAlign: TextAlign.center,
                                 ),
-                                OutlinedButton(
-                                  onPressed: () => context.read<FilterCubit>().fetchNextPage(),
-                                  child: Text("Réessayer"),
-                                ),
-                              ],
-                            );
+                              ),
+                              OutlinedButton(
+                                onPressed: () =>
+                                    context.read<FilterCubit>().fetchNextPage(),
+                                child: Text("Réessayer"),
+                              ),
+                            ],
+                          );
                         },
                         itemBuilder: (context, item, index) => Center(
                           child: ConstrainedBox(
                             constraints: const BoxConstraints(maxWidth: 760),
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
                               child: RecipeCard(recipe: item),
                             ),
                           ),
                         ),
                       ),
-                      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                      keyboardDismissBehavior:
+                          ScrollViewKeyboardDismissBehavior.onDrag,
                     ),
                   ),
                 ),
@@ -303,8 +346,11 @@ class _RecipeCardState extends State<RecipeCard> {
     if (url == null) return;
 
     // A small decode keeps this purely visual calculation inexpensive.
-    final stream = ResizeImage(NetworkImage(url), width: 16, height: 16)
-        .resolve(createLocalImageConfiguration(context));
+    final stream = ResizeImage(
+      NetworkImage(url),
+      width: 16,
+      height: 16,
+    ).resolve(createLocalImageConfiguration(context));
     late final ImageStreamListener listener;
     listener = ImageStreamListener(
       (info, _) {
@@ -323,7 +369,9 @@ class _RecipeCardState extends State<RecipeCard> {
 
   Future<void> _readImageColor(ImageInfo info, String url) async {
     try {
-      final data = await info.image.toByteData(format: ui.ImageByteFormat.rawRgba);
+      final data = await info.image.toByteData(
+        format: ui.ImageByteFormat.rawRgba,
+      );
       if (data == null || !mounted || _imageUrl != url) return;
       var red = 0.0;
       var green = 0.0;
@@ -376,20 +424,25 @@ class _RecipeCardState extends State<RecipeCard> {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
     final background = _averageColor ?? colors.secondaryContainer;
-    final foreground = ThemeData.estimateBrightnessForColor(background) == Brightness.dark
+    final foreground =
+        ThemeData.estimateBrightnessForColor(background) == Brightness.dark
         ? Colors.white
         : Colors.black87;
     return LayoutBuilder(
       builder: (context, constraints) {
-        final height = (constraints.maxWidth > 600 ? 190.0 : 160.0) +
-            MediaQuery.textScalerOf(context).scale(80) - 80;
+        final height =
+            (constraints.maxWidth > 600 ? 190.0 : 160.0) +
+            MediaQuery.textScalerOf(context).scale(80) -
+            80;
         return Card(
           margin: EdgeInsets.zero,
           elevation: 1,
           shadowColor: colors.shadow.withValues(alpha: 0.12),
           color: background,
           surfaceTintColor: Colors.transparent,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           clipBehavior: Clip.antiAlias,
           child: SizedBox(
             height: height,
@@ -405,7 +458,11 @@ class _RecipeCardState extends State<RecipeCard> {
                     children: [
                       ClipRect(
                         child: ImageFiltered(
-                          imageFilter: ui.ImageFilter.blur(sigmaX: 4, sigmaY: 4, tileMode: TileMode.clamp),
+                          imageFilter: ui.ImageFilter.blur(
+                            sigmaX: 4,
+                            sigmaY: 4,
+                            tileMode: TileMode.clamp,
+                          ),
                           child: _photo(height),
                         ),
                       ),
@@ -415,7 +472,12 @@ class _RecipeCardState extends State<RecipeCard> {
                           begin: Alignment.centerLeft,
                           end: Alignment.centerRight,
                           stops: [0, 0.45, 0.82, 1],
-                          colors: [Colors.white, Colors.white, Colors.transparent, Colors.transparent],
+                          colors: [
+                            Colors.white,
+                            Colors.white,
+                            Colors.transparent,
+                            Colors.transparent,
+                          ],
                         ).createShader(bounds),
                         child: _photo(height),
                       ),
@@ -453,7 +515,9 @@ class _RecipeCardState extends State<RecipeCard> {
                           recipe.name,
                           maxLines: 3,
                           overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.headlineSmall?.copyWith(color: foreground),
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            color: foreground,
+                          ),
                         ),
                         const Spacer(),
                         Align(
@@ -464,12 +528,19 @@ class _RecipeCardState extends State<RecipeCard> {
                             spacing: 12,
                             runSpacing: 4,
                             children: [
-                              if (recipe.totalTimeFormatted case final duration?)
+                              if (recipe.totalTimeFormatted
+                                  case final duration?)
                                 Text(
                                   duration,
-                                  style: theme.textTheme.labelLarge?.copyWith(color: foreground.withValues(alpha: 0.8)),
+                                  style: theme.textTheme.labelLarge?.copyWith(
+                                    color: foreground.withValues(alpha: 0.8),
+                                  ),
                                 ),
-                              RatingStars(note: recipe.note, size: 20, color: foreground),
+                              RatingStars(
+                                note: recipe.note,
+                                size: 20,
+                                color: foreground,
+                              ),
                             ],
                           ),
                         ),
@@ -509,7 +580,11 @@ class _RecipeCardState extends State<RecipeCard> {
                           dimension: 36,
                           child: ClipOval(
                             child: BackdropFilter(
-                              filter: ui.ImageFilter.blur(sigmaX: 8, sigmaY: 8, tileMode: TileMode.clamp),
+                              filter: ui.ImageFilter.blur(
+                                sigmaX: 8,
+                                sigmaY: 8,
+                                tileMode: TileMode.clamp,
+                              ),
                               child: const ColoredBox(color: Color(0x00000000)),
                             ),
                           ),
@@ -517,7 +592,10 @@ class _RecipeCardState extends State<RecipeCard> {
                       ),
                       Material(
                         type: MaterialType.transparency,
-                        child: FavoriteButton(recipeId: recipe.id, foregroundColor: foreground),
+                        child: FavoriteButton(
+                          recipeId: recipe.id,
+                          foregroundColor: foreground,
+                        ),
                       ),
                     ],
                   ),
@@ -544,11 +622,7 @@ class NoImageBuilder extends StatelessWidget {
       child: Icon(
         Icons.no_photography_rounded,
         size: 70,
-        color: Theme
-            .of(context)
-            .colorScheme
-            .onSecondaryContainer
-            .withAlpha(50),
+        color: Theme.of(context).colorScheme.onSecondaryContainer.withAlpha(50),
       ),
     );
   }
@@ -559,7 +633,12 @@ class RatingStars extends StatelessWidget {
   final double size;
   final Color? color;
 
-  const RatingStars({super.key, required this.note, this.size = 24, this.color});
+  const RatingStars({
+    super.key,
+    required this.note,
+    this.size = 24,
+    this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -576,6 +655,11 @@ class RatingStars extends StatelessWidget {
               ),
             ),
           )
-        : Text('Aucune note', style: Theme.of(context).textTheme.labelMedium?.copyWith(color: color));
+        : Text(
+            'Aucune note',
+            style: Theme.of(
+              context,
+            ).textTheme.labelMedium?.copyWith(color: color),
+          );
   }
 }

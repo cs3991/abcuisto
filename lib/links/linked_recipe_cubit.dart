@@ -12,7 +12,11 @@ class LinkedRecipeState {
   final RecipeFull? recipe;
   final String? errorMessage;
 
-  const LinkedRecipeState({this.status = LinkedRecipeStatus.loading, this.recipe, this.errorMessage});
+  const LinkedRecipeState({
+    this.status = LinkedRecipeStatus.loading,
+    this.recipe,
+    this.errorMessage,
+  });
 }
 
 class LinkedRecipeCubit extends Cubit<LinkedRecipeState> {
@@ -20,7 +24,8 @@ class LinkedRecipeCubit extends Cubit<LinkedRecipeState> {
   final String recipeId;
   bool _loading = false;
 
-  LinkedRecipeCubit(this.repository, this.recipeId) : super(const LinkedRecipeState());
+  LinkedRecipeCubit(this.repository, this.recipeId)
+    : super(const LinkedRecipeState());
 
   Future<void> loadRecipe() async {
     if (_loading) return;
@@ -30,12 +35,20 @@ class LinkedRecipeCubit extends Cubit<LinkedRecipeState> {
       if (repository.isAuthenticated) await repository.getUserInfos();
       if (isClosed) return;
       final recipe = await repository.getRecipe(recipeId);
-      if (!isClosed) emit(LinkedRecipeState(status: LinkedRecipeStatus.success, recipe: recipe));
+      if (!isClosed)
+        emit(
+          LinkedRecipeState(status: LinkedRecipeStatus.success, recipe: recipe),
+        );
     } catch (error) {
-      if (!isClosed) emit(LinkedRecipeState(status: LinkedRecipeStatus.failure, errorMessage: error.toString()));
+      if (!isClosed)
+        emit(
+          LinkedRecipeState(
+            status: LinkedRecipeStatus.failure,
+            errorMessage: error.toString(),
+          ),
+        );
     } finally {
       _loading = false;
     }
   }
-
 }

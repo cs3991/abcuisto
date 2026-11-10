@@ -14,7 +14,8 @@ class EntryPage extends StatelessWidget {
       listeners: [
         BlocListener<AuthenticationCubit, AuthenticationState>(
           listener: (context, state) {
-            if (state is AuthenticationLoggedIn || state is AuthenticationLoggedOut) {
+            if (state is AuthenticationLoggedIn ||
+                state is AuthenticationLoggedOut) {
               if (state is AuthenticationLoggedOut) {
                 context.read<FilterCubit>().updateFavoritesOnly(false);
               }
@@ -23,38 +24,34 @@ class EntryPage extends StatelessWidget {
           },
         ),
         BlocListener<FavoritesCubit, FavoritesState>(
-          listenWhen: (previous, current) => previous.ids.length != current.ids.length ||
-              !previous.ids.containsAll(current.ids) || current.error != null,
+          listenWhen: (previous, current) =>
+              previous.ids.length != current.ids.length ||
+              !previous.ids.containsAll(current.ids) ||
+              current.error != null,
           listener: (context, state) {
             context.read<FilterCubit>().updateFavoriteIds(state.ids);
             if (state.error != null) {
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.error!)));
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text(state.error!)));
             }
           },
         ),
       ],
       child: BlocBuilder<AuthenticationCubit, AuthenticationState>(
-      builder: (context, state) {
-        if (state is AuthenticationInitial) {
-          context.read<AuthenticationCubit>().initialize();
-          return Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
-          );
-          // } else if (state is AuthenticationLoggedOut) {
-          //   return LoginPage();
-        } else if (state is AuthenticationLoggedIn || state is AuthenticationLoggedOut) {
-          return RecipePage();
-        }
-        else {
-          return Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
-          );
-        }
-      },
+        builder: (context, state) {
+          if (state is AuthenticationInitial) {
+            context.read<AuthenticationCubit>().initialize();
+            return Scaffold(body: Center(child: CircularProgressIndicator()));
+            // } else if (state is AuthenticationLoggedOut) {
+            //   return LoginPage();
+          } else if (state is AuthenticationLoggedIn ||
+              state is AuthenticationLoggedOut) {
+            return RecipePage();
+          } else {
+            return Scaffold(body: Center(child: CircularProgressIndicator()));
+          }
+        },
       ),
     );
   }

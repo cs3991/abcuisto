@@ -16,17 +16,22 @@ class PulsingPlaceholder extends StatefulWidget {
   State<PulsingPlaceholder> createState() => _PulsingPlaceholderState();
 }
 
-class _PulsingPlaceholderState extends State<PulsingPlaceholder> with SingleTickerProviderStateMixin {
+class _PulsingPlaceholderState extends State<PulsingPlaceholder>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _opacity;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1400));
-    _opacity = Tween<double>(begin: 0.35, end: 0.85).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
     );
+    _opacity = Tween<double>(
+      begin: 0.35,
+      end: 0.85,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override

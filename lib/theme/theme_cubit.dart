@@ -15,11 +15,15 @@ class ThemeCubit extends HydratedCubit<ThemeState> {
   @override
   String get storagePrefix => 'ThemeCubit';
 
-  void cycleTheme() => emit(ThemeState(mode: switch (state.mode) {
-    ThemeMode.light => ThemeMode.dark,
-    ThemeMode.dark => ThemeMode.system,
-    ThemeMode.system => ThemeMode.light,
-  }));
+  void cycleTheme() => emit(
+    ThemeState(
+      mode: switch (state.mode) {
+        ThemeMode.light => ThemeMode.dark,
+        ThemeMode.dark => ThemeMode.system,
+        ThemeMode.system => ThemeMode.light,
+      },
+    ),
+  );
 
   @override
   ThemeState fromJson(Map<String, dynamic> json) => ThemeState(
@@ -35,7 +39,12 @@ class ThemeCubit extends HydratedCubit<ThemeState> {
 
   @override
   void onError(Object error, StackTrace stackTrace) {
-    emit(ThemeState(mode: state.mode, errorMessage: 'Impossible de mémoriser le thème.'));
+    emit(
+      ThemeState(
+        mode: state.mode,
+        errorMessage: 'Impossible de mémoriser le thème.',
+      ),
+    );
     super.onError(error, stackTrace);
   }
 }

@@ -11,7 +11,12 @@ class SelectFilter extends Filter {
   final List<String> options;
   final List<String>? selectedOptions;
 
-  SelectFilter({required super.name, required super.apiParameter, required this.options, this.selectedOptions});
+  SelectFilter({
+    required super.name,
+    required super.apiParameter,
+    required this.options,
+    this.selectedOptions,
+  });
 }
 
 class RangeFilter extends Filter {
@@ -20,7 +25,14 @@ class RangeFilter extends Filter {
   final double? minValue;
   final double? maxValue;
 
-  RangeFilter({required super.name, required super.apiParameter, required this.min, required this.max, this.minValue, this.maxValue});
+  RangeFilter({
+    required super.name,
+    required super.apiParameter,
+    required this.min,
+    required this.max,
+    this.minValue,
+    this.maxValue,
+  });
 }
 
 class BooleanFilter extends Filter {
@@ -93,7 +105,8 @@ class Filters {
       if (totalTime != null) 'totalTime': totalTime,
       if (tags != null) 'tags': tags!.map((tag) => tag.label).toList(),
       if (ingredients != null) 'ingredients': ingredients,
-      if (ingredientsToExclude != null) 'ingredientsToExclude': ingredientsToExclude,
+      if (ingredientsToExclude != null)
+        'ingredientsToExclude': ingredientsToExclude,
       if (creator != null) 'creator': creator,
       if (categories != null) 'categories': categories,
       if (groups != null) 'groups': groups,

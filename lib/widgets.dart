@@ -47,8 +47,14 @@ class RoundedTextField extends StatelessWidget {
         hintText: hintText,
         filled: true,
         // fillColor: Theme.of(context).colorScheme.surfaceContainerHigh,
-        contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
+        contentPadding: const EdgeInsets.symmetric(
+          vertical: 18,
+          horizontal: 20,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30),
+          borderSide: BorderSide.none,
+        ),
         suffixIcon: suffixIcon,
       ),
     );
@@ -60,7 +66,12 @@ class PrimaryButton extends StatelessWidget {
   final VoidCallback onPressed;
   final bool isLoading;
 
-  const PrimaryButton({super.key, required this.label, required this.onPressed, this.isLoading = false});
+  const PrimaryButton({
+    super.key,
+    required this.label,
+    required this.onPressed,
+    this.isLoading = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +88,9 @@ class PrimaryButton extends StatelessWidget {
                 height: 18,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.38),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.38),
                   semanticsLabel: 'Chargement en cours',
                 ),
               ),

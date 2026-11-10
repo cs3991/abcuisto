@@ -15,9 +15,12 @@ class SessionStorage {
   Future<bool> save({required String token, required String email}) async {
     final preferences = _preferences;
     if (preferences == null) {
-      throw StateError('Session storage must be initialized before authentication.');
+      throw StateError(
+        'Session storage must be initialized before authentication.',
+      );
     }
-    if (!await preferences.setString(_tokenKey, token) || !await preferences.setString(_emailKey, email)) {
+    if (!await preferences.setString(_tokenKey, token) ||
+        !await preferences.setString(_emailKey, email)) {
       await clear();
       return false;
     }

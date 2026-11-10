@@ -9,10 +9,22 @@ class FavoritesState {
   final bool isLoaded;
   final String? error;
 
-  FavoritesState({Set<String> ids = const {}, Set<String> pendingIds = const {}, this.isLoading = false, this.isLoaded = false, this.error})
-    : ids = Set.unmodifiable(ids), pendingIds = Set.unmodifiable(pendingIds);
+  FavoritesState({
+    Set<String> ids = const {},
+    Set<String> pendingIds = const {},
+    this.isLoading = false,
+    this.isLoaded = false,
+    this.error,
+  }) : ids = Set.unmodifiable(ids),
+       pendingIds = Set.unmodifiable(pendingIds);
 
-  FavoritesState copyWith({Set<String>? ids, Set<String>? pendingIds, bool? isLoading, bool? isLoaded, String? error}) => FavoritesState(
+  FavoritesState copyWith({
+    Set<String>? ids,
+    Set<String>? pendingIds,
+    bool? isLoading,
+    bool? isLoaded,
+    String? error,
+  }) => FavoritesState(
     ids: ids ?? this.ids,
     pendingIds: pendingIds ?? this.pendingIds,
     isLoading: isLoading ?? this.isLoading,
@@ -32,7 +44,10 @@ class FavoritesCubit extends Cubit<FavoritesState> {
   }
 
   Future<void> reload() async {
-    if (!repository.isAuthenticated || state.isLoading || state.pendingIds.isNotEmpty) return;
+    if (!repository.isAuthenticated ||
+        state.isLoading ||
+        state.pendingIds.isNotEmpty)
+      return;
     await _load();
   }
 
@@ -44,12 +59,21 @@ class FavoritesCubit extends Cubit<FavoritesState> {
       emit(FavoritesState(ids: ids.toSet(), isLoaded: true));
     } catch (error) {
       if (isClosed) return;
-      emit(state.copyWith(isLoading: false, error: 'Impossible de charger les favoris : $error'));
+      emit(
+        state.copyWith(
+          isLoading: false,
+          error: 'Impossible de charger les favoris : $error',
+        ),
+      );
     }
   }
 
   Future<void> toggleFavorite(String recipeId) async {
-    if (!repository.isAuthenticated || !state.isLoaded || state.isLoading || state.pendingIds.contains(recipeId)) return;
+    if (!repository.isAuthenticated ||
+        !state.isLoaded ||
+        state.isLoading ||
+        state.pendingIds.contains(recipeId))
+      return;
     final wasFavorite = state.ids.contains(recipeId);
     emit(state.copyWith(pendingIds: {...state.pendingIds, recipeId}));
     try {
@@ -61,13 +85,20 @@ class FavoritesCubit extends Cubit<FavoritesState> {
       if (isClosed) return;
       final ids = {...state.ids};
       wasFavorite ? ids.remove(recipeId) : ids.add(recipeId);
-      emit(state.copyWith(ids: ids, pendingIds: {...state.pendingIds}..remove(recipeId)));
+      emit(
+        state.copyWith(
+          ids: ids,
+          pendingIds: {...state.pendingIds}..remove(recipeId),
+        ),
+      );
     } catch (error) {
       if (isClosed) return;
-      emit(state.copyWith(
-        pendingIds: {...state.pendingIds}..remove(recipeId),
-        error: 'Impossible de modifier les favoris : $error',
-      ));
+      emit(
+        state.copyWith(
+          pendingIds: {...state.pendingIds}..remove(recipeId),
+          error: 'Impossible de modifier les favoris : $error',
+        ),
+      );
     }
   }
 }

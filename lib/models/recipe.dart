@@ -73,13 +73,16 @@ enum RecipeServingType {
   }
 }
 
-Duration? _durationFromMinutes(dynamic value) => value is num ? Duration(minutes: value.toInt()) : null;
+Duration? _durationFromMinutes(dynamic value) =>
+    value is num ? Duration(minutes: value.toInt()) : null;
 
 int? _minutesFromDuration(Duration? value) => value?.inMinutes;
 
 String _stringOrEmpty(dynamic value) => value is String ? value : '';
 
-List<String> _stringList(dynamic value) => value is List ? value.whereType<String>().where((e) => e != '').toList() : <String>[];
+List<String> _stringList(dynamic value) => value is List
+    ? value.whereType<String>().where((e) => e != '').toList()
+    : <String>[];
 
 class Recipe {
   final String id;
@@ -141,17 +144,34 @@ class Recipe {
       creatorName: _stringOrEmpty(recipe['creatorPseudo']),
       category: RecipeCategory.fromApi(recipe['category'] as String?),
       cookware: _stringList(recipe['ustensiles']),
-      documents: documents.map((document) => Uri.parse('${AppConfig.instance.apiUrl}/images/$document')).toList(),
+      documents: documents
+          .map(
+            (document) =>
+                Uri.parse('${AppConfig.instance.apiUrl}/images/$document'),
+          )
+          .toList(),
       forNumber: recipe['forNumber'] as int?,
       typeNumber: RecipeServingType.fromApi(recipe['typeNumber'] as String?),
       tags: (recipe['tags'] is List
-          ? (recipe['tags'] as List).whereType<String>().map((tag) => RecipeTag.fromApi(tag)).whereType<RecipeTag>().toList()
+          ? (recipe['tags'] as List)
+                .whereType<String>()
+                .map((tag) => RecipeTag.fromApi(tag))
+                .whereType<RecipeTag>()
+                .toList()
           : const []),
-      groups: recipe['groups'] is List ? (recipe['groups'] as List).whereType<Map<String, dynamic>>().map(RecipeGroup.fromJson).toList() : const [],
+      groups: recipe['groups'] is List
+          ? (recipe['groups'] as List)
+                .whereType<Map<String, dynamic>>()
+                .map(RecipeGroup.fromJson)
+                .toList()
+          : const [],
       noteId: recipe['noteId'] as String?,
       nbNotes: recipe['nbNotes'] as int?,
       comments: recipe['comments'] is List
-          ? (recipe['comments'] as List).whereType<Map<String, dynamic>>().map(RecipeComment.fromJson).toList()
+          ? (recipe['comments'] as List)
+                .whereType<Map<String, dynamic>>()
+                .map(RecipeComment.fromJson)
+                .toList()
           : const [],
     );
   }
@@ -162,7 +182,11 @@ class Recipe {
 
   String? get restTimeFormatted => _printDuration(restTime);
 
-  Duration get totalTime => apiTotalTime ?? (prepTime ?? Duration.zero) + (cookTime ?? Duration.zero) + (restTime ?? Duration.zero);
+  Duration get totalTime =>
+      apiTotalTime ??
+      (prepTime ?? Duration.zero) +
+          (cookTime ?? Duration.zero) +
+          (restTime ?? Duration.zero);
 
   String? get totalTimeFormatted => _printDuration(totalTime);
 
@@ -179,7 +203,10 @@ class RecipeFull extends Recipe {
   final List<RecipeIngredientCategory> ingredientCategories;
   final List<String> instructions;
 
-  Map<String, List<Ingredient>> get ingredients => {for (final category in ingredientCategories) category.name: category.ingredients};
+  Map<String, List<Ingredient>> get ingredients => {
+    for (final category in ingredientCategories)
+      category.name: category.ingredients,
+  };
 
   RecipeFull({
     required super.id,
@@ -210,7 +237,10 @@ class RecipeFull extends Recipe {
     final baseRecipe = Recipe.fromJson(recipe);
     final rawCategories = recipe['ingredientsCategories'];
     final categories = rawCategories is List
-        ? rawCategories.whereType<Map<String, dynamic>>().map(RecipeIngredientCategory.fromJson).toList()
+        ? rawCategories
+              .whereType<Map<String, dynamic>>()
+              .map(RecipeIngredientCategory.fromJson)
+              .toList()
         : <RecipeIngredientCategory>[];
 
     return RecipeFull(
@@ -260,7 +290,9 @@ class RecipeFull extends Recipe {
     'nbNotes': nbNotes,
     'comments': comments.map((comment) => comment.toJson()).toList(),
     'ustensiles': cookware,
-    'ingredientsCategories': ingredientCategories.map((category) => category.toJson()).toList(),
+    'ingredientsCategories': ingredientCategories
+        .map((category) => category.toJson())
+        .toList(),
   };
 
   RecipeFull copyWith({
@@ -321,9 +353,19 @@ class RecipeIngredientCategory {
   final String? recipe;
   final List<Ingredient> ingredients;
 
-  const RecipeIngredientCategory({required this.id, required this.name, required this.index, this.recipe, required this.ingredients});
+  const RecipeIngredientCategory({
+    required this.id,
+    required this.name,
+    required this.index,
+    this.recipe,
+    required this.ingredients,
+  });
 
-  RecipeIngredientCategory copyWith({String? name, int? index, List<Ingredient>? ingredients}) => RecipeIngredientCategory(
+  RecipeIngredientCategory copyWith({
+    String? name,
+    int? index,
+    List<Ingredient>? ingredients,
+  }) => RecipeIngredientCategory(
     id: id,
     name: name ?? this.name,
     index: index ?? this.index,
@@ -331,27 +373,37 @@ class RecipeIngredientCategory {
     ingredients: ingredients ?? this.ingredients,
   );
 
-  factory RecipeIngredientCategory.fromJson(Map<String, dynamic> json) => RecipeIngredientCategory(
-    id: _stringOrEmpty(json['id']),
-    name: _stringOrEmpty(json['name']),
-    index: json['index'] as int? ?? 0,
-    recipe: json['recipe'] as String?,
-    ingredients: json['ingredients'] is List
-        ? (json['ingredients'] as List).whereType<Map<String, dynamic>>().map(Ingredient.fromJson).toList().sorted((a, b) => a.index - b.index)
-        : const [],
-  );
+  factory RecipeIngredientCategory.fromJson(Map<String, dynamic> json) =>
+      RecipeIngredientCategory(
+        id: _stringOrEmpty(json['id']),
+        name: _stringOrEmpty(json['name']),
+        index: json['index'] as int? ?? 0,
+        recipe: json['recipe'] as String?,
+        ingredients: json['ingredients'] is List
+            ? (json['ingredients'] as List)
+                  .whereType<Map<String, dynamic>>()
+                  .map(Ingredient.fromJson)
+                  .toList()
+                  .sorted((a, b) => a.index - b.index)
+            : const [],
+      );
 
   Map<String, dynamic> toJson() => {
     'id': id,
     'name': name,
     'index': index,
-    'ingredients': ingredients.map((ingredient) => ingredient.toJson()).toList(),
+    'ingredients': ingredients
+        .map((ingredient) => ingredient.toJson())
+        .toList(),
     'recipe': recipe,
   };
 }
 
 class RecipeGroup {
-  static const publicGroup = RecipeGroup(id: 'ce5bd221-67dc-4545-ac5c-18411353b786', name: 'Public');
+  static const publicGroup = RecipeGroup(
+    id: 'ce5bd221-67dc-4545-ac5c-18411353b786',
+    name: 'Public',
+  );
 
   bool get isPublic => id == publicGroup.id;
 
@@ -386,7 +438,9 @@ class RecipeGroup {
     newOwner: json['newOwner'] as String?,
     memberId: json['memberId'] as String?,
     memberUserName: json['memberUserName'] as String?,
-    members: json['members'] is List ? (json['members'] as List).whereType<Map<String, dynamic>>().toList() : const [],
+    members: json['members'] is List
+        ? (json['members'] as List).whereType<Map<String, dynamic>>().toList()
+        : const [],
   );
 
   Map<String, dynamic> toJson() => {
@@ -410,7 +464,14 @@ class RecipeComment {
   final String? username;
   final int? note;
 
-  const RecipeComment({this.id, this.recipe, this.user, this.comment, this.username, this.note});
+  const RecipeComment({
+    this.id,
+    this.recipe,
+    this.user,
+    this.comment,
+    this.username,
+    this.note,
+  });
 
   factory RecipeComment.fromJson(Map<String, dynamic> json) => RecipeComment(
     id: json['id'] as String?,

@@ -9,9 +9,24 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class FilterPage extends StatefulWidget {
   const FilterPage({super.key});
 
-  static const List<String> categories = ["Apéritif", "Entrée", "Plat", "Fromage", "Dessert", "Petit-déjeuner", "Boisson", "Sauce"];
+  static const List<String> categories = [
+    "Apéritif",
+    "Entrée",
+    "Plat",
+    "Fromage",
+    "Dessert",
+    "Petit-déjeuner",
+    "Boisson",
+    "Sauce",
+  ];
 
-  static const List<RecipeTag> tags = [RecipeTag.vegetarien, RecipeTag.vegan, RecipeTag.alcool, RecipeTag.sansgluten, RecipeTag.thermomix];
+  static const List<RecipeTag> tags = [
+    RecipeTag.vegetarien,
+    RecipeTag.vegan,
+    RecipeTag.alcool,
+    RecipeTag.sansgluten,
+    RecipeTag.thermomix,
+  ];
 
   @override
   State<FilterPage> createState() => _FilterPageState();
@@ -25,8 +40,13 @@ class _FilterPageState extends State<FilterPage> {
   @override
   void initState() {
     super.initState();
-    creatorController.text = context.read<FilterCubit>().state.filter.creator ?? '';
-    ingredientsController = TextEditingController(text: (context.read<FilterCubit>().state.filter.ingredients ?? []).join(', '));
+    creatorController.text =
+        context.read<FilterCubit>().state.filter.creator ?? '';
+    ingredientsController = TextEditingController(
+      text: (context.read<FilterCubit>().state.filter.ingredients ?? []).join(
+        ', ',
+      ),
+    );
   }
 
   @override
@@ -39,9 +59,15 @@ class _FilterPageState extends State<FilterPage> {
   @override
   Widget build(BuildContext context) {
     final authState = context.watch<AuthenticationCubit>().state;
-    final username = authState is AuthenticationLoggedIn ? authState.username : '';
-    final isCreatorSelf = context.select((FilterCubit cubit) => cubit.state.isCreatorSelf);
-    totalTimeValue = context.select((FilterCubit cubit) => cubit.state.filter.totalTime ?? 24);
+    final username = authState is AuthenticationLoggedIn
+        ? authState.username
+        : '';
+    final isCreatorSelf = context.select(
+      (FilterCubit cubit) => cubit.state.isCreatorSelf,
+    );
+    totalTimeValue = context.select(
+      (FilterCubit cubit) => cubit.state.filter.totalTime ?? 24,
+    );
     return Scaffold(
       appBar: SearchAppBar(),
       body: Padding(
@@ -51,15 +77,22 @@ class _FilterPageState extends State<FilterPage> {
             SizedBox(height: 16),
             BlocBuilder<FavoritesCubit, FavoritesState>(
               builder: (context, favorites) {
-                final selected = context.select((FilterCubit cubit) => cubit.state.favoritesOnly);
+                final selected = context.select(
+                  (FilterCubit cubit) => cubit.state.favoritesOnly,
+                );
                 return SwitchListTile(
                   title: const Text('Favoris uniquement'),
                   secondary: const Icon(Icons.favorite_rounded),
                   value: selected,
-                  onChanged: authState is AuthenticationLoggedIn && favorites.isLoaded
-                      ? (value) => context.read<FilterCubit>().updateFavoritesOnly(value, ids: favorites.ids)
+                  onChanged:
+                      authState is AuthenticationLoggedIn && favorites.isLoaded
+                      ? (value) => context
+                            .read<FilterCubit>()
+                            .updateFavoritesOnly(value, ids: favorites.ids)
                       : null,
-                  subtitle: authState is! AuthenticationLoggedIn ? const Text('Connectez-vous pour retrouver vos favoris.') : null,
+                  subtitle: authState is! AuthenticationLoggedIn
+                      ? const Text('Connectez-vous pour retrouver vos favoris.')
+                      : null,
                 );
               },
             ),
@@ -75,8 +108,12 @@ class _FilterPageState extends State<FilterPage> {
                       .map(
                         (category) => FilterChip(
                           label: Text(category),
-                          selected: state.filter.categories?.contains(category) ?? false,
-                          onSelected: (selected) => context.read<FilterCubit>().updateFilteredCategories(category, selected),
+                          selected:
+                              state.filter.categories?.contains(category) ??
+                              false,
+                          onSelected: (selected) => context
+                              .read<FilterCubit>()
+                              .updateFilteredCategories(category, selected),
                         ),
                       )
                       .toList(),
@@ -88,13 +125,23 @@ class _FilterPageState extends State<FilterPage> {
             SizedBox(height: 8),
             SegmentedButton(
               segments: [
-                ButtonSegment<bool>(value: true, label: Text('Moi'), enabled: username.isNotEmpty),
-                ButtonSegment<bool>(value: false, label: Text("Quelqu'un d'autre")),
+                ButtonSegment<bool>(
+                  value: true,
+                  label: Text('Moi'),
+                  enabled: username.isNotEmpty,
+                ),
+                ButtonSegment<bool>(
+                  value: false,
+                  label: Text("Quelqu'un d'autre"),
+                ),
               ],
               onSelectionChanged: (value) {
                 if (value.first) {
                   creatorController.text = username;
-                  context.read<FilterCubit>().updateFilteredCreatorName(username, isSelf: true);
+                  context.read<FilterCubit>().updateFilteredCreatorName(
+                    username,
+                    isSelf: true,
+                  );
                 } else {
                   creatorController.clear();
                   context.read<FilterCubit>().updateFilteredCreatorName('');
@@ -107,7 +154,10 @@ class _FilterPageState extends State<FilterPage> {
               controller: creatorController,
               decoration: InputDecoration(
                 hintText: "Nom du créateur...",
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide.none,
+                ),
                 isDense: true,
                 filled: true,
                 enabled: !isCreatorSelf,
@@ -120,13 +170,23 @@ class _FilterPageState extends State<FilterPage> {
             SizedBox(height: 16),
             BlocBuilder<FilterCubit, FilterState>(
               builder: (context, state) {
-                final text = state.filter.totalTime == 24 || state.filter.totalTime == null ? "Pas de limite" : "${state.filter.totalTime}h";
-                return Text('Temps total maximum : $text', style: Theme.of(context).textTheme.titleMedium);
+                final text =
+                    state.filter.totalTime == 24 ||
+                        state.filter.totalTime == null
+                    ? "Pas de limite"
+                    : "${state.filter.totalTime}h";
+                return Text(
+                  'Temps total maximum : $text',
+                  style: Theme.of(context).textTheme.titleMedium,
+                );
               },
             ),
             MaxTimeSlider(totalTimeValue: totalTimeValue),
             SizedBox(height: 16),
-            Text('Caractéristiques', style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              'Caractéristiques',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 8),
             BlocBuilder<FilterCubit, FilterState>(
               builder: (context, state) {
@@ -138,7 +198,9 @@ class _FilterPageState extends State<FilterPage> {
                         (tag) => FilterChip(
                           label: Text(tag.displayName),
                           selected: state.filter.tags?.contains(tag) ?? false,
-                          onSelected: (selected) => context.read<FilterCubit>().updateFilteredTags(tag, selected),
+                          onSelected: (selected) => context
+                              .read<FilterCubit>()
+                              .updateFilteredTags(tag, selected),
                         ),
                       )
                       .toList(),
@@ -154,7 +216,10 @@ class _FilterPageState extends State<FilterPage> {
               decoration: InputDecoration(
                 hintText: "Ex. : tomate, oignon",
                 helperText: 'Séparez les ingrédients par des virgules.',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide.none,
+                ),
                 isDense: true,
                 filled: true,
                 fillColor: Theme.of(context).colorScheme.surfaceContainer,
@@ -168,7 +233,10 @@ class _FilterPageState extends State<FilterPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 16),
-                    Text('Groupes', style: Theme.of(context).textTheme.titleMedium),
+                    Text(
+                      'Groupes',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
                     const SizedBox(height: 8),
                     Wrap(
                       runSpacing: 4,
@@ -177,8 +245,12 @@ class _FilterPageState extends State<FilterPage> {
                           .map(
                             (group) => FilterChip(
                               label: Text(group.name ?? 'Groupe'),
-                              selected: state.filter.groups?.contains(group.id) ?? false,
-                              onSelected: (selected) => context.read<FilterCubit>().updateFilteredGroup(group.id!, selected),
+                              selected:
+                                  state.filter.groups?.contains(group.id) ??
+                                  false,
+                              onSelected: (selected) => context
+                                  .read<FilterCubit>()
+                                  .updateFilteredGroup(group.id!, selected),
                             ),
                           )
                           .toList(),
@@ -201,7 +273,8 @@ class MaxTimeSlider extends StatefulWidget {
   const MaxTimeSlider({super.key, required this.totalTimeValue});
 
   @override
-  State<MaxTimeSlider> createState() => _MaxTimeSliderState(totalTimeValue: totalTimeValue);
+  State<MaxTimeSlider> createState() =>
+      _MaxTimeSliderState(totalTimeValue: totalTimeValue);
 }
 
 class _MaxTimeSliderState extends State<MaxTimeSlider> {
@@ -222,7 +295,8 @@ class _MaxTimeSliderState extends State<MaxTimeSlider> {
       },
       label: totalTimeValue == 24 ? "Pas de limite" : "${totalTimeValue}h",
       divisions: 23,
-      semanticFormatterCallback: (value) => totalTimeValue == 24 ? "Pas de limite" : "${totalTimeValue}h",
+      semanticFormatterCallback: (value) =>
+          totalTimeValue == 24 ? "Pas de limite" : "${totalTimeValue}h",
       onChangeEnd: (value) {
         totalTimeValue == 24
             ? context.read<FilterCubit>().updateFilteredMaxTime(null)

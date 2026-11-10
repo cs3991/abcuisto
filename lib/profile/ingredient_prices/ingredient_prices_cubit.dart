@@ -24,16 +24,21 @@ class IngredientPricesState {
     this.unit = 'kg',
   });
 
-  IngredientPricesState copyWith({IngredientPricesStatus? status,
-    List<IngredientPriceInput>? ingredients, bool? saving,
-    String? errorMessage, String? saveError, String? unit}) => IngredientPricesState(
-      status: status ?? this.status,
-      ingredients: ingredients ?? this.ingredients,
-      saving: saving ?? this.saving,
-      errorMessage: errorMessage,
-      saveError: saveError,
-      unit: unit ?? this.unit,
-    );
+  IngredientPricesState copyWith({
+    IngredientPricesStatus? status,
+    List<IngredientPriceInput>? ingredients,
+    bool? saving,
+    String? errorMessage,
+    String? saveError,
+    String? unit,
+  }) => IngredientPricesState(
+    status: status ?? this.status,
+    ingredients: ingredients ?? this.ingredients,
+    saving: saving ?? this.saving,
+    errorMessage: errorMessage,
+    saveError: saveError,
+    unit: unit ?? this.unit,
+  );
 }
 
 class IngredientPricesCubit extends Cubit<IngredientPricesState> {
@@ -48,22 +53,41 @@ class IngredientPricesCubit extends Cubit<IngredientPricesState> {
     try {
       final ingredients = await repository.getIngredientsPrices();
       if (isClosed) return;
-      emit(state.copyWith(status: IngredientPricesStatus.success, ingredients: ingredients));
+      emit(
+        state.copyWith(
+          status: IngredientPricesStatus.success,
+          ingredients: ingredients,
+        ),
+      );
     } catch (error) {
       if (isClosed) return;
-      emit(state.copyWith(status: IngredientPricesStatus.failure, errorMessage: error.toString()));
+      emit(
+        state.copyWith(
+          status: IngredientPricesStatus.failure,
+          errorMessage: error.toString(),
+        ),
+      );
     }
   }
 
-  void startEditing(IngredientPriceInput? ingredient) => emit(state.copyWith(
-    unit: ingredient?.unit ?? 'kg', errorMessage: state.errorMessage));
+  void startEditing(IngredientPriceInput? ingredient) => emit(
+    state.copyWith(
+      unit: ingredient?.unit ?? 'kg',
+      errorMessage: state.errorMessage,
+    ),
+  );
 
   void changeUnit(String unit) {
     if (!state.saving && units.contains(unit)) emit(state.copyWith(unit: unit));
   }
 
-  Future<bool> save({int? index, required String name, required String price}) async {
-    if (state.saving || state.status != IngredientPricesStatus.success) return false;
+  Future<bool> save({
+    int? index,
+    required String name,
+    required String price,
+  }) async {
+    if (state.saving || state.status != IngredientPricesStatus.success)
+      return false;
     final unit = state.unit;
     final trimmedName = name.trim();
     final amount = double.tryParse(price.trim().replaceAll(',', '.'));
@@ -78,8 +102,10 @@ class IngredientPricesCubit extends Cubit<IngredientPricesState> {
       final normalizedName = removeDiacritics(trimmedName).toLowerCase();
       for (var i = 0; i < state.ingredients.length; i++) {
         final ingredient = state.ingredients[i];
-        if (i != index && ingredient.unit == unit &&
-            removeDiacritics(ingredient.name?.trim() ?? '').toLowerCase() == normalizedName) {
+        if (i != index &&
+            ingredient.unit == unit &&
+            removeDiacritics(ingredient.name?.trim() ?? '').toLowerCase() ==
+                normalizedName) {
           error = 'Cet ingrédient possède déjà un prix pour cette unité.';
           break;
         }
@@ -92,7 +118,9 @@ class IngredientPricesCubit extends Cubit<IngredientPricesState> {
     final ingredients = [...state.ingredients];
     final value = IngredientPriceInput(
       id: index == null ? null : ingredients[index].id,
-      name: trimmedName, unit: unit, price: amount!,
+      name: trimmedName,
+      unit: unit,
+      price: amount!,
     );
     if (index == null) {
       ingredients.add(value);
@@ -103,7 +131,8 @@ class IngredientPricesCubit extends Cubit<IngredientPricesState> {
     try {
       await repository.editIngredientsPrices(ingredients: ingredients);
     } catch (error) {
-      if (!isClosed) emit(state.copyWith(saving: false, saveError: error.toString()));
+      if (!isClosed)
+        emit(state.copyWith(saving: false, saveError: error.toString()));
       return false;
     }
     if (isClosed) return true;

@@ -22,13 +22,17 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isLoading = context.select<AuthenticationCubit, bool>((cubit) => cubit.state is AuthenticationLoading);
+    final isLoading = context.select<AuthenticationCubit, bool>(
+      (cubit) => cubit.state is AuthenticationLoading,
+    );
     return BlocListener<AuthenticationCubit, AuthenticationState>(
       listener: (context, state) {
         if (state is AuthenticationLoggedIn) {
           Navigator.pop(context);
         } else if (state is AuthenticationFailure) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(state.message)));
         }
       },
       child: Scaffold(
@@ -40,14 +44,20 @@ class _LoginPageState extends State<LoginPage> {
               child: AutofillGroup(
                 child: ListView(
                   padding: const EdgeInsets.only(bottom: 24),
-                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
                   children: [
                     SizedBox(height: 64),
                     // Text and logo
                     Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: <Widget>[
-                        Image(image: const AssetImage("assets/logo.png"), width: 100, height: 100, color: Theme.of(context).colorScheme.primary),
+                        Image(
+                          image: const AssetImage("assets/logo.png"),
+                          width: 100,
+                          height: 100,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
                       ],
                     ),
 
@@ -65,7 +75,10 @@ class _LoginPageState extends State<LoginPage> {
                       controller: emailController,
                       hintText: "Adresse email",
                       keyboardType: TextInputType.emailAddress,
-                      autofillHints: const [AutofillHints.email, AutofillHints.username],
+                      autofillHints: const [
+                        AutofillHints.email,
+                        AutofillHints.username,
+                      ],
                     ),
 
                     const SizedBox(height: 16),
@@ -80,8 +93,12 @@ class _LoginPageState extends State<LoginPage> {
                         padding: const EdgeInsets.symmetric(horizontal: 8),
                         child: IconButton(
                           icon: Icon(
-                            obscureText ? Icons.visibility_off : Icons.visibility,
-                            color: Theme.of(context).colorScheme.onSurface.withAlpha(120),
+                            obscureText
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withAlpha(120),
                           ),
                           onPressed: () {
                             setState(() {
@@ -99,7 +116,12 @@ class _LoginPageState extends State<LoginPage> {
                       children: [
                         TextButton(
                           onPressed: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => ForgotPasswordPage()));
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ForgotPasswordPage(),
+                              ),
+                            );
                           },
                           child: const Text("Mot de passe oublié ?"),
                         ),
@@ -113,7 +135,12 @@ class _LoginPageState extends State<LoginPage> {
                       label: "Connexion",
                       isLoading: isLoading,
                       onPressed: () async {
-                        final loggedIn = await context.read<AuthenticationCubit>().logIn(emailController.text, passwordController.text);
+                        final loggedIn = await context
+                            .read<AuthenticationCubit>()
+                            .logIn(
+                              emailController.text,
+                              passwordController.text,
+                            );
                         if (loggedIn && context.mounted) {
                           context.read<FilterCubit>().update();
                         }
@@ -131,11 +158,19 @@ class _LoginPageState extends State<LoginPage> {
                           cursor: SystemMouseCursors.click,
                           child: GestureDetector(
                             onTap: () {
-                              Navigator.push(context, MaterialPageRoute(builder: (context) => SignUpPage()));
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => SignUpPage(),
+                                ),
+                              );
                             },
                             child: Text(
                               "S'inscrire",
-                              style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),

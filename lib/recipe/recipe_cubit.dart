@@ -16,7 +16,11 @@ class RecipeLoaded extends RecipeState {
   final bool canEdit;
   final bool canDelete;
 
-  RecipeLoaded({required this.recipe, this.canEdit = false, this.canDelete = false});
+  RecipeLoaded({
+    required this.recipe,
+    this.canEdit = false,
+    this.canDelete = false,
+  });
 }
 
 class RecipeError extends RecipeState {
@@ -38,7 +42,11 @@ class RecipeCubit extends Cubit<RecipeState> {
     if (user == null) return false;
     return recipe.creatorId == user.id ||
         user.groups.any(
-          (group) => group.id != null && !group.isPublic && group.canEdit == true && recipe.groups.any((sharedGroup) => sharedGroup.id == group.id),
+          (group) =>
+              group.id != null &&
+              !group.isPublic &&
+              group.canEdit == true &&
+              recipe.groups.any((sharedGroup) => sharedGroup.id == group.id),
         );
   }
 
@@ -48,13 +56,26 @@ class RecipeCubit extends Cubit<RecipeState> {
     final canEdit = _canEdit(current.recipe);
     final canDelete = _canDelete(current.recipe);
     if (canEdit != current.canEdit || canDelete != current.canDelete) {
-      emit(RecipeLoaded(recipe: current.recipe, canEdit: canEdit, canDelete: canDelete));
+      emit(
+        RecipeLoaded(
+          recipe: current.recipe,
+          canEdit: canEdit,
+          canDelete: canDelete,
+        ),
+      );
     }
   }
 
-  bool _canDelete(RecipeFull recipe) => repository.user != null && recipe.creatorId == repository.user!.id;
+  bool _canDelete(RecipeFull recipe) =>
+      repository.user != null && recipe.creatorId == repository.user!.id;
 
-  void showRecipe(RecipeFull recipe) => emit(RecipeLoaded(recipe: recipe, canEdit: _canEdit(recipe), canDelete: _canDelete(recipe)));
+  void showRecipe(RecipeFull recipe) => emit(
+    RecipeLoaded(
+      recipe: recipe,
+      canEdit: _canEdit(recipe),
+      canDelete: _canDelete(recipe),
+    ),
+  );
 
   Future<void> deleteRecipe() async {
     final current = state;
@@ -64,7 +85,13 @@ class RecipeCubit extends Cubit<RecipeState> {
       await repository.deleteRecipe(id: current.recipe.id);
       if (!isClosed) emit(RecipeDeleted());
     } catch (error) {
-      if (!isClosed) emit(RecipeError(message: 'Impossible de supprimer la recette : $error', recipeId: current.recipe.id));
+      if (!isClosed)
+        emit(
+          RecipeError(
+            message: 'Impossible de supprimer la recette : $error',
+            recipeId: current.recipe.id,
+          ),
+        );
     }
   }
 
@@ -85,7 +112,13 @@ class RecipeCubit extends Cubit<RecipeState> {
       final recipeFull = await repository.getRecipe(recipeId);
       if (!isClosed) showRecipe(recipeFull);
     } catch (error) {
-      if (!isClosed) emit(RecipeError(message: 'Impossible de charger la recette : $error', recipeId: recipeId));
+      if (!isClosed)
+        emit(
+          RecipeError(
+            message: 'Impossible de charger la recette : $error',
+            recipeId: recipeId,
+          ),
+        );
     }
   }
 }

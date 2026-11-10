@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../login/authentication_cubit.dart';
+import '../login/login_page.dart';
 import '../models/abcuisto_repository.dart';
 import '../models/recipe.dart';
 import '../recipe/filters/filter_cubit.dart';
@@ -19,39 +20,100 @@ class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
 
   Future<void> _openGroup(BuildContext context, RecipeGroup group) async {
-    final result = await Navigator.push<GroupDetailsResult>(context, MaterialPageRoute(
-      builder: (context) => GroupDetailsPage(group: group),
-    ));
+    final result = await Navigator.push<GroupDetailsResult>(
+      context,
+      MaterialPageRoute(builder: (context) => GroupDetailsPage(group: group)),
+    );
     if (!context.mounted || result == null) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(switch (result) {
-      GroupDetailsResult.deleted => 'Groupe supprimé.',
-      GroupDetailsResult.left => 'Vous avez quitté le groupe.',
-      GroupDetailsResult.transferred => 'Propriété du groupe transférée.',
-      GroupDetailsResult.updated => 'Droits du groupe mis à jour.',
-    })));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(switch (result) {
+          GroupDetailsResult.deleted => 'Groupe supprimé.',
+          GroupDetailsResult.left => 'Vous avez quitté le groupe.',
+          GroupDetailsResult.transferred => 'Propriété du groupe transférée.',
+          GroupDetailsResult.updated => 'Droits du groupe mis à jour.',
+        }),
+      ),
+    );
     context.read<FilterCubit>().update();
     await context.read<ProfileCubit>().loadProfile();
   }
 
   @override
   Widget build(BuildContext context) {
+    return BlocConsumer<AuthenticationCubit, AuthenticationState>(
+      buildWhen: (previous, current) =>
+          current is AuthenticationLoggedIn ||
+          current is AuthenticationLoggedOut,
+      listener: (context, state) {
+        if (state is AuthenticationLoggedOut) {
+          context.read<FilterCubit>().update();
+        }
+      },
+      builder: (context, state) {
+        if (state is AuthenticationLoggedIn) return _buildProfile(context);
+        return Scaffold(
+          appBar: AppBar(title: const Text('Paramètres')),
+          body: ListView(
+            padding: const EdgeInsets.all(24),
+            children: [
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Se connecter'),
+                trailing: Icon(
+                  Icons.login_rounded,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                onTap: () => Navigator.of(
+                  context,
+                ).push(MaterialPageRoute<void>(builder: (_) => LoginPage())),
+              ),
+              _buildThemeSettings(),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildThemeSettings() => BlocBuilder<ThemeCubit, ThemeState>(
+    builder: (context, themeState) => Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          trailing: Icon(switch (themeState.mode) {
+            ThemeMode.light => Icons.light_mode_rounded,
+            ThemeMode.dark => Icons.dark_mode_rounded,
+            ThemeMode.system => Icons.brightness_auto_rounded,
+          }, color: Theme.of(context).colorScheme.primary),
+          title: const Text('Thème'),
+          subtitle: Text(switch (themeState.mode) {
+            ThemeMode.light => 'Clair',
+            ThemeMode.dark => 'Sombre',
+            ThemeMode.system => 'Système',
+          }),
+          onTap: context.read<ThemeCubit>().cycleTheme,
+        ),
+        if (themeState.errorMessage != null)
+          Text(
+            themeState.errorMessage!,
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
+          ),
+      ],
+    ),
+  );
+
+  Widget _buildProfile(BuildContext context) {
     return BlocProvider(
-      create: (context) => ProfileCubit(context.read<AbcuistoRepository>())..loadProfile(),
-      child: MultiBlocListener(
-        listeners: [
-          BlocListener<ProfileCubit, ProfileState>(
-            listenWhen: (previous, current) => previous.status != current.status && current.status == ProfileStatus.success,
-            listener: (context, state) => context.read<RecipeCubit>().refreshPermissions(),
-          ),
-          BlocListener<AuthenticationCubit, AuthenticationState>(
-        listener: (context, state) {
-          if (state is AuthenticationLoggedOut) {
-            context.read<FilterCubit>().update();
-            Navigator.of(context).pop();
-          }
-        },
-          ),
-        ],
+      create: (context) =>
+          ProfileCubit(context.read<AbcuistoRepository>())..loadProfile(),
+      child: BlocListener<ProfileCubit, ProfileState>(
+        listenWhen: (previous, current) =>
+            previous.status != current.status &&
+            current.status == ProfileStatus.success,
+        listener: (context, state) =>
+            context.read<RecipeCubit>().refreshPermissions(),
         child: Scaffold(
           appBar: AppBar(title: const Text('Mon profil')),
           body: BlocBuilder<ProfileCubit, ProfileState>(
@@ -61,11 +123,19 @@ class ProfilePage extends StatelessWidget {
               final saving = state.saveStatus == ProfileSaveStatus.saving;
               final primary = Theme.of(context).colorScheme.primary;
               final image = user?.image;
-              final imageUrl = image == null || image.isEmpty ? null
-                  : Uri.parse(context.read<AbcuistoRepository>().url).resolve(
-                      image.startsWith('http://') || image.startsWith('https://') || image.startsWith('/')
-                          ? image : '/images/$image').toString();
-              final groups = user?.groups.where((group) => !group.isPublic).toList() ?? [];
+              final imageUrl = image == null || image.isEmpty
+                  ? null
+                  : Uri.parse(context.read<AbcuistoRepository>().url)
+                        .resolve(
+                          image.startsWith('http://') ||
+                                  image.startsWith('https://') ||
+                                  image.startsWith('/')
+                              ? image
+                              : '/images/$image',
+                        )
+                        .toString();
+              final groups =
+                  user?.groups.where((group) => !group.isPublic).toList() ?? [];
               return RefreshIndicator(
                 onRefresh: context.read<ProfileCubit>().loadProfile,
                 child: ListView(
@@ -73,7 +143,12 @@ class ProfilePage extends StatelessWidget {
                   padding: const EdgeInsets.all(24),
                   children: [
                     if (state.errorMessage != null) ...[
-                      Text(state.errorMessage!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                      Text(
+                        state.errorMessage!,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
                       TextButton(
                         onPressed: context.read<ProfileCubit>().loadProfile,
                         child: const Text('Réessayer'),
@@ -84,18 +159,37 @@ class ProfilePage extends StatelessWidget {
                         child: loading
                             ? const PulsingPlaceholder(width: 88, height: 88)
                             : imageUrl == null
-                                ? Icon(Icons.account_circle_rounded, size: 88, color: primary)
-                                : ClipOval(
-                                    child: Image.network(imageUrl, width: 88, height: 88, fit: BoxFit.cover,
-                                      errorBuilder: (_, error, stackTrace) => Icon(Icons.account_circle_rounded, size: 88, color: primary)),
+                            ? Icon(
+                                Icons.account_circle_rounded,
+                                size: 88,
+                                color: primary,
+                              )
+                            : ClipOval(
+                                child: Image.network(
+                                  imageUrl,
+                                  width: 88,
+                                  height: 88,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, error, stackTrace) => Icon(
+                                    Icons.account_circle_rounded,
+                                    size: 88,
+                                    color: primary,
                                   ),
+                                ),
+                              ),
                       ),
                       const SizedBox(height: 16),
                       Align(
                         alignment: Alignment.center,
                         child: loading
                             ? const PulsingPlaceholder(width: 180, height: 28)
-                            : Text(user!.userName ?? user.email ?? 'Mon profil', textAlign: TextAlign.center, style: Theme.of(context).textTheme.headlineSmall),
+                            : Text(
+                                user!.userName ?? user.email ?? 'Mon profil',
+                                textAlign: TextAlign.center,
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.headlineSmall,
+                              ),
                       ),
                       if (loading || user?.email != null)
                         Align(
@@ -107,29 +201,55 @@ class ProfilePage extends StatelessWidget {
                       if (loading || (user?.bio?.isNotEmpty ?? false)) ...[
                         const SizedBox(height: 12),
                         loading
-                            ? const PulsingPlaceholder(width: double.infinity, height: 16)
+                            ? const PulsingPlaceholder(
+                                width: double.infinity,
+                                height: 16,
+                              )
                             : Text(user!.bio!, textAlign: TextAlign.center),
                       ],
                       const SizedBox(height: 32),
-                      Text('Mes groupes', style: Theme.of(context).textTheme.titleLarge),
+                      Text(
+                        'Mes groupes',
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
                       const SizedBox(height: 8),
-                      if (!loading && groups.isEmpty) const Text('Vous ne faites partie d’aucun groupe.'),
-                      for (var index = 0; index < (loading ? 3 : groups.length); index++)
+                      if (!loading && groups.isEmpty)
+                        const Text('Vous ne faites partie d’aucun groupe.'),
+                      for (
+                        var index = 0;
+                        index < (loading ? 3 : groups.length);
+                        index++
+                      )
                         Container(
                           decoration: BoxDecoration(
-                            border: Border(left: BorderSide(color: primary, width: 2)),
+                            border: Border(
+                              left: BorderSide(color: primary, width: 2),
+                            ),
                           ),
                           child: ListTile(
-                          onTap: loading || groups[index].id == null ? null : () => _openGroup(context, groups[index]),
-                          contentPadding: const EdgeInsets.only(left: 16, right: 16),
-                          textColor: Theme.of(context).colorScheme.onSurfaceVariant,
-                          title: loading
-                              ? const Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: PulsingPlaceholder(width: 180, height: 20),
-                                )
-                              : Text(groups[index].name ?? 'Groupe'),
-                          subtitle: !loading && groups[index].owner == user?.id ? const Text('Propriétaire') : null,
+                            onTap: loading || groups[index].id == null
+                                ? null
+                                : () => _openGroup(context, groups[index]),
+                            contentPadding: const EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                            ),
+                            textColor: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                            title: loading
+                                ? const Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: PulsingPlaceholder(
+                                      width: 180,
+                                      height: 20,
+                                    ),
+                                  )
+                                : Text(groups[index].name ?? 'Groupe'),
+                            subtitle:
+                                !loading && groups[index].owner == user?.id
+                                ? const Text('Propriétaire')
+                                : null,
                           ),
                         ),
                       const SizedBox(height: 8),
@@ -137,105 +257,145 @@ class ProfilePage extends StatelessWidget {
                         contentPadding: EdgeInsets.zero,
                         enabled: !loading,
                         title: const Text('Rejoindre un groupe'),
-                        subtitle: const Text('Vous avez une invitation ? Collez le lien ou l’ID du groupe.'),
-                        trailing: Icon(Icons.login_rounded, color: Theme.of(context).colorScheme.primary),
-                        onTap: loading ? null : () async {
-                          final joined = await showJoinGroupDialog(context);
-                          if (!context.mounted || joined != true) return;
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Vous avez rejoint le groupe.')));
-                          context.read<FilterCubit>().update();
-                          await context.read<ProfileCubit>().loadProfile();
-                        },
+                        subtitle: const Text(
+                          'Vous avez une invitation ? Collez le lien ou l’ID du groupe.',
+                        ),
+                        trailing: Icon(
+                          Icons.login_rounded,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        onTap: loading
+                            ? null
+                            : () async {
+                                final joined = await showJoinGroupDialog(
+                                  context,
+                                );
+                                if (!context.mounted || joined != true) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Vous avez rejoint le groupe.',
+                                    ),
+                                  ),
+                                );
+                                context.read<FilterCubit>().update();
+                                await context
+                                    .read<ProfileCubit>()
+                                    .loadProfile();
+                              },
                       ),
                       ListTile(
                         contentPadding: EdgeInsets.zero,
                         enabled: !loading,
                         title: const Text('Créer un groupe'),
-                        subtitle: const Text('Rassemblez vos proches pour partager vos recettes.'),
-                        trailing: Icon(Icons.group_add_rounded, color: Theme.of(context).colorScheme.primary),
-                        onTap: loading ? null : () async {
-                          final created = await showCreateGroupDialog(context);
-                          if (!context.mounted || created != true) return;
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Groupe créé.')));
-                          context.read<FilterCubit>().update();
-                          await context.read<ProfileCubit>().loadProfile();
-                        },
+                        subtitle: const Text(
+                          'Rassemblez vos proches pour partager vos recettes.',
+                        ),
+                        trailing: Icon(
+                          Icons.group_add_rounded,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        onTap: loading
+                            ? null
+                            : () async {
+                                final created = await showCreateGroupDialog(
+                                  context,
+                                );
+                                if (!context.mounted || created != true) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Groupe créé.')),
+                                );
+                                context.read<FilterCubit>().update();
+                                await context
+                                    .read<ProfileCubit>()
+                                    .loadProfile();
+                              },
                       ),
                     ],
                     ListTile(
                       contentPadding: EdgeInsets.zero,
                       enabled: !loading && user != null,
                       title: const Text('Mes prix d’ingrédients'),
-                      subtitle: const Text('Renseigner mes prix au kilo, au litre ou à la pièce.'),
+                      subtitle: const Text(
+                        'Renseigner mes prix au kilo, au litre ou à la pièce.',
+                      ),
                       trailing: Icon(Icons.euro_rounded, color: primary),
-                      onTap: loading || user == null ? null : () => Navigator.of(context).push(
-                        MaterialPageRoute<void>(builder: (_) => const IngredientPricesPage()),
-                      ),
+                      onTap: loading || user == null
+                          ? null
+                          : () => Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) => const IngredientPricesPage(),
+                              ),
+                            ),
                     ),
-                    BlocBuilder<ThemeCubit, ThemeState>(
-                      builder: (context, themeState) => Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            trailing: Icon(switch (themeState.mode) {
-                              ThemeMode.light => Icons.light_mode_rounded,
-                              ThemeMode.dark => Icons.dark_mode_rounded,
-                              ThemeMode.system => Icons.brightness_auto_rounded,
-                            }, color: Theme.of(context).colorScheme.primary),
-                            title: const Text('Thème'),
-                            subtitle: Text(switch (themeState.mode) {
-                              ThemeMode.light => 'Clair',
-                              ThemeMode.dark => 'Sombre',
-                              ThemeMode.system => 'Système',
-                            }),
-                            onTap: context.read<ThemeCubit>().cycleTheme,
-                          ),
-                          if (themeState.errorMessage != null)
-                            Text(themeState.errorMessage!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
-                        ],
-                      ),
-                    ),
+                    _buildThemeSettings(),
                     ListTile(
                       contentPadding: EdgeInsets.zero,
                       enabled: !loading && !saving && user != null,
                       title: const Text('Changer la photo de profil'),
                       trailing: saving
-                          ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
+                          ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
                           : Icon(Icons.add_a_photo_rounded, color: primary),
-                      onTap: loading || saving || user == null ? null : () async {
-                        final cubit = context.read<ProfileCubit>();
-                        await cubit.changePhoto();
-                        if (!context.mounted) return;
-                        final result = cubit.state;
-                        if (result.saveStatus == ProfileSaveStatus.initial) return;
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(
-                          result.saveStatus == ProfileSaveStatus.failure
-                              ? result.saveError ?? 'Impossible de modifier la photo.'
-                              : 'Photo de profil modifiée.',
-                        )));
-                      },
+                      onTap: loading || saving || user == null
+                          ? null
+                          : () async {
+                              final cubit = context.read<ProfileCubit>();
+                              await cubit.changePhoto();
+                              if (!context.mounted) return;
+                              final result = cubit.state;
+                              if (result.saveStatus ==
+                                  ProfileSaveStatus.initial)
+                                return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    result.saveStatus ==
+                                            ProfileSaveStatus.failure
+                                        ? result.saveError ??
+                                              'Impossible de modifier la photo.'
+                                        : 'Photo de profil modifiée.',
+                                  ),
+                                ),
+                              );
+                            },
                     ),
                     ListTile(
                       contentPadding: EdgeInsets.zero,
                       enabled: !loading && !saving && user != null,
                       title: const Text('Modifier la bio'),
                       trailing: Icon(Icons.edit_note_rounded, color: primary),
-                      onTap: loading || saving || user == null ? null : () => showEditProfileDialog(context, ProfileEdit.bio),
+                      onTap: loading || saving || user == null
+                          ? null
+                          : () =>
+                                showEditProfileDialog(context, ProfileEdit.bio),
                     ),
                     ListTile(
                       contentPadding: EdgeInsets.zero,
                       enabled: !loading && !saving && user != null,
                       title: const Text('Changer l’adresse e-mail'),
                       trailing: Icon(Icons.email_rounded, color: primary),
-                      onTap: loading || saving || user == null ? null : () => showEditProfileDialog(context, ProfileEdit.email),
+                      onTap: loading || saving || user == null
+                          ? null
+                          : () => showEditProfileDialog(
+                              context,
+                              ProfileEdit.email,
+                            ),
                     ),
                     ListTile(
                       contentPadding: EdgeInsets.zero,
                       enabled: !loading && !saving && user != null,
                       title: const Text('Changer le mot de passe'),
                       trailing: Icon(Icons.lock_rounded, color: primary),
-                      onTap: loading || saving || user == null ? null : () => showEditProfileDialog(context, ProfileEdit.password),
+                      onTap: loading || saving || user == null
+                          ? null
+                          : () => showEditProfileDialog(
+                              context,
+                              ProfileEdit.password,
+                            ),
                     ),
                     const SizedBox(height: 32),
                     BlocBuilder<AuthenticationCubit, AuthenticationState>(

@@ -6,20 +6,31 @@ import 'profile_cubit.dart';
 
 enum ProfileEdit { bio, email, password }
 
-Future<void> showEditProfileDialog(BuildContext context, ProfileEdit edit) async {
+Future<void> showEditProfileDialog(
+  BuildContext context,
+  ProfileEdit edit,
+) async {
   final cubit = context.read<ProfileCubit>();
   cubit.resetSave();
   final saved = await showDialog<bool>(
     context: context,
     barrierDismissible: true,
-    builder: (_) => BlocProvider.value(value: cubit, child: _EditProfileDialog(edit: edit)),
+    builder: (_) => BlocProvider.value(
+      value: cubit,
+      child: _EditProfileDialog(edit: edit),
+    ),
   );
   if (!context.mounted || saved != true) return;
-  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(switch (edit) {
-    ProfileEdit.bio => 'Bio enregistrée.',
-    ProfileEdit.email => 'Demande de changement envoyée. Vérifiez vos e-mails pour une éventuelle confirmation.',
-    ProfileEdit.password => 'Mot de passe modifié.',
-  })));
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(switch (edit) {
+        ProfileEdit.bio => 'Bio enregistrée.',
+        ProfileEdit.email =>
+          'Demande de changement envoyée. Vérifiez vos e-mails pour une éventuelle confirmation.',
+        ProfileEdit.password => 'Mot de passe modifié.',
+      }),
+    ),
+  );
   await cubit.loadProfile();
 }
 
@@ -71,9 +82,11 @@ class _EditProfileDialogState extends State<_EditProfileDialog> {
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<ProfileCubit, ProfileState>(
-      listenWhen: (previous, current) => previous.saveStatus != current.saveStatus,
+      listenWhen: (previous, current) =>
+          previous.saveStatus != current.saveStatus,
       listener: (context, state) {
-        if (state.saveStatus == ProfileSaveStatus.success) Navigator.of(context).pop(true);
+        if (state.saveStatus == ProfileSaveStatus.success)
+          Navigator.of(context).pop(true);
       },
       builder: (context, state) {
         final saving = state.saveStatus == ProfileSaveStatus.saving;
@@ -90,65 +103,80 @@ class _EditProfileDialogState extends State<_EditProfileDialog> {
               child: SizedBox(
                 width: edit == ProfileEdit.bio ? 480 : null,
                 child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (edit == ProfileEdit.password) ...[
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (edit == ProfileEdit.password) ...[
+                      RoundedTextField(
+                        controller: _password,
+                        enabled: !saving,
+                        obscureText: true,
+                        autocorrect: false,
+                        enableSuggestions: false,
+                        hintText: 'Mot de passe actuel',
+                      ),
+                      const SizedBox(height: 12),
+                    ],
                     RoundedTextField(
-                      controller: _password,
+                      controller: _value,
                       enabled: !saving,
-                      obscureText: true,
-                      autocorrect: false,
-                      enableSuggestions: false,
-                      hintText: 'Mot de passe actuel',
+                      autofocus: true,
+                      obscureText: edit == ProfileEdit.password,
+                      autocorrect: edit == ProfileEdit.bio,
+                      enableSuggestions: edit == ProfileEdit.bio,
+                      minLines: edit == ProfileEdit.bio ? 6 : 1,
+                      maxLines: edit == ProfileEdit.bio ? 10 : 1,
+                      keyboardType: switch (edit) {
+                        ProfileEdit.bio => TextInputType.multiline,
+                        ProfileEdit.email => TextInputType.emailAddress,
+                        ProfileEdit.password => TextInputType.visiblePassword,
+                      },
+                      hintText: switch (edit) {
+                        ProfileEdit.bio => 'Bio',
+                        ProfileEdit.email => 'Nouvelle adresse e-mail',
+                        ProfileEdit.password => 'Nouveau mot de passe',
+                      },
                     ),
-                    const SizedBox(height: 12),
+                    if (edit == ProfileEdit.password) ...[
+                      const SizedBox(height: 12),
+                      RoundedTextField(
+                        controller: _confirmation,
+                        enabled: !saving,
+                        obscureText: true,
+                        autocorrect: false,
+                        enableSuggestions: false,
+                        hintText: 'Confirmer le nouveau mot de passe',
+                      ),
+                    ],
+                    if (edit == ProfileEdit.email) ...[
+                      const SizedBox(height: 12),
+                      const Text(
+                        'Une confirmation par e-mail peut être nécessaire pour finaliser le changement.',
+                      ),
+                    ],
+                    if (state.saveError != null) ...[
+                      const SizedBox(height: 12),
+                      Text(
+                        state.saveError!,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
+                    ],
                   ],
-                  RoundedTextField(
-                    controller: _value,
-                    enabled: !saving,
-                    autofocus: true,
-                    obscureText: edit == ProfileEdit.password,
-                    autocorrect: edit == ProfileEdit.bio,
-                    enableSuggestions: edit == ProfileEdit.bio,
-                    minLines: edit == ProfileEdit.bio ? 6 : 1,
-                    maxLines: edit == ProfileEdit.bio ? 10 : 1,
-                    keyboardType: switch (edit) {
-                      ProfileEdit.bio => TextInputType.multiline,
-                      ProfileEdit.email => TextInputType.emailAddress,
-                      ProfileEdit.password => TextInputType.visiblePassword,
-                    },
-                    hintText: switch (edit) {
-                      ProfileEdit.bio => 'Bio',
-                      ProfileEdit.email => 'Nouvelle adresse e-mail',
-                      ProfileEdit.password => 'Nouveau mot de passe',
-                    },
-                  ),
-                  if (edit == ProfileEdit.password) ...[
-                    const SizedBox(height: 12),
-                    RoundedTextField(
-                      controller: _confirmation,
-                      enabled: !saving,
-                      obscureText: true,
-                      autocorrect: false,
-                      enableSuggestions: false,
-                      hintText: 'Confirmer le nouveau mot de passe',
-                    ),
-                  ],
-                  if (edit == ProfileEdit.email) ...[
-                    const SizedBox(height: 12),
-                    const Text('Une confirmation par e-mail peut être nécessaire pour finaliser le changement.'),
-                  ],
-                  if (state.saveError != null) ...[
-                    const SizedBox(height: 12),
-                    Text(state.saveError!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
-                  ],
-                ],
                 ),
               ),
             ),
             actions: [
-              TextButton(onPressed: saving ? null : () => Navigator.of(context).pop(false), child: const Text('Annuler')),
-              FilledButton(onPressed: saving ? null : _submit, child: Text(saving ? 'Enregistrement…' : 'Enregistrer')),
+              TextButton(
+                onPressed: saving
+                    ? null
+                    : () => Navigator.of(context).pop(false),
+                child: const Text('Annuler'),
+              ),
+              FilledButton(
+                onPressed: saving ? null : _submit,
+                child: Text(saving ? 'Enregistrement…' : 'Enregistrer'),
+              ),
             ],
           ),
         );

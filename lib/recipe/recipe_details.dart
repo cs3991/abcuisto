@@ -28,17 +28,31 @@ class RecipeDetailsPage extends StatelessWidget {
 
   const RecipeDetailsPage({super.key});
 
-  Future<void> _handleAction(BuildContext context, RecipeLoaded state, _RecipeAction action) async {
+  Future<void> _handleAction(
+    BuildContext context,
+    RecipeLoaded state,
+    _RecipeAction action,
+  ) async {
     final colors = Theme.of(context).colorScheme;
     final recipe = state.recipe;
-    final link = Uri.https(AppConfig.instance.flavor == AppFlavor.prod ? 'abcuisto.fr' : 'dev.abcuisto.fr', '/recette/${recipe.id}').toString();
+    final link = Uri.https(
+      AppConfig.instance.flavor == AppFlavor.prod
+          ? 'abcuisto.fr'
+          : 'dev.abcuisto.fr',
+      '/recette/${recipe.id}',
+    ).toString();
     switch (action) {
       case _RecipeAction.favorite:
         final cubit = context.read<FavoritesCubit>();
         cubit.state.isLoaded ? cubit.toggleFavorite(recipe.id) : cubit.reload();
         return;
       case _RecipeAction.edit:
-        Navigator.push(context, MaterialPageRoute(builder: (_) => AddRecipePage(initialRecipe: recipe)));
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => AddRecipePage(initialRecipe: recipe),
+          ),
+        );
         return;
       case _RecipeAction.share:
         try {
@@ -47,24 +61,34 @@ class RecipeDetailsPage extends StatelessWidget {
             ShareParams(
               text: '${recipe.name} sur ABCuisto : $link',
               subject: recipe.name,
-              sharePositionOrigin: box == null ? null : box.localToGlobal(Offset.zero) & box.size,
+              sharePositionOrigin: box == null
+                  ? null
+                  : box.localToGlobal(Offset.zero) & box.size,
             ),
           );
         } catch (_) {
           if (!context.mounted) return;
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Impossible de partager la recette. Vous pouvez copier son lien.')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Impossible de partager la recette. Vous pouvez copier son lien.',
+              ),
+            ),
+          );
         }
         return;
       case _RecipeAction.link:
         try {
           await Clipboard.setData(ClipboardData(text: link));
           if (!context.mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Lien de la recette copié.')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Lien de la recette copié.')),
+          );
         } catch (_) {
           if (!context.mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Impossible de copier le lien.')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Impossible de copier le lien.')),
+          );
         }
         return;
       case _RecipeAction.delete:
@@ -72,11 +96,19 @@ class RecipeDetailsPage extends StatelessWidget {
           context: context,
           builder: (dialogContext) => AlertDialog(
             title: const Text('Supprimer la recette ?'),
-            content: Text('« ${recipe.name} » sera supprimée définitivement. Cette action est irréversible.'),
+            content: Text(
+              '« ${recipe.name} » sera supprimée définitivement. Cette action est irréversible.',
+            ),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Annuler')),
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext, false),
+                child: const Text('Annuler'),
+              ),
               FilledButton(
-                style: FilledButton.styleFrom(backgroundColor: colors.error, foregroundColor: colors.onError),
+                style: FilledButton.styleFrom(
+                  backgroundColor: colors.error,
+                  foregroundColor: colors.onError,
+                ),
                 onPressed: () => Navigator.pop(dialogContext, true),
                 child: const Text('Supprimer'),
               ),
@@ -107,25 +139,33 @@ class RecipeDetailsPage extends StatelessWidget {
         } else {
           context.read<RecipeQuantitiesCubit>().clearPrices();
         }
-        if (state is AuthenticationLoggedIn || state is AuthenticationLoggedOut) {
+        if (state is AuthenticationLoggedIn ||
+            state is AuthenticationLoggedOut) {
           context.read<RecipeCubit>().refreshPermissions();
         }
       },
       child: BlocConsumer<RecipeCubit, RecipeState>(
         listener: (context, state) {
-          if (state is RecipeLoaded) context.read<RecipeQuantitiesCubit>().setRecipe(state.recipe);
-          if (state is RecipeLoading || state is RecipeError || state is RecipeDeleted) {
+          if (state is RecipeLoaded)
+            context.read<RecipeQuantitiesCubit>().setRecipe(state.recipe);
+          if (state is RecipeLoading ||
+              state is RecipeError ||
+              state is RecipeDeleted) {
             context.read<RecipeQuantitiesCubit>().setRecipe(null);
           }
           if (state is RecipeDeleted) {
             context.read<FilterCubit>().update();
             final messenger = ScaffoldMessenger.of(context);
             Navigator.of(context).pop();
-            messenger.showSnackBar(const SnackBar(content: Text('Recette supprimée.')));
+            messenger.showSnackBar(
+              const SnackBar(content: Text('Recette supprimée.')),
+            );
           }
         },
         builder: (context, state) {
-          if (state is RecipeInitial || state is RecipeLoading || state is RecipeLoaded) {
+          if (state is RecipeInitial ||
+              state is RecipeLoading ||
+              state is RecipeLoaded) {
             final recipeState = state is RecipeLoaded ? state : null;
             final recipe = recipeState?.recipe;
             return PopScope(
@@ -133,96 +173,160 @@ class RecipeDetailsPage extends StatelessWidget {
               child: Scaffold(
                 appBar: AppBar(
                   toolbarHeight: 65,
-                  title: recipe == null ? const PulsingPlaceholder(width: 180, height: 24) : Text(recipe.name),
+                  title: recipe == null
+                      ? const PulsingPlaceholder(width: 180, height: 24)
+                      : Text(recipe.name),
                   actions: [
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
                         child: BlocBuilder<AuthenticationCubit, AuthenticationState>(
                           builder: (context, state) {
                             return Row(
                               children: [
                                 BlocBuilder<FavoritesCubit, FavoritesState>(
                                   builder: (context, favorites) {
-                                    final selected = recipe != null && favorites.ids.contains(recipe.id);
-                                    final busy = favorites.isLoading || (recipe != null && favorites.pendingIds.contains(recipe.id));
+                                    final selected =
+                                        recipe != null &&
+                                        favorites.ids.contains(recipe.id);
+                                    final busy =
+                                        favorites.isLoading ||
+                                        (recipe != null &&
+                                            favorites.pendingIds.contains(
+                                              recipe.id,
+                                            ));
                                     return PopupMenuButton<_RecipeAction>(
-                                    icon: const Icon(Icons.more_vert_rounded),
-                                    tooltip: 'Options de la recette',
-                                    position: PopupMenuPosition.under,
-                                    constraints: const BoxConstraints(minWidth: 280, maxWidth: 360),
-                                    shape: const RoundedRectangleBorder(borderRadius: BorderRadiusGeometry.all(Radius.circular(8))),
-                                    color: Theme.of(context).colorScheme.surface,
-                                    surfaceTintColor: Colors.transparent,
-                                    enabled: recipeState != null,
-                                    onSelected: (action) => _handleAction(context, recipeState!, action),
-                                    itemBuilder: (context) => [
-                                      PopupMenuItem(
-                                        value: _RecipeAction.favorite,
-                                        enabled: state is AuthenticationLoggedIn && !busy,
-                                        child: _RecipeActionTile(
-                                          title: selected ? 'Retirer des favoris' : 'Ajouter aux favoris',
-                                          description: state is! AuthenticationLoggedIn
-                                              ? 'Connectez-vous pour gérer vos favoris.'
-                                              : busy
-                                                  ? 'Chargement des favoris…'
-                                                  : !favorites.isLoaded
-                                                      ? 'Réessayer de charger les favoris.'
-                                                      : 'Retrouver cette recette dans vos favoris.',
-                                          icon: selected ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                                      icon: const Icon(Icons.more_vert_rounded),
+                                      tooltip: 'Options de la recette',
+                                      position: PopupMenuPosition.under,
+                                      constraints: const BoxConstraints(
+                                        minWidth: 280,
+                                        maxWidth: 360,
+                                      ),
+                                      shape: const RoundedRectangleBorder(
+                                        borderRadius: BorderRadiusGeometry.all(
+                                          Radius.circular(8),
                                         ),
                                       ),
-                                      if (recipeState?.canEdit == true)
-                                        const PopupMenuItem(
-                                          value: _RecipeAction.edit,
-                                          child: _RecipeActionTile(
-                                            title: 'Éditer',
-                                            description: 'Modifier les ingrédients et les étapes.',
-                                            icon: Icons.edit_rounded,
-                                          ),
-                                        ),
-                                      const PopupMenuItem(
-                                        value: _RecipeAction.share,
-                                        child: _RecipeActionTile(
-                                          title: 'Partager',
-                                          description: 'Envoyer cette recette à vos proches.',
-                                          icon: Icons.share_rounded,
-                                        ),
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.surface,
+                                      surfaceTintColor: Colors.transparent,
+                                      enabled: recipeState != null,
+                                      onSelected: (action) => _handleAction(
+                                        context,
+                                        recipeState!,
+                                        action,
                                       ),
-                                      const PopupMenuItem(
-                                        value: _RecipeAction.link,
-                                        child: _RecipeActionTile(
-                                          title: 'Lien vers la recette',
-                                          description: 'Copier le lien dans le presse-papiers.',
-                                          icon: Icons.link_rounded,
-                                        ),
-                                      ),
-                                      if (recipeState?.canDelete == true)
+                                      itemBuilder: (context) => [
                                         PopupMenuItem(
-                                          value: _RecipeAction.delete,
+                                          value: _RecipeAction.favorite,
+                                          enabled:
+                                              state is AuthenticationLoggedIn &&
+                                              !busy,
                                           child: _RecipeActionTile(
-                                            title: 'Supprimer',
-                                            description: 'Supprimer définitivement cette recette.',
-                                            icon: Icons.delete_rounded,
-                                            color: Theme.of(context).colorScheme.error,
+                                            title: selected
+                                                ? 'Retirer des favoris'
+                                                : 'Ajouter aux favoris',
+                                            description:
+                                                state is! AuthenticationLoggedIn
+                                                ? 'Connectez-vous pour gérer vos favoris.'
+                                                : busy
+                                                ? 'Chargement des favoris…'
+                                                : !favorites.isLoaded
+                                                ? 'Réessayer de charger les favoris.'
+                                                : 'Retrouver cette recette dans vos favoris.',
+                                            icon: selected
+                                                ? Icons.favorite_rounded
+                                                : Icons.favorite_border_rounded,
                                           ),
                                         ),
-                                    ],
+                                        if (recipeState?.canEdit == true)
+                                          const PopupMenuItem(
+                                            value: _RecipeAction.edit,
+                                            child: _RecipeActionTile(
+                                              title: 'Éditer',
+                                              description:
+                                                  'Modifier les ingrédients et les étapes.',
+                                              icon: Icons.edit_rounded,
+                                            ),
+                                          ),
+                                        const PopupMenuItem(
+                                          value: _RecipeAction.share,
+                                          child: _RecipeActionTile(
+                                            title: 'Partager',
+                                            description:
+                                                'Envoyer cette recette à vos proches.',
+                                            icon: Icons.share_rounded,
+                                          ),
+                                        ),
+                                        const PopupMenuItem(
+                                          value: _RecipeAction.link,
+                                          child: _RecipeActionTile(
+                                            title: 'Lien vers la recette',
+                                            description:
+                                                'Copier le lien dans le presse-papiers.',
+                                            icon: Icons.link_rounded,
+                                          ),
+                                        ),
+                                        if (recipeState?.canDelete == true)
+                                          PopupMenuItem(
+                                            value: _RecipeAction.delete,
+                                            child: _RecipeActionTile(
+                                              title: 'Supprimer',
+                                              description:
+                                                  'Supprimer définitivement cette recette.',
+                                              icon: Icons.delete_rounded,
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.error,
+                                            ),
+                                          ),
+                                      ],
                                     );
                                   },
                                 ),
                                 IconButton(
-                                  icon: Icon(state is AuthenticationLoggedIn ? Icons.person_rounded : Icons.login_rounded),
-                                  tooltip: state is AuthenticationLoggedIn ? "Connecté" : "Se connecter",
+                                  icon: Icon(
+                                    state is AuthenticationLoggedIn
+                                        ? Icons.person_rounded
+                                        : Icons.login_rounded,
+                                  ),
+                                  tooltip: state is AuthenticationLoggedIn
+                                      ? "Connecté"
+                                      : "Se connecter",
                                   onPressed: () async {
-                                    if (state is AuthenticationLoggedOut || state is AuthenticationInitial) {
-                                      Navigator.push(context, MaterialPageRoute(builder: (context) => LoginPage()));
-                                    } else if (state is AuthenticationLoggedIn) {
-                                      await Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfilePage()));
+                                    if (state is AuthenticationLoggedOut ||
+                                        state is AuthenticationInitial) {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => LoginPage(),
+                                        ),
+                                      );
+                                    } else if (state
+                                        is AuthenticationLoggedIn) {
+                                      await Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              const ProfilePage(),
+                                        ),
+                                      );
                                       if (!context.mounted) return;
-                                      context.read<RecipeCubit>().refreshPermissions();
-                                      context.read<RecipeQuantitiesCubit>().loadPrices();
+                                      context
+                                          .read<RecipeCubit>()
+                                          .refreshPermissions();
+                                      context
+                                          .read<RecipeQuantitiesCubit>()
+                                          .loadPrices();
                                     }
                                   },
                                 ),
@@ -248,7 +352,11 @@ class RecipeDetailsPage extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(state.message),
-                      TextButton(onPressed: () => context.read<RecipeCubit>().refreshRecipe(), child: const Text('Recharger la recette')),
+                      TextButton(
+                        onPressed: () =>
+                            context.read<RecipeCubit>().refreshRecipe(),
+                        child: const Text('Recharger la recette'),
+                      ),
                     ],
                   ),
                 ),
@@ -269,7 +377,12 @@ class _RecipeActionTile extends StatelessWidget {
   final IconData icon;
   final Color? color;
 
-  const _RecipeActionTile({required this.title, required this.description, required this.icon, this.color});
+  const _RecipeActionTile({
+    required this.title,
+    required this.description,
+    required this.icon,
+    this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -302,11 +415,21 @@ class RecipeDetails extends StatelessWidget {
               SizedBox(height: 350),
 
               Padding(
-                padding: const EdgeInsets.only(left: 16, right: 16, top: 0, bottom: 16),
+                padding: const EdgeInsets.only(
+                  left: 16,
+                  right: 16,
+                  top: 0,
+                  bottom: 16,
+                ),
                 child: Container(
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.surfaceContainerLow,
-                    border: Border.all(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3), width: 1),
+                    border: Border.all(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.outline.withValues(alpha: 0.3),
+                      width: 1,
+                    ),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Padding(
@@ -320,7 +443,12 @@ class RecipeDetails extends StatelessWidget {
                             : recipe.prepTime != null
                             ? Text(
                                 'Préparation : ${recipe.prepTimeFormatted!}',
-                                style: Theme.of(context).textTheme.labelMedium?.copyWith(color: Theme.of(context).colorScheme.primary),
+                                style: Theme.of(context).textTheme.labelMedium
+                                    ?.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
+                                    ),
                               )
                             : Container(),
                         recipe == null
@@ -328,7 +456,12 @@ class RecipeDetails extends StatelessWidget {
                             : recipe.cookTime != null
                             ? Text(
                                 'Cuisson : ${recipe.cookTimeFormatted!}',
-                                style: Theme.of(context).textTheme.labelMedium?.copyWith(color: Theme.of(context).colorScheme.primary),
+                                style: Theme.of(context).textTheme.labelMedium
+                                    ?.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
+                                    ),
                               )
                             : Container(),
                         recipe == null
@@ -336,17 +469,30 @@ class RecipeDetails extends StatelessWidget {
                             : recipe.restTime != null
                             ? Text(
                                 'Repos : ${recipe.restTimeFormatted!}',
-                                style: Theme.of(context).textTheme.labelMedium?.copyWith(color: Theme.of(context).colorScheme.primary),
+                                style: Theme.of(context).textTheme.labelMedium
+                                    ?.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
+                                    ),
                               )
                             : Container(),
                         SizedBox(height: 4),
                         recipe == null
                             ? const PulsingPlaceholder(width: 240, height: 34)
-                            : Text(recipe.name, style: Theme.of(context).textTheme.headlineMedium),
+                            : Text(
+                                recipe.name,
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.headlineMedium,
+                              ),
                         SizedBox(height: 4),
                         recipe == null
                             ? const PulsingPlaceholder(width: 100, height: 16)
-                            : Text(recipe.category?.displayName ?? '', style: Theme.of(context).textTheme.bodySmall),
+                            : Text(
+                                recipe.category?.displayName ?? '',
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
                         SizedBox(height: 12),
                         if (recipe == null) ...[
                           const PulsingPlaceholder(width: 200, height: 24),
@@ -354,26 +500,44 @@ class RecipeDetails extends StatelessWidget {
                         ] else
                           _RecipeQuantities(recipe: recipe),
                         SizedBox(height: 12),
-                        Text("Instructions", style: Theme.of(context).textTheme.titleMedium),
+                        Text(
+                          "Instructions",
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
                         SizedBox(height: 8),
                         InstructionsView(recipe: recipe),
                         SizedBox(height: 12),
                         recipe == null
                             ? const PulsingPlaceholder(width: 180, height: 16)
-                            : Text("Recette créée par ${recipe.creatorName}", style: Theme.of(context).textTheme.labelMedium),
+                            : Text(
+                                "Recette créée par ${recipe.creatorName}",
+                                style: Theme.of(context).textTheme.labelMedium,
+                              ),
                         if (recipe == null || recipe.cookware.isNotEmpty) ...[
                           SizedBox(height: 12),
-                          Text("Ustensiles", style: Theme.of(context).textTheme.titleMedium),
+                          Text(
+                            "Ustensiles",
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
                           SizedBox(
                             height: 40,
                             child: ListView.builder(
                               scrollDirection: Axis.horizontal,
-                              itemCount: recipe == null ? 3 : recipe.cookware.length,
+                              itemCount: recipe == null
+                                  ? 3
+                                  : recipe.cookware.length,
                               itemBuilder: (context, index) {
                                 final cookware = recipe?.cookware[index];
                                 return Padding(
                                   padding: const EdgeInsets.only(right: 8.0),
-                                  child: Chip(label: cookware == null ? const PulsingPlaceholder(width: 64, height: 16) : Text(cookware)),
+                                  child: Chip(
+                                    label: cookware == null
+                                        ? const PulsingPlaceholder(
+                                            width: 64,
+                                            height: 16,
+                                          )
+                                        : Text(cookware),
+                                  ),
                                 );
                               },
                             ),
@@ -384,51 +548,90 @@ class RecipeDetails extends StatelessWidget {
                           recipe == null
                               ? const PulsingPlaceholder(width: 180, height: 16)
                               : Text(
-                                  recipe.tags.map((tag) => tag.displayName).join(' · '),
+                                  recipe.tags
+                                      .map((tag) => tag.displayName)
+                                      .join(' · '),
                                   style: Theme.of(context).textTheme.bodyMedium,
                                 ),
                         ],
                         if (recipe == null || recipe.groups.isNotEmpty) ...[
                           SizedBox(height: 12),
-                          Text("Groupes", style: Theme.of(context).textTheme.titleMedium),
+                          Text(
+                            "Groupes",
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
                           SizedBox(height: 8),
                           if (recipe == null)
                             const PulsingPlaceholder(width: 180, height: 16)
                           else
                             ...recipe.groups.map(
-                              (group) => Text(group.name ?? 'Groupe', style: Theme.of(context).textTheme.bodyMedium),
+                              (group) => Text(
+                                group.name ?? 'Groupe',
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
                             ),
                         ],
                         SizedBox(height: 12),
-                        Text("Commentaires", style: Theme.of(context).textTheme.titleMedium),
+                        Text(
+                          "Commentaires",
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
                         SizedBox(height: 12),
                         Row(
                           children: [
-                            recipe == null ? const PulsingPlaceholder(width: 160, height: 32) : RatingStars(note: recipe.note, size: 32),
+                            recipe == null
+                                ? const PulsingPlaceholder(
+                                    width: 160,
+                                    height: 32,
+                                  )
+                                : RatingStars(note: recipe.note, size: 32),
                             SizedBox(width: 12),
                             recipe == null
-                                ? const PulsingPlaceholder(width: 40, height: 34)
-                                : Text(recipe.note?.toStringAsPrecision(2) ?? '', style: Theme.of(context).textTheme.headlineMedium),
+                                ? const PulsingPlaceholder(
+                                    width: 40,
+                                    height: 34,
+                                  )
+                                : Text(
+                                    recipe.note?.toStringAsPrecision(2) ?? '',
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.headlineMedium,
+                                  ),
                             if (recipe == null || recipe.nbNotes != null) ...[
                               SizedBox(width: 8),
                               recipe == null
-                                  ? const PulsingPlaceholder(width: 48, height: 16)
-                                  : Text('${recipe.nbNotes} avis', style: Theme.of(context).textTheme.bodyMedium),
+                                  ? const PulsingPlaceholder(
+                                      width: 48,
+                                      height: 16,
+                                    )
+                                  : Text(
+                                      '${recipe.nbNotes} avis',
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.bodyMedium,
+                                    ),
                             ],
                           ],
                         ),
                         SizedBox(height: 12),
                         if (recipe != null && recipe.comments.isEmpty)
-                          Text("Aucun commentaire pour le moment.", style: Theme.of(context).textTheme.bodyMedium)
+                          Text(
+                            "Aucun commentaire pour le moment.",
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          )
                         else
                           ...List.generate(
                             recipe == null ? 2 : recipe.comments.length,
-                            (index) => _RecipeCommentCard(comment: recipe?.comments[index], recipeId: recipe?.id),
+                            (index) => _RecipeCommentCard(
+                              comment: recipe?.comments[index],
+                              recipeId: recipe?.id,
+                            ),
                           ),
                         SizedBox(height: 4),
                         if (recipe == null)
                           const PulsingPlaceholder(width: 140, height: 40)
-                        else if (recipe.creatorId != context.read<AbcuistoRepository>().user?.id)
+                        else if (recipe.creatorId !=
+                            context.read<AbcuistoRepository>().user?.id)
                           _CommentComposer(recipe: recipe),
                       ],
                     ),
@@ -463,19 +666,25 @@ class _CommentComposerState extends State<_CommentComposer> {
   }
 
   void _submitComment() {
-    context.read<CommentCubit>().addComment(recipeId: widget.recipe.id, comment: _commentController.text.trim());
+    context.read<CommentCubit>().addComment(
+      recipeId: widget.recipe.id,
+      comment: _commentController.text.trim(),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<CommentCubit, CommentState>(
       listener: (context, state) {
-        if (state.status == CommentStatus.success && state.action == CommentAction.add) {
+        if (state.status == CommentStatus.success &&
+            state.action == CommentAction.add) {
           setState(() {
             _isExpanded = false;
             _commentController.clear();
           });
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Commentaire ajouté.')));
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Commentaire ajouté.')));
           context.read<RecipeCubit>().refreshRecipe();
           context.read<CommentCubit>().reset(clearRating: true);
         }
@@ -490,8 +699,12 @@ class _CommentComposerState extends State<_CommentComposer> {
                 alignment: Alignment.centerLeft,
                 child: TextButton.icon(
                   onPressed: () {
-                    if (context.read<AuthenticationCubit>().state is! AuthenticationLoggedIn) {
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => LoginPage()));
+                    if (context.read<AuthenticationCubit>().state
+                        is! AuthenticationLoggedIn) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => LoginPage()),
+                      );
                       return;
                     }
                     context.read<CommentCubit>().reset(clearRating: true);
@@ -513,8 +726,16 @@ class _CommentComposerState extends State<_CommentComposer> {
                       tooltip: '$rating étoile${rating > 1 ? 's' : ''}',
                       iconSize: 32,
                       padding: EdgeInsets.zero,
-                      onPressed: state.status == CommentStatus.loading ? null : () => context.read<CommentCubit>().toggleRating(rating),
-                      icon: Icon(rating <= (state.selectedRating ?? 0) ? Icons.star_rounded : Icons.star_outline_rounded),
+                      onPressed: state.status == CommentStatus.loading
+                          ? null
+                          : () => context.read<CommentCubit>().toggleRating(
+                              rating,
+                            ),
+                      icon: Icon(
+                        rating <= (state.selectedRating ?? 0)
+                            ? Icons.star_rounded
+                            : Icons.star_outline_rounded,
+                      ),
                       color: Colors.orange.withValues(alpha: 0.5),
                     ),
                 ],
@@ -526,7 +747,10 @@ class _CommentComposerState extends State<_CommentComposer> {
                 minLines: 3,
                 maxLines: 6,
                 textCapitalization: TextCapitalization.sentences,
-                decoration: const InputDecoration(hintText: 'Commentaire', border: OutlineInputBorder()),
+                decoration: const InputDecoration(
+                  hintText: 'Commentaire',
+                  border: OutlineInputBorder(),
+                ),
                 onChanged: (_) {
                   context.read<CommentCubit>().reset();
                 },
@@ -534,7 +758,10 @@ class _CommentComposerState extends State<_CommentComposer> {
               const SizedBox(height: 8),
               if (state.errorMessage != null) ...[
                 const SizedBox(height: 8),
-                Text(state.errorMessage!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                Text(
+                  state.errorMessage!,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
               ],
               const SizedBox(height: 8),
               Wrap(
@@ -548,14 +775,24 @@ class _CommentComposerState extends State<_CommentComposer> {
                               _isExpanded = false;
                               _commentController.clear();
                             });
-                            context.read<CommentCubit>().reset(clearRating: true);
+                            context.read<CommentCubit>().reset(
+                              clearRating: true,
+                            );
                           },
                     child: const Text('Annuler'),
                   ),
                   FilledButton.icon(
-                    onPressed: state.status == CommentStatus.loading || state.selectedRating == null ? null : _submitComment,
+                    onPressed:
+                        state.status == CommentStatus.loading ||
+                            state.selectedRating == null
+                        ? null
+                        : _submitComment,
                     icon: state.status == CommentStatus.loading
-                        ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
                         : const Icon(Icons.send_rounded),
                     label: const Text('Publier'),
                   ),
@@ -581,14 +818,23 @@ class _RecipeCommentCard extends StatelessWidget {
     return BlocBuilder<AuthenticationCubit, AuthenticationState>(
       builder: (context, authState) {
         final userId = context.read<AbcuistoRepository>().user?.id;
-        final canDelete = authState is AuthenticationLoggedIn && userId != null && comment != null && comment.user == userId && comment.id != null;
+        final canDelete =
+            authState is AuthenticationLoggedIn &&
+            userId != null &&
+            comment != null &&
+            comment.user == userId &&
+            comment.id != null;
         return Padding(
           padding: const EdgeInsets.only(bottom: 8),
           child: Container(
             width: double.infinity,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              border: Border.all(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3)),
+              border: Border.all(
+                color: Theme.of(
+                  context,
+                ).colorScheme.outline.withValues(alpha: 0.3),
+              ),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Column(
@@ -598,9 +844,14 @@ class _RecipeCommentCard extends StatelessWidget {
                   children: [
                     Expanded(
                       child: comment == null
-                          ? const Align(alignment: Alignment.centerLeft, child: PulsingPlaceholder(width: 120, height: 20))
+                          ? const Align(
+                              alignment: Alignment.centerLeft,
+                              child: PulsingPlaceholder(width: 120, height: 20),
+                            )
                           : Text(
-                              comment.username?.isNotEmpty == true ? comment.username! : 'Utilisateur',
+                              comment.username?.isNotEmpty == true
+                                  ? comment.username!
+                                  : 'Utilisateur',
                               style: Theme.of(context).textTheme.titleSmall,
                             ),
                     ),
@@ -610,18 +861,29 @@ class _RecipeCommentCard extends StatelessWidget {
                           tooltip: 'Supprimer mon commentaire',
                           visualDensity: VisualDensity.compact,
                           icon: const Icon(Icons.delete_outline_rounded),
-                          onPressed: commentState.status == CommentStatus.loading ? null : () => _confirmDelete(context),
+                          onPressed:
+                              commentState.status == CommentStatus.loading
+                              ? null
+                              : () => _confirmDelete(context),
                         ),
                       ),
-                    if (comment == null) const PulsingPlaceholder(width: 80, height: 16),
-                    if (comment?.note != null) RatingStars(note: comment!.note!.toDouble(), size: 16),
+                    if (comment == null)
+                      const PulsingPlaceholder(width: 80, height: 16),
+                    if (comment?.note != null)
+                      RatingStars(note: comment!.note!.toDouble(), size: 16),
                   ],
                 ),
                 if (comment == null || comment.comment?.isNotEmpty == true) ...[
                   const SizedBox(height: 8),
                   comment == null
-                      ? const PulsingPlaceholder(width: double.infinity, height: 16)
-                      : Text(comment.comment!, style: Theme.of(context).textTheme.bodyMedium),
+                      ? const PulsingPlaceholder(
+                          width: double.infinity,
+                          height: 16,
+                        )
+                      : Text(
+                          comment.comment!,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
                 ],
               ],
             ),
@@ -638,24 +900,43 @@ class _RecipeCommentCard extends StatelessWidget {
         title: const Text('Supprimer le commentaire ?'),
         content: const Text('Cette action est définitive.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Annuler')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Supprimer')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Annuler'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Supprimer'),
+          ),
         ],
       ),
     );
     if (shouldDelete != true || !context.mounted) return;
 
     final commentCubit = context.read<CommentCubit>();
-    await commentCubit.deleteComment(recipeId: recipeId!, commentId: comment!.id!);
+    await commentCubit.deleteComment(
+      recipeId: recipeId!,
+      commentId: comment!.id!,
+    );
     if (!context.mounted) return;
 
     final state = commentCubit.state;
-    if (state.status == CommentStatus.success && state.action == CommentAction.delete) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Commentaire supprimé.')));
+    if (state.status == CommentStatus.success &&
+        state.action == CommentAction.delete) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Commentaire supprimé.')));
       context.read<RecipeCubit>().refreshRecipe();
       commentCubit.reset();
-    } else if (state.status == CommentStatus.failure && state.action == CommentAction.delete) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Impossible de supprimer le commentaire : ${state.errorMessage}')));
+    } else if (state.status == CommentStatus.failure &&
+        state.action == CommentAction.delete) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Impossible de supprimer le commentaire : ${state.errorMessage}',
+          ),
+        ),
+      );
       commentCubit.reset();
     }
   }
@@ -671,9 +952,13 @@ class _RecipeQuantities extends StatelessWidget {
     return BlocBuilder<RecipeQuantitiesCubit, RecipeQuantitiesState>(
       builder: (context, state) {
         final originalServings = recipe.forNumber;
-        final servings = originalServings == null ? null : originalServings * state.factor;
+        final servings = originalServings == null
+            ? null
+            : originalServings * state.factor;
         final pieces = recipe.typeNumber == RecipeServingType.pieces;
-        final label = pieces ? (servings == 1 ? 'pièce' : 'pièces') : (servings == 1 ? 'personne' : 'personnes');
+        final label = pieces
+            ? (servings == 1 ? 'pièce' : 'pièces')
+            : (servings == 1 ? 'personne' : 'personnes');
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -689,7 +974,10 @@ class _RecipeQuantities extends StatelessWidget {
                     context: context,
                     builder: (_) => BlocProvider.value(
                       value: context.read<RecipeQuantitiesCubit>(),
-                      child: _ServingsDialog(recipe: recipe, factor: state.factor),
+                      child: _ServingsDialog(
+                        recipe: recipe,
+                        factor: state.factor,
+                      ),
                     ),
                   ),
                   child: Row(
@@ -698,10 +986,19 @@ class _RecipeQuantities extends StatelessWidget {
                       if (servings != null)
                         Text(
                           '${_formatQuantity(servings)} $label',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Theme.of(context).colorScheme.primary),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
                         ),
                       const SizedBox(width: 4),
-                      Icon(Icons.edit_rounded, size: Theme.of(context).textTheme.titleMedium?.fontSize, color: Theme.of(context).colorScheme.onSurfaceVariant.withAlpha(150)),
+                      Icon(
+                        Icons.edit_rounded,
+                        size: Theme.of(context).textTheme.titleMedium?.fontSize,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurfaceVariant.withAlpha(150),
+                      ),
                     ],
                   ),
                 ),
@@ -738,13 +1035,16 @@ class _RecipeCostState extends State<_RecipeCost> {
   @override
   Widget build(BuildContext context) {
     final state = widget.state;
-    final authenticated = context.select((AuthenticationCubit cubit) => cubit.state is AuthenticationLoggedIn);
+    final authenticated = context.select(
+      (AuthenticationCubit cubit) => cubit.state is AuthenticationLoggedIn,
+    );
     final total = state.totalCost;
     final label = !authenticated
         ? 'Coût : se connecter'
         : switch (state.priceStatus) {
             RecipePriceStatus.loading => 'Coût : chargement…',
-            RecipePriceStatus.success when state.pricedIngredients > 0 && total != null =>
+            RecipePriceStatus.success
+                when state.pricedIngredients > 0 && total != null =>
               'Coût : ${total.toStringAsFixed(2).replaceAll('.', ',')} €${state.hasUnpricedIngredients ? ' (partiel)' : ''}',
             _ => 'Coût : indisponible',
           };
@@ -769,8 +1069,13 @@ class _RecipeCostState extends State<_RecipeCost> {
                   children: [
                     Flexible(child: Text(label, style: discreetStyle)),
                     const SizedBox(width: 4),
-                    Icon(_expanded ? Icons.expand_less_rounded : Icons.expand_more_rounded,
-                      size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                    Icon(
+                      _expanded
+                          ? Icons.expand_less_rounded
+                          : Icons.expand_more_rounded,
+                      size: 16,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ],
                 ),
               ),
@@ -778,24 +1083,43 @@ class _RecipeCostState extends State<_RecipeCost> {
           ),
           if (_expanded) ...[
             if (!authenticated)
-              const Text('Connectez-vous et renseignez vos prix dans le profil pour estimer le coût de cette recette.')
+              const Text(
+                'Connectez-vous et renseignez vos prix dans le profil pour estimer le coût de cette recette.',
+              )
             else ...[
               if (state.priceStatus == RecipePriceStatus.loading)
-                const Padding(padding: EdgeInsets.symmetric(vertical: 8), child: LinearProgressIndicator()),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: LinearProgressIndicator(),
+                ),
               if (state.priceStatus == RecipePriceStatus.failure) ...[
-                Text(state.priceError ?? 'Impossible de charger les prix.', style: TextStyle(color: Theme.of(context).colorScheme.error)),
-                TextButton(onPressed: context.read<RecipeQuantitiesCubit>().loadPrices, child: const Text('Réessayer')),
+                Text(
+                  state.priceError ?? 'Impossible de charger les prix.',
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+                TextButton(
+                  onPressed: context.read<RecipeQuantitiesCubit>().loadPrices,
+                  child: const Text('Réessayer'),
+                ),
               ],
               if (state.priceStatus == RecipePriceStatus.success) ...[
                 for (final ingredient in state.ingredientCosts)
-                  Text(_ingredientCostLabel(ingredient, state.factor), style: discreetStyle),
+                  Text(
+                    _ingredientCostLabel(ingredient, state.factor),
+                    style: discreetStyle,
+                  ),
               ],
               TextButton.icon(
                 icon: const Icon(Icons.euro_rounded),
                 label: const Text('Mes prix d’ingrédients'),
                 onPressed: () async {
-                  await Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const IngredientPricesPage()));
-                  if (context.mounted) context.read<RecipeQuantitiesCubit>().loadPrices();
+                  await Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const IngredientPricesPage(),
+                    ),
+                  );
+                  if (context.mounted)
+                    context.read<RecipeQuantitiesCubit>().loadPrices();
                 },
               ),
             ],
@@ -807,15 +1131,20 @@ class _RecipeCostState extends State<_RecipeCost> {
 
   String _ingredientCostLabel(RecipeIngredientCost ingredient, double factor) {
     final cost = ingredient.baseCost;
-    if (cost == null) return '${ingredient.name} : ${ingredient.issue ?? 'prix non renseigné'}';
+    if (cost == null)
+      return '${ingredient.name} : ${ingredient.issue ?? 'prix non renseigné'}';
     return '${ingredient.name} : ${(cost * factor).toStringAsFixed(2).replaceAll('.', ',')} €';
   }
 }
 
 String _formatQuantity(double value) {
-  final text = value != 0 && value.abs() < 0.01 ? value.toStringAsPrecision(3) : value.toStringAsFixed(2);
+  final text = value != 0 && value.abs() < 0.01
+      ? value.toStringAsPrecision(3)
+      : value.toStringAsFixed(2);
   final parts = text.split('e');
-  final number = parts.first.contains('.') ? parts.first.replaceFirst(RegExp(r'\.?0+$'), '') : parts.first;
+  final number = parts.first.contains('.')
+      ? parts.first.replaceFirst(RegExp(r'\.?0+$'), '')
+      : parts.first;
   return '${number.replaceAll('.', ',')}${parts.length > 1 ? 'e${parts.last}' : ''}';
 }
 
@@ -837,7 +1166,11 @@ class _ServingsDialogState extends State<_ServingsDialog> {
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController(text: widget.recipe.forNumber == null ? '' : _formatQuantity(widget.recipe.forNumber! * widget.factor));
+    _controller = TextEditingController(
+      text: widget.recipe.forNumber == null
+          ? ''
+          : _formatQuantity(widget.recipe.forNumber! * widget.factor),
+    );
   }
 
   @override
@@ -850,8 +1183,12 @@ class _ServingsDialogState extends State<_ServingsDialog> {
     if (identical(_selectedIngredient, ingredient)) return;
     setState(() {
       _selectedIngredient = ingredient;
-      final quantity = ingredient == null ? widget.recipe.forNumber?.toDouble() : ingredient.quantity;
-      _controller.text = quantity == null ? '' : _formatQuantity(quantity * widget.factor);
+      final quantity = ingredient == null
+          ? widget.recipe.forNumber?.toDouble()
+          : ingredient.quantity;
+      _controller.text = quantity == null
+          ? ''
+          : _formatQuantity(quantity * widget.factor);
     });
   }
 
@@ -877,11 +1214,17 @@ class _ServingsDialogState extends State<_ServingsDialog> {
       decoration: InputDecoration(labelText: label, suffixText: unit),
       validator: (text) {
         final value = double.tryParse((text ?? '').trim().replaceAll(',', '.'));
-        final original = _selectedIngredient?.quantity ?? widget.recipe.forNumber?.toDouble();
-        if (value == null || !value.isFinite || value <= 0) return 'Saisissez un nombre supérieur à zéro.';
-        if (original == null || original <= 0) return 'Choisissez un ingrédient avec une quantité.';
+        final original =
+            _selectedIngredient?.quantity ??
+            widget.recipe.forNumber?.toDouble();
+        if (value == null || !value.isFinite || value <= 0)
+          return 'Saisissez un nombre supérieur à zéro.';
+        if (original == null || original <= 0)
+          return 'Choisissez un ingrédient avec une quantité.';
         final factor = value / original;
-        return !factor.isFinite || factor <= 0 ? 'Cette quantité ne permet pas le calcul.' : null;
+        return !factor.isFinite || factor <= 0
+            ? 'Cette quantité ne permet pas le calcul.'
+            : null;
       },
       onFieldSubmitted: (_) => _submit(),
     );
@@ -891,7 +1234,9 @@ class _ServingsDialogState extends State<_ServingsDialog> {
   Widget build(BuildContext context) {
     final recipe = widget.recipe;
     final canChangeServings = recipe.forNumber != null && recipe.forNumber! > 0;
-    final servingLabel = recipe.typeNumber == RecipeServingType.pieces ? 'Nombre de pièces' : 'Nombre de personnes';
+    final servingLabel = recipe.typeNumber == RecipeServingType.pieces
+        ? 'Nombre de pièces'
+        : 'Nombre de personnes';
     return AlertDialog(
       title: const Text('Adapter les quantités'),
       content: SizedBox(
@@ -903,7 +1248,9 @@ class _ServingsDialogState extends State<_ServingsDialog> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Adaptez les portions ou choisissez un ingrédient. La recette enregistrée reste inchangée.'),
+                const Text(
+                  'Adaptez les portions ou choisissez un ingrédient. La recette enregistrée reste inchangée.',
+                ),
                 if (canChangeServings) ...[
                   const SizedBox(height: 16),
                   if (_selectedIngredient == null)
@@ -912,33 +1259,51 @@ class _ServingsDialogState extends State<_ServingsDialog> {
                     ListTile(
                       contentPadding: EdgeInsets.zero,
                       title: Text(servingLabel),
-                      trailing: Text(_formatQuantity(recipe.forNumber! * widget.factor)),
+                      trailing: Text(
+                        _formatQuantity(recipe.forNumber! * widget.factor),
+                      ),
                       onTap: () => _select(null),
                     ),
                 ],
                 const SizedBox(height: 32),
-                const Text("À partir d’un ingrédient : indiquez la quantité dont vous disposez d'un ingrédient"),
+                const Text(
+                  "À partir d’un ingrédient : indiquez la quantité dont vous disposez d'un ingrédient",
+                ),
                 for (final category in recipe.ingredientCategories) ...[
-                  if (recipe.ingredientCategories.length > 1 && category.name.isNotEmpty) ...[
+                  if (recipe.ingredientCategories.length > 1 &&
+                      category.name.isNotEmpty) ...[
                     const SizedBox(height: 12),
                     Padding(
                       padding: const EdgeInsets.only(top: 12),
-                      child: Text(category.name, style: Theme.of(context).textTheme.labelLarge),
+                      child: Text(
+                        category.name,
+                        style: Theme.of(context).textTheme.labelLarge,
+                      ),
                     ),
                   ],
                   for (final ingredient in category.ingredients) ...[
                     ListTile(
                       minTileHeight: 24,
                       contentPadding: EdgeInsets.zero,
-                      title: Text(ingredient.name, style: Theme.of(context).textTheme.bodyMedium),
+                      title: Text(
+                        ingredient.name,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
                       trailing: Text(
                         '${ingredient.quantity == null || ingredient.quantity == 0 ? '' : _formatQuantity(ingredient.quantity! * widget.factor)} ${ingredient.typeFormatted}',
                       ),
                       selected: identical(_selectedIngredient, ingredient),
-                      enabled: ingredient.quantity != null && ingredient.quantity!.isFinite && ingredient.quantity! > 0,
+                      enabled:
+                          ingredient.quantity != null &&
+                          ingredient.quantity!.isFinite &&
+                          ingredient.quantity! > 0,
                       onTap: () => _select(ingredient),
                     ),
-                    if (identical(_selectedIngredient, ingredient)) _quantityField(label: 'Quantité disponible', unit: ingredient.typeFormatted),
+                    if (identical(_selectedIngredient, ingredient))
+                      _quantityField(
+                        label: 'Quantité disponible',
+                        unit: ingredient.typeFormatted,
+                      ),
                   ],
                 ],
               ],
@@ -947,8 +1312,16 @@ class _ServingsDialogState extends State<_ServingsDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Annuler')),
-        FilledButton(onPressed: canChangeServings || _selectedIngredient != null ? _submit : null, child: const Text('Appliquer')),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Annuler'),
+        ),
+        FilledButton(
+          onPressed: canChangeServings || _selectedIngredient != null
+              ? _submit
+              : null,
+          child: const Text('Appliquer'),
+        ),
       ],
     );
   }
@@ -964,20 +1337,34 @@ class IngredientView extends StatelessWidget {
   Widget build(BuildContext context) {
     final categories = recipe?.ingredientCategories;
     var children = <Widget>[];
-    for (var categoryIndex = 0; categoryIndex < (categories?.length ?? 1); categoryIndex++) {
+    for (
+      var categoryIndex = 0;
+      categoryIndex < (categories?.length ?? 1);
+      categoryIndex++
+    ) {
       final ingredientCategory = categories?[categoryIndex];
-      if (categories == null || categories.length > 1) children.add(
-        Padding(
-          padding: const EdgeInsets.only(left: 4, top: 12, bottom: 4),
-          child: ingredientCategory == null
-              ? const PulsingPlaceholder(width: 120, height: 16)
-              : Text(ingredientCategory.name, style: Theme.of(context).textTheme.labelMedium),
-        ),
-      );
+      if (categories == null || categories.length > 1)
+        children.add(
+          Padding(
+            padding: const EdgeInsets.only(left: 4, top: 12, bottom: 4),
+            child: ingredientCategory == null
+                ? const PulsingPlaceholder(width: 120, height: 16)
+                : Text(
+                    ingredientCategory.name,
+                    style: Theme.of(context).textTheme.labelMedium,
+                  ),
+          ),
+        );
       var ingredientChildren = <TableRow>[];
-      for (var index = 0; index < (ingredientCategory?.ingredients.length ?? 4); index++) {
+      for (
+        var index = 0;
+        index < (ingredientCategory?.ingredients.length ?? 4);
+        index++
+      ) {
         final original = ingredientCategory?.ingredients[index];
-        final ingredient = original?.quantity == null ? original : original!.copyWith(quantity: original.quantity! * factor);
+        final ingredient = original?.quantity == null
+            ? original
+            : original!.copyWith(quantity: original.quantity! * factor);
         ingredientChildren.add(
           TableRow(
             children: [
@@ -994,16 +1381,30 @@ class IngredientView extends StatelessWidget {
               ),
               TableCell(
                 child: ingredient == null
-                    ? const Align(alignment: Alignment.centerLeft, child: PulsingPlaceholder(width: 160, height: 20))
-                    : Text(ingredient.name, style: Theme.of(context).textTheme.bodyMedium),
+                    ? const Align(
+                        alignment: Alignment.centerLeft,
+                        child: PulsingPlaceholder(width: 160, height: 20),
+                      )
+                    : Text(
+                        ingredient.name,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
               ),
             ],
           ),
         );
       }
-      children.add(Table(columnWidths: {0: IntrinsicColumnWidth(), 1: FlexColumnWidth(6)}, children: ingredientChildren));
+      children.add(
+        Table(
+          columnWidths: {0: IntrinsicColumnWidth(), 1: FlexColumnWidth(6)},
+          children: ingredientChildren,
+        ),
+      );
     }
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: children);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: children,
+    );
   }
 }
 
@@ -1030,28 +1431,51 @@ class InstructionsView extends StatelessWidget {
                   width: iconSize,
                   height: iconSize,
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary, // border color
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary, // border color
                     shape: BoxShape.circle,
                   ),
                   child: Center(
-                    child: Text('${i + 1}', style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onPrimary)),
+                    child: Text(
+                      '${i + 1}',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Theme.of(context).colorScheme.onPrimary,
+                      ),
+                    ),
                   ),
                 ),
                 SizedBox(width: 10),
-                Text('Étape ${i + 1}', style: Theme.of(context).textTheme.labelMedium),
+                Text(
+                  'Étape ${i + 1}',
+                  style: Theme.of(context).textTheme.labelMedium,
+                ),
               ],
             ),
             Padding(
-              padding: EdgeInsets.only(left: (iconSize - borderWidth) / 2, top: 6, bottom: 6),
+              padding: EdgeInsets.only(
+                left: (iconSize - borderWidth) / 2,
+                top: 6,
+                bottom: 6,
+              ),
               child: Container(
                 decoration: BoxDecoration(
                   border: Border(
-                    left: BorderSide(color: Theme.of(context).colorScheme.primary, width: borderWidth),
+                    left: BorderSide(
+                      color: Theme.of(context).colorScheme.primary,
+                      width: borderWidth,
+                    ),
                   ),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.only(left: 8),
-                  child: instruction == null ? const PulsingPlaceholder(width: double.infinity, height: 48) : Text(instruction),
+                  child: instruction == null
+                      ? const PulsingPlaceholder(
+                          width: double.infinity,
+                          height: 48,
+                        )
+                      : Text(instruction),
                 ),
               ),
             ),
@@ -1059,7 +1483,10 @@ class InstructionsView extends StatelessWidget {
         ),
       );
     }
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: children);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: children,
+    );
   }
 }
 
@@ -1093,12 +1520,22 @@ class _ImageCarouselState extends State<_ImageCarousel> {
           height: 400,
           width: width,
           decoration: BoxDecoration(
-            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
-            boxShadow: [BoxShadow(offset: const Offset(1, 1), blurRadius: 5, color: Colors.black.withValues(alpha: 0.25))],
+            borderRadius: const BorderRadius.vertical(
+              bottom: Radius.circular(12),
+            ),
+            boxShadow: [
+              BoxShadow(
+                offset: const Offset(1, 1),
+                blurRadius: 5,
+                color: Colors.black.withValues(alpha: 0.25),
+              ),
+            ],
             color: Theme.of(context).colorScheme.secondaryContainer,
           ),
           child: ClipRRect(
-            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
+            borderRadius: const BorderRadius.vertical(
+              bottom: Radius.circular(12),
+            ),
             child: images == null
                 ? const PulsingPlaceholder(width: double.infinity, height: 400)
                 : images.isNotEmpty
@@ -1111,7 +1548,12 @@ class _ImageCarouselState extends State<_ImageCarousel> {
                       });
                     },
                     itemBuilder: (context, i) {
-                      return Image.network(images[i].toString(), fit: BoxFit.cover, errorBuilder: (_, __, ___) => NoImageBuilder(height: 400));
+                      return Image.network(
+                        images[i].toString(),
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) =>
+                            NoImageBuilder(height: 400),
+                      );
                     },
                   )
                 : NoImageBuilder(height: 400),
@@ -1132,7 +1574,11 @@ class _ImageCarouselState extends State<_ImageCarousel> {
                 margin: const EdgeInsets.symmetric(horizontal: 2),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(5),
-                  color: _currentIndex == i ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                  color: _currentIndex == i
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withValues(alpha: 0.5),
                 ),
               );
             }),

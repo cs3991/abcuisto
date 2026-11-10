@@ -24,7 +24,11 @@ class Ingredient {
   factory Ingredient.fromJson(Map<String, dynamic> json) {
     final name = json['name'] as String? ?? '';
     final number = json['number'];
-    final quantity = number is num ? number.toDouble() : number is String ? double.tryParse(number) : null;
+    final quantity = number is num
+        ? number.toDouble()
+        : number is String
+        ? double.tryParse(number)
+        : null;
     return Ingredient(
       id: json['id'] as String? ?? '',
       name: name,
@@ -37,10 +41,18 @@ class Ingredient {
     );
   }
 
-  Ingredient copyWith({String? name, double? quantity, String? type, int? index, bool clearQuantity = false}) => Ingredient(
+  Ingredient copyWith({
+    String? name,
+    double? quantity,
+    String? type,
+    int? index,
+    bool clearQuantity = false,
+  }) => Ingredient(
     id: id,
     name: name ?? this.name,
-    nameWithoutDiacritics: name == null ? nameWithoutDiacritics : removeDiacritics(name),
+    nameWithoutDiacritics: name == null
+        ? nameWithoutDiacritics
+        : removeDiacritics(name),
     quantity: clearQuantity ? null : quantity ?? this.quantity,
     type: type ?? this.type,
     index: index ?? this.index,
@@ -52,20 +64,29 @@ class Ingredient {
     if (type == null || type == 'null') return "";
 
     return switch (type.toLowerCase()) {
-    
-    'g' || 'kg' || 'mg' || 'l' || 'cl' || 'ml' => type.toLowerCase(),
-    'pièce(s)' => '',
-    'cuillère à café' => 'CaC',
-    'cuillère à soupe' => 'CaS',
-    'pincée(s)' => 'pincée${(quantity ?? 0) > 1 ? "s" : ""}',
-    _ => type,
-  };
+      'g' || 'kg' || 'mg' || 'l' || 'cl' || 'ml' => type.toLowerCase(),
+      'pièce(s)' => '',
+      'cuillère à café' => 'CaC',
+      'cuillère à soupe' => 'CaS',
+      'pincée(s)' => 'pincée${(quantity ?? 0) > 1 ? "s" : ""}',
+      _ => type,
+    };
   }
 
   String get quantityFormatted {
     if (quantity == null || quantity == 0) return "";
-    return quantity!.toStringAsFixed(quantity!.truncateToDouble() == quantity ? 0 : 1);
+    return quantity!.toStringAsFixed(
+      quantity!.truncateToDouble() == quantity ? 0 : 1,
+    );
   }
 
-  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'type': type, 'number': quantity, 'index': index, 'price': price, 'category': category};
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'type': type,
+    'number': quantity,
+    'index': index,
+    'price': price,
+    'category': category,
+  };
 }

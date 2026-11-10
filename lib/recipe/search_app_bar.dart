@@ -1,5 +1,4 @@
 import 'package:abcuisto/login/authentication_cubit.dart';
-import 'package:abcuisto/login/login_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -13,7 +12,9 @@ class SearchAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final searchText = context.select((FilterCubit cubit) => cubit.state.filter.searchText ?? '');
+    final searchText = context.select(
+      (FilterCubit cubit) => cubit.state.filter.searchText ?? '',
+    );
     searchBarController.value = TextEditingValue(
       text: searchText,
       selection: TextSelection.collapsed(offset: searchText.length),
@@ -25,13 +26,19 @@ class SearchAppBar extends StatelessWidget implements PreferredSizeWidget {
         controller: searchBarController,
         decoration: InputDecoration(
           hintText: 'Rechercher une recette',
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(30),
+            borderSide: BorderSide.none,
+          ),
           constraints: BoxConstraints(maxHeight: 50),
           isDense: false,
           filled: true,
           fillColor: Theme.of(context).colorScheme.surfaceContainer,
           suffixIcon: searchText.isEmpty
-              ? Icon(Icons.search_rounded, color: Theme.of(context).colorScheme.outline)
+              ? Icon(
+                  Icons.search_rounded,
+                  color: Theme.of(context).colorScheme.outline,
+                )
               : IconButton(
                   icon: const Icon(Icons.close_rounded),
                   color: Theme.of(context).colorScheme.outline,
@@ -51,14 +58,21 @@ class SearchAppBar extends StatelessWidget implements PreferredSizeWidget {
           child: BlocBuilder<AuthenticationCubit, AuthenticationState>(
             builder: (context, state) {
               return IconButton(
-                icon: Icon(state is AuthenticationLoggedIn ? Icons.person_rounded : Icons.login_rounded),
-                tooltip: state is AuthenticationLoggedIn ? "Connecté" : "Se connecter",
+                icon: Icon(
+                  state is AuthenticationLoggedIn
+                      ? Icons.person_rounded
+                      : Icons.person_off_rounded,
+                ),
+                tooltip: state is AuthenticationLoggedIn
+                    ? 'Mon profil'
+                    : 'Paramètres',
                 onPressed: () {
-                  if (state is AuthenticationLoggedOut || state is AuthenticationInitial) {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => LoginPage()));
-                  } else if (state is AuthenticationLoggedIn) {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfilePage()));
-                  }
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ProfilePage(),
+                    ),
+                  );
                 },
               );
             },

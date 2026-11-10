@@ -1,4 +1,3 @@
-
 import 'package:abcuisto/models/recipe.dart';
 import 'package:bloc/bloc.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
@@ -12,10 +11,25 @@ class FilterState {
   final bool isCreatorSelf;
   final bool favoritesOnly;
 
-  FilterState(this.pagingState, {required this.filter, this.isCreatorSelf = false, this.favoritesOnly = false});
+  FilterState(
+    this.pagingState, {
+    required this.filter,
+    this.isCreatorSelf = false,
+    this.favoritesOnly = false,
+  });
 
-  FilterState copyWith({PagingState<int, Recipe>? pagingState, Filters? filter, bool? isCreatorSelf, bool? favoritesOnly}) {
-    return FilterState(pagingState ?? this.pagingState, filter: filter ?? this.filter, isCreatorSelf: isCreatorSelf ?? this.isCreatorSelf, favoritesOnly: favoritesOnly ?? this.favoritesOnly);
+  FilterState copyWith({
+    PagingState<int, Recipe>? pagingState,
+    Filters? filter,
+    bool? isCreatorSelf,
+    bool? favoritesOnly,
+  }) {
+    return FilterState(
+      pagingState ?? this.pagingState,
+      filter: filter ?? this.filter,
+      isCreatorSelf: isCreatorSelf ?? this.isCreatorSelf,
+      favoritesOnly: favoritesOnly ?? this.favoritesOnly,
+    );
   }
 }
 
@@ -27,22 +41,45 @@ class FilterCubit extends Cubit<FilterState> {
     : super(
         FilterState(
           PagingState<int, Recipe>(),
-          filter: Filters(searchText: '', tags: [], ingredients: [], ingredientsToExclude: [], creator: '', categories: [], groups: [], ids: []),
+          filter: Filters(
+            searchText: '',
+            tags: [],
+            ingredients: [],
+            ingredientsToExclude: [],
+            creator: '',
+            categories: [],
+            groups: [],
+            ids: [],
+          ),
         ),
       );
 
   Future<void> fetchNextPage() async {
     if (state.pagingState.isLoading) return;
     if (state.favoritesOnly && (state.filter.ids?.isEmpty ?? true)) {
-      emit(state.copyWith(pagingState: PagingState<int, Recipe>(pages: const [[]], keys: const [1], hasNextPage: false)));
+      emit(
+        state.copyWith(
+          pagingState: PagingState<int, Recipe>(
+            pages: const [[]],
+            keys: const [1],
+            hasNextPage: false,
+          ),
+        ),
+      );
       return;
     }
-    emit(state.copyWith(pagingState: state.pagingState.copyWith(isLoading: true, error: null)));
+    emit(
+      state.copyWith(
+        pagingState: state.pagingState.copyWith(isLoading: true, error: null),
+      ),
+    );
 
     final loadingState = state.pagingState;
     try {
       final newKey = (state.pagingState.keys?.last ?? 0) + 1;
-      final newItems = await repository.getRecipesFiltered(state.filter.copyWith(page: newKey));
+      final newItems = await repository.getRecipesFiltered(
+        state.filter.copyWith(page: newKey),
+      );
       if (isClosed || !identical(state.pagingState, loadingState)) return;
       final isLastPage = newItems.isEmpty;
 
@@ -61,7 +98,14 @@ class FilterCubit extends Cubit<FilterState> {
       print('Error fetching recipes: $error');
       // print stack trace for debugging
       print(stackTrace);
-      emit(state.copyWith(pagingState: state.pagingState.copyWith(error: error, isLoading: false)));
+      emit(
+        state.copyWith(
+          pagingState: state.pagingState.copyWith(
+            error: error,
+            isLoading: false,
+          ),
+        ),
+      );
     }
   }
 
@@ -75,7 +119,12 @@ class FilterCubit extends Cubit<FilterState> {
   }
 
   void updateFilteredIngredients(String text) {
-    final ingredients = text.split(',').map((name) => name.trim()).where((name) => name.isNotEmpty).toSet().toList();
+    final ingredients = text
+        .split(',')
+        .map((name) => name.trim())
+        .where((name) => name.isNotEmpty)
+        .toSet()
+        .toList();
     emit(
       state.copyWith(
         pagingState: PagingState<int, Recipe>(),
@@ -88,7 +137,9 @@ class FilterCubit extends Cubit<FilterState> {
     emit(
       state.copyWith(
         pagingState: PagingState<int, Recipe>(),
-        filter: state.filter.copyWith(ingredients: [...?state.filter.ingredients]..remove(ingredient)),
+        filter: state.filter.copyWith(
+          ingredients: [...?state.filter.ingredients]..remove(ingredient),
+        ),
       ),
     );
   }
@@ -123,7 +174,10 @@ class FilterCubit extends Cubit<FilterState> {
     emit(
       state.copyWith(
         pagingState: PagingState<int, Recipe>(),
-        filter: state.filter.copyWith(totalTime: maxHours == 24 ? null : maxHours, clearTotalTime: maxHours == null || maxHours == 24),
+        filter: state.filter.copyWith(
+          totalTime: maxHours == 24 ? null : maxHours,
+          clearTotalTime: maxHours == null || maxHours == 24,
+        ),
       ),
     );
   }
@@ -143,9 +197,10 @@ class FilterCubit extends Cubit<FilterState> {
     );
   }
 
-  List<RecipeGroup> get availableGroups => (repository.user?.groups ?? const <RecipeGroup>[])
-      .where((group) => group.id != null && !group.isPublic)
-      .toList();
+  List<RecipeGroup> get availableGroups =>
+      (repository.user?.groups ?? const <RecipeGroup>[])
+          .where((group) => group.id != null && !group.isPublic)
+          .toList();
 
   void updateFilteredGroup(String groupId, bool isSelected) {
     final groups = {...?state.filter.groups};
@@ -154,24 +209,29 @@ class FilterCubit extends Cubit<FilterState> {
     } else {
       groups.remove(groupId);
     }
-    emit(state.copyWith(
-      pagingState: PagingState<int, Recipe>(),
-      filter: state.filter.copyWith(groups: groups.toList()),
-    ));
+    emit(
+      state.copyWith(
+        pagingState: PagingState<int, Recipe>(),
+        filter: state.filter.copyWith(groups: groups.toList()),
+      ),
+    );
   }
 
   void updateFavoritesOnly(bool selected, {Iterable<String> ids = const []}) {
-    emit(state.copyWith(
-      favoritesOnly: selected,
-      filter: state.filter.copyWith(ids: selected ? ids.toList() : []),
-      pagingState: PagingState<int, Recipe>(),
-    ));
+    emit(
+      state.copyWith(
+        favoritesOnly: selected,
+        filter: state.filter.copyWith(ids: selected ? ids.toList() : []),
+        pagingState: PagingState<int, Recipe>(),
+      ),
+    );
   }
 
   void updateFavoriteIds(Iterable<String> ids) {
     if (!state.favoritesOnly) return;
     final currentIds = state.filter.ids ?? [];
-    if (currentIds.length == ids.length && ids.every(currentIds.contains)) return;
+    if (currentIds.length == ids.length && ids.every(currentIds.contains))
+      return;
     updateFavoritesOnly(true, ids: ids);
   }
 

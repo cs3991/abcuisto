@@ -23,7 +23,10 @@ import 'package:provider/provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final flavorName = const String.fromEnvironment('APP_FLAVOR', defaultValue: 'prod');
+  final flavorName = const String.fromEnvironment(
+    'APP_FLAVOR',
+    defaultValue: 'prod',
+  );
   final flavor = AppFlavor.values.firstWhere(
     (value) => value.name == flavorName,
     orElse: () => AppFlavor.dev,
@@ -38,7 +41,9 @@ Future<void> initializeStorage() async {
   HydratedBloc.storage = await HydratedStorage.build(
     storageDirectory: kIsWeb
         ? HydratedStorageDirectory.web
-        : HydratedStorageDirectory((await getApplicationSupportDirectory()).path),
+        : HydratedStorageDirectory(
+            (await getApplicationSupportDirectory()).path,
+          ),
   );
 }
 
@@ -56,12 +61,30 @@ class ProvidersWidget extends StatelessWidget {
         providers: [
           BlocProvider(create: (_) => ThemeCubit()),
           BlocProvider(create: (_) => AppLinkCubit(AppLinks()), lazy: false),
-          BlocProvider(create: (context) => AuthenticationCubit(context.read<AbcuistoRepository>())),
-          BlocProvider(create: (context) => FavoritesCubit(context.read<AbcuistoRepository>())),
-          BlocProvider(create: (context) => RecipeCubit(context.read<AbcuistoRepository>())),
-          BlocProvider(create: (context) => CommentCubit(context.read<AbcuistoRepository>())),
-          BlocProvider(create: (context) => FilterCubit(context.read<AbcuistoRepository>())),
-          BlocProvider(create: (context) => AddRecipeCubit(context.read<AbcuistoRepository>())),
+          BlocProvider(
+            create: (context) =>
+                AuthenticationCubit(context.read<AbcuistoRepository>()),
+          ),
+          BlocProvider(
+            create: (context) =>
+                FavoritesCubit(context.read<AbcuistoRepository>()),
+          ),
+          BlocProvider(
+            create: (context) =>
+                RecipeCubit(context.read<AbcuistoRepository>()),
+          ),
+          BlocProvider(
+            create: (context) =>
+                CommentCubit(context.read<AbcuistoRepository>()),
+          ),
+          BlocProvider(
+            create: (context) =>
+                FilterCubit(context.read<AbcuistoRepository>()),
+          ),
+          BlocProvider(
+            create: (context) =>
+                AddRecipeCubit(context.read<AbcuistoRepository>()),
+          ),
         ],
         child: App(),
       ),
@@ -97,20 +120,25 @@ class _AppState extends State<App> {
         listeners: [
           BlocListener<AuthenticationCubit, AuthenticationState>(
             listener: (context, state) {
-              if (state is AuthenticationLoggedIn || state is AuthenticationLoggedOut) {
+              if (state is AuthenticationLoggedIn ||
+                  state is AuthenticationLoggedOut) {
                 context.read<RecipeCubit>().refreshPermissions();
               }
             },
           ),
           BlocListener<AppLinkCubit, AppLinkState>(
-        listener: (context, state) {
-          final link = state.link;
-          if (link != null) {
-            _navigatorKey.currentState?.push(MaterialPageRoute(builder: (_) => AppLinkPage(link: link)));
-          } else if (state.errorMessage != null) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.errorMessage!)));
-          }
-        },
+            listener: (context, state) {
+              final link = state.link;
+              if (link != null) {
+                _navigatorKey.currentState?.push(
+                  MaterialPageRoute(builder: (_) => AppLinkPage(link: link)),
+                );
+              } else if (state.errorMessage != null) {
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text(state.errorMessage!)));
+              }
+            },
           ),
         ],
         child: child ?? const SizedBox.shrink(),
@@ -119,10 +147,16 @@ class _AppState extends State<App> {
       title: 'ABCuisto',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Color(0xff006874), brightness: Brightness.light),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Color(0xff006874),
+          brightness: Brightness.light,
+        ),
       ),
       darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Color(0xff006874), brightness: Brightness.dark),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Color(0xff006874),
+          brightness: Brightness.dark,
+        ),
       ),
       themeMode: themeMode,
       home: EntryPage(),

@@ -42,9 +42,18 @@ class AbcuistoRepository extends ChangeNotifier {
   }
 
   Future<void> login(String email, String password) async {
-    final response = await _request('POST', '/api/Auth/login', body: {'email': email, 'password': password}, authenticated: false);
-    if (response is! Map<String, dynamic> || response['token'] is! String || (response['token'] as String).isEmpty) {
-      throw const AuthenticationException('Réponse invalide du serveur : token manquant.');
+    final response = await _request(
+      'POST',
+      '/api/Auth/login',
+      body: {'email': email, 'password': password},
+      authenticated: false,
+    );
+    if (response is! Map<String, dynamic> ||
+        response['token'] is! String ||
+        (response['token'] as String).isEmpty) {
+      throw const AuthenticationException(
+        'Réponse invalide du serveur : token manquant.',
+      );
     }
 
     await _saveAuthentication(response['token'] as String, email);
@@ -55,14 +64,21 @@ class AbcuistoRepository extends ChangeNotifier {
     await _request(
       'POST',
       '/api/Auth/signup',
-      body: {'email': email, 'userName': username, 'password': password, 'confirmPassword': password},
+      body: {
+        'email': email,
+        'userName': username,
+        'password': password,
+        'confirmPassword': password,
+      },
       authenticated: false,
     );
   }
 
   Future<void> _saveAuthentication(String token, String email) async {
     if (!await _sessionStorage.save(token: token, email: email)) {
-      throw const AuthenticationException('Impossible de sauvegarder la session.');
+      throw const AuthenticationException(
+        'Impossible de sauvegarder la session.',
+      );
     }
 
     authToken = token;
@@ -80,7 +96,12 @@ class AbcuistoRepository extends ChangeNotifier {
 
   Uri _uri(String path) => Uri.parse(url).resolve(path);
 
-  Future<dynamic> _request(String method, String path, {Object? body, bool authenticated = true}) async {
+  Future<dynamic> _request(
+    String method,
+    String path, {
+    Object? body,
+    bool authenticated = true,
+  }) async {
     final headers = <String, String>{};
     if (body != null) headers['Content-Type'] = 'application/json';
     if (authenticated && authToken != null) {
@@ -99,7 +120,8 @@ class AbcuistoRepository extends ChangeNotifier {
         if (response.statusCode >= 200 && response.statusCode < 300) {
           return response.body;
         }
-        if (!response.body.trimLeft().startsWith('<')) responseBody = response.body;
+        if (!response.body.trimLeft().startsWith('<'))
+          responseBody = response.body;
       }
     }
 
@@ -107,7 +129,11 @@ class AbcuistoRepository extends ChangeNotifier {
       String? message;
       if (responseBody is Map<String, dynamic>) {
         final details = <String>[];
-        final summary = responseBody['message'] ?? responseBody['error'] ?? responseBody['detail'] ?? responseBody['title'];
+        final summary =
+            responseBody['message'] ??
+            responseBody['error'] ??
+            responseBody['detail'] ??
+            responseBody['title'];
         if (summary is String && summary.isNotEmpty) details.add(summary);
         final errors = responseBody['errors'];
         if (errors is Map<String, dynamic>) {
@@ -121,14 +147,20 @@ class AbcuistoRepository extends ChangeNotifier {
       } else if (responseBody is String && responseBody.isNotEmpty) {
         message = responseBody;
       }
-      throw ApiException(response.statusCode, message is String && message.isNotEmpty ? message : 'La requête a échoué (${response.statusCode}).');
+      throw ApiException(
+        response.statusCode,
+        message is String && message.isNotEmpty
+            ? message
+            : 'La requête a échoué (${response.statusCode}).',
+      );
     }
     return responseBody;
   }
 
   Future<dynamic> _get(String path) => _request('GET', path);
 
-  Future<dynamic> _post(String path, [Object? body]) => _request('POST', path, body: body);
+  Future<dynamic> _post(String path, [Object? body]) =>
+      _request('POST', path, body: body);
 
   Future<dynamic> _delete(String path) => _request('DELETE', path);
 
@@ -137,10 +169,13 @@ class AbcuistoRepository extends ChangeNotifier {
     final List<dynamic> recipes;
     if (response is List<dynamic>) {
       recipes = response;
-    } else if (response is Map<String, dynamic> && response['recipes'] is List<dynamic>) {
+    } else if (response is Map<String, dynamic> &&
+        response['recipes'] is List<dynamic>) {
       recipes = response['recipes'] as List<dynamic>;
     } else {
-      throw const FormatException('Réponse invalide : liste de recettes manquante.');
+      throw const FormatException(
+        'Réponse invalide : liste de recettes manquante.',
+      );
     }
     return recipes.map((recipe) {
       if (recipe is! Map<String, dynamic>) {
@@ -157,83 +192,129 @@ class AbcuistoRepository extends ChangeNotifier {
 
   Future<dynamic> getAllRecipes() => _get('/api/Recipes/all');
 
-  Future<dynamic> deleteRecipe({required String id}) => _post('/api/Recipes/deleteRecipe', {'id': id});
+  Future<dynamic> deleteRecipe({required String id}) =>
+      _post('/api/Recipes/deleteRecipe', {'id': id});
 
-  Future<void> updateRecipe({
-    required RecipeFull recipe,
-  }) async {
+  Future<void> updateRecipe({required RecipeFull recipe}) async {
     await _post('/api/Recipes/updateRecipe', await _recipeBody(recipe));
   }
 
+  Future<dynamic> getRecipesForAuthorization(Filters filters) =>
+      _post('/api/Recipes/filters/authorization', filters.toJson());
 
+  Future<dynamic> commentRecipe({
+    required String recipeId,
+    required String comment,
+    String? userId,
+    String? username,
+    int? note,
+  }) => _post('/api/Recipes/commentRecipe', {
+    'recipe': recipeId,
+    'comment': comment,
+    if (userId != null) 'user': userId,
+    if (username != null) 'username': username,
+    if (note != null) 'note': note,
+  });
 
-  Future<dynamic> getRecipesForAuthorization(Filters filters) => _post('/api/Recipes/filters/authorization', filters.toJson());
+  Future<dynamic> deleteComment({
+    required String recipeId,
+    required String commentId,
+  }) => _delete(
+    '/api/Recipes/deleteComment/${Uri.encodeComponent(recipeId)}/${Uri.encodeComponent(commentId)}',
+  );
 
-  Future<dynamic> commentRecipe({required String recipeId, required String comment, String? userId, String? username, int? note}) =>
-      _post('/api/Recipes/commentRecipe', {
-        'recipe': recipeId,
-        'comment': comment,
-        if (userId != null) 'user': userId,
-        if (username != null) 'username': username,
-        if (note != null) 'note': note,
-      });
-
-  Future<dynamic> deleteComment({required String recipeId, required String commentId}) =>
-      _delete('/api/Recipes/deleteComment/${Uri.encodeComponent(recipeId)}/${Uri.encodeComponent(commentId)}');
-
-  Future<dynamic> getGroupById(String id) => _get('/api/Groups/getGroupById/${Uri.encodeComponent(id)}');
+  Future<dynamic> getGroupById(String id) =>
+      _get('/api/Groups/getGroupById/${Uri.encodeComponent(id)}');
 
   Future<List<GroupMember>> getGroupMembers(String id) async {
     final response = await getGroupUsers(id);
     if (response is! Map<String, dynamic> || response['members'] is! List) {
-      throw const FormatException('Réponse invalide : membres du groupe manquants.');
+      throw const FormatException(
+        'Réponse invalide : membres du groupe manquants.',
+      );
     }
-    return List<GroupMember>.unmodifiable((response['members'] as List).map((member) {
-      if (member is! Map<String, dynamic>) {
-        throw const FormatException('Réponse invalide : membre mal formé.');
-      }
-      return GroupMember.fromJson(member);
-    }));
+    return List<GroupMember>.unmodifiable(
+      (response['members'] as List).map((member) {
+        if (member is! Map<String, dynamic>) {
+          throw const FormatException('Réponse invalide : membre mal formé.');
+        }
+        return GroupMember.fromJson(member);
+      }),
+    );
   }
 
-  Future<dynamic> createNewGroup(String name) => _post('/api/Groups/createNewGroup', {'name': name});
+  Future<dynamic> createNewGroup(String name) =>
+      _post('/api/Groups/createNewGroup', {'name': name});
 
-  Future<dynamic> joinGroup({required String groupId, required String memberId, String? memberUserName}) =>
-      _post('/api/Groups/joinGroup', {'id': groupId, 'memberId': memberId, if (memberUserName != null) 'memberUserName': memberUserName});
+  Future<dynamic> joinGroup({
+    required String groupId,
+    required String memberId,
+    String? memberUserName,
+  }) => _post('/api/Groups/joinGroup', {
+    'id': groupId,
+    'memberId': memberId,
+    if (memberUserName != null) 'memberUserName': memberUserName,
+  });
 
-  Future<dynamic> deleteGroup(String groupId) => _post('/api/Groups/deleteGroup', {'id': groupId});
+  Future<dynamic> deleteGroup(String groupId) =>
+      _post('/api/Groups/deleteGroup', {'id': groupId});
 
-  Future<dynamic> changeCanEdit({required String groupId, required bool canEdit}) =>
-      _post('/api/Groups/changeCanEdit', {'id': groupId, 'canEdit': canEdit});
+  Future<dynamic> changeCanEdit({
+    required String groupId,
+    required bool canEdit,
+  }) => _post('/api/Groups/changeCanEdit', {'id': groupId, 'canEdit': canEdit});
 
-  Future<dynamic> changeGroupOwner({required String groupId, required String newOwnerId}) =>
-      _post('/api/Groups/changeGroupOwner', {'id': groupId, 'newOwner': newOwnerId});
+  Future<dynamic> changeGroupOwner({
+    required String groupId,
+    required String newOwnerId,
+  }) => _post('/api/Groups/changeGroupOwner', {
+    'id': groupId,
+    'newOwner': newOwnerId,
+  });
 
-  Future<dynamic> getGroupUsers(String id) => _get('/api/Groups/getGroupUsers/${Uri.encodeComponent(id)}');
+  Future<dynamic> getGroupUsers(String id) =>
+      _get('/api/Groups/getGroupUsers/${Uri.encodeComponent(id)}');
 
-  Future<dynamic> quitGroup({required String groupId, required String memberId}) =>
-      _post('/api/Groups/quitGroup', {'id': groupId, 'memberId': memberId});
+  Future<dynamic> quitGroup({
+    required String groupId,
+    required String memberId,
+  }) => _post('/api/Groups/quitGroup', {'id': groupId, 'memberId': memberId});
 
   Future<List<IngredientPriceInput>> getIngredientsPrices() async {
     final response = await _get('/api/Prices/getIngredients');
-    final ingredients = response is Map<String, dynamic> ? response['ingredients'] : response;
+    final ingredients = response is Map<String, dynamic>
+        ? response['ingredients']
+        : response;
     if (ingredients is! List) {
-      throw const FormatException('Réponse invalide : liste des prix manquante.');
+      throw const FormatException(
+        'Réponse invalide : liste des prix manquante.',
+      );
     }
-    return List.unmodifiable(ingredients.map((value) {
-      if (value is! Map<String, dynamic>) {
-        throw const FormatException('Réponse invalide : prix d’ingrédient mal formé.');
-      }
-      return IngredientPriceInput.fromJson(value);
-    }));
+    return List.unmodifiable(
+      ingredients.map((value) {
+        if (value is! Map<String, dynamic>) {
+          throw const FormatException(
+            'Réponse invalide : prix d’ingrédient mal formé.',
+          );
+        }
+        return IngredientPriceInput.fromJson(value);
+      }),
+    );
   }
 
-  Future<dynamic> editIngredientsPrices({required List<IngredientPriceInput> ingredients}) =>
-      _post('/api/Prices/editIngredients', {'ingredients': ingredients.map((ingredient) => ingredient.toJson()).toList()});
+  Future<dynamic> editIngredientsPrices({
+    required List<IngredientPriceInput> ingredients,
+  }) => _post('/api/Prices/editIngredients', {
+    'ingredients': ingredients
+        .map((ingredient) => ingredient.toJson())
+        .toList(),
+  });
 
-  Future<dynamic> deleteIngredient(String id) => _post('/api/Prices/deleteIngredient', id);
+  Future<dynamic> deleteIngredient(String id) =>
+      _post('/api/Prices/deleteIngredient', id);
 
-  Future<dynamic> updateDisplayPriceRecipe(bool showPrice) => _post('/api/Prices/updateDisplayPriceRecipe', showPrice);
+  Future<dynamic> updateDisplayPriceRecipe(bool showPrice) =>
+      _post('/api/Prices/updateDisplayPriceRecipe', showPrice);
 
   Future<dynamic> deleteAccount() async {
     final response = await _post('/api/User/deleteAccount');
@@ -244,7 +325,9 @@ class AbcuistoRepository extends ChangeNotifier {
   Future<User> getUserInfos() async {
     final response = await _get('/api/User/getUserInfos');
     if (response is! Map<String, dynamic>) {
-      throw const FormatException('Réponse invalide : informations utilisateur manquantes.');
+      throw const FormatException(
+        'Réponse invalide : informations utilisateur manquantes.',
+      );
     }
 
     final fetchedUser = User.fromJson(response);
@@ -253,17 +336,25 @@ class AbcuistoRepository extends ChangeNotifier {
     return fetchedUser;
   }
 
-  Future<dynamic> verifyEmail(String token) => _post('/api/User/verifyEmail', token);
+  Future<dynamic> verifyEmail(String token) =>
+      _post('/api/User/verifyEmail', token);
 
-  Future<dynamic> updateBio({required String bio, String? userName}) =>
-      _post('/api/User/updateBio', {'bio': bio, if (userName != null) 'userName': userName});
+  Future<dynamic> updateBio({required String bio, String? userName}) => _post(
+    '/api/User/updateBio',
+    {'bio': bio, if (userName != null) 'userName': userName},
+  );
 
   Future<dynamic> updateEmail({required String email}) =>
       _post('/api/User/updateEmail', {'email': email});
 
-  Future<dynamic> confirmUpdateEmail(String token) => _post('/api/User/confirmUpdateEmail', token);
+  Future<dynamic> confirmUpdateEmail(String token) =>
+      _post('/api/User/confirmUpdateEmail', token);
 
-  Future<dynamic> resetPassword({required String email, String? newPassword, String? confirmNewPassword}) => _post('/api/User/resetPassword', {
+  Future<dynamic> resetPassword({
+    required String email,
+    String? newPassword,
+    String? confirmNewPassword,
+  }) => _post('/api/User/resetPassword', {
     'email': email,
     if (newPassword != null) 'newPassword': newPassword,
     if (confirmNewPassword != null) 'confirmNewPassword': confirmNewPassword,
@@ -274,47 +365,87 @@ class AbcuistoRepository extends ChangeNotifier {
     required String token,
     required String newPassword,
     required String confirmNewPassword,
-  }) =>
-      _post('/api/User/confirmResetPassword', {'email': email, 'token': token, 'newPassword': newPassword, 'confirmNewPassword': confirmNewPassword});
+  }) => _post('/api/User/confirmResetPassword', {
+    'email': email,
+    'token': token,
+    'newPassword': newPassword,
+    'confirmNewPassword': confirmNewPassword,
+  });
 
-  Future<dynamic> updatePassword({required String lastPassword, required String newPassword, required String confirmNewPassword}) =>
-      _post('/api/User/updatePassword', {'lastPassword': lastPassword, 'newPassword': newPassword, 'confirmNewPassword': confirmNewPassword});
+  Future<dynamic> updatePassword({
+    required String lastPassword,
+    required String newPassword,
+    required String confirmNewPassword,
+  }) => _post('/api/User/updatePassword', {
+    'lastPassword': lastPassword,
+    'newPassword': newPassword,
+    'confirmNewPassword': confirmNewPassword,
+  });
 
   Future<void> updateProfileImage(XFile file) async {
     if (await file.length() > 5 * 1024 * 1024) {
       throw const FormatException('La photo ne doit pas dépasser 5 Mo.');
     }
     final image = await ApiImageInput.fromXFile(file);
-    await updateImage(imageBase64: image.imageBase64, extension: image.extension,
-      fileType: image.fileType, oldImage: user?.image);
+    await updateImage(
+      imageBase64: image.imageBase64,
+      extension: image.extension,
+      fileType: image.fileType,
+      oldImage: user?.image,
+    );
   }
 
-  Future<dynamic> updateImage({required String imageBase64, required String extension, required String fileType, String? oldImage}) =>
-      _post('/api/User/updateImage', {
-        'image': {'imageBase64': imageBase64, 'extension': extension, 'fileType': fileType},
-        'oldImage': oldImage ?? '',
-      });
+  Future<dynamic> updateImage({
+    required String imageBase64,
+    required String extension,
+    required String fileType,
+    String? oldImage,
+  }) => _post('/api/User/updateImage', {
+    'image': {
+      'imageBase64': imageBase64,
+      'extension': extension,
+      'fileType': fileType,
+    },
+    'oldImage': oldImage ?? '',
+  });
 
   Future<List<String>> getFavorites() async {
     final response = await _get('/api/User/getFavs');
     if (response is! List) {
-      throw const FormatException('Réponse invalide : liste de favoris manquante.');
+      throw const FormatException(
+        'Réponse invalide : liste de favoris manquante.',
+      );
     }
     return response.map<String>((favorite) {
-      final id = favorite is String ? favorite : favorite is Map<String, dynamic> ? favorite['id'] : null;
+      final id = favorite is String
+          ? favorite
+          : favorite is Map<String, dynamic>
+          ? favorite['id']
+          : null;
       if (id is! String || id.isEmpty) {
-        throw const FormatException('Réponse invalide : identifiant de favori manquant.');
+        throw const FormatException(
+          'Réponse invalide : identifiant de favori manquant.',
+        );
       }
       return id;
     }).toList();
   }
 
-  Future<dynamic> contactSupport({required String userEmail, required String userObject, required String userMessage}) =>
-      _post('/api/User/contact', {'userEmail': userEmail, 'userObject': userObject, 'userMessage': userMessage});
+  Future<dynamic> contactSupport({
+    required String userEmail,
+    required String userObject,
+    required String userMessage,
+  }) => _post('/api/User/contact', {
+    'userEmail': userEmail,
+    'userObject': userObject,
+    'userMessage': userMessage,
+  });
 
-  Future<dynamic> addFavorite(String recipeId) => _post('/api/User/addFav/${Uri.encodeComponent(recipeId)}');
+  Future<dynamic> addFavorite(String recipeId) =>
+      _post('/api/User/addFav/${Uri.encodeComponent(recipeId)}');
 
-  Future<dynamic> removeFavorite(String recipeId) => _post('/api/User/removeFav/${Uri.encodeComponent(recipeId)}');
+  Future<dynamic> removeFavorite(String recipeId) =>
+      _post('/api/User/removeFav/${Uri.encodeComponent(recipeId)}');
 
   Future<dynamic> getWeatherForecast() => _get('/WeatherForecast');
 
@@ -323,9 +454,14 @@ class AbcuistoRepository extends ChangeNotifier {
     if (normalized.isEmpty) return null;
     final plainMinutes = int.tryParse(normalized);
     if (plainMinutes != null) return plainMinutes;
-    final duration = RegExp(r'^(?:(\d+)\s*(?:h|heure(?:s)?)\s*)?(?:(\d+)\s*(?:min|m))?$').firstMatch(normalized);
-    if (duration == null || (duration.group(1) == null && duration.group(2) == null)) return null;
-    return (int.tryParse(duration.group(1) ?? '') ?? 0) * 60 + (int.tryParse(duration.group(2) ?? '') ?? 0);
+    final duration = RegExp(
+      r'^(?:(\d+)\s*(?:h|heure(?:s)?)\s*)?(?:(\d+)\s*(?:min|m))?$',
+    ).firstMatch(normalized);
+    if (duration == null ||
+        (duration.group(1) == null && duration.group(2) == null))
+      return null;
+    return (int.tryParse(duration.group(1) ?? '') ?? 0) * 60 +
+        (int.tryParse(duration.group(2) ?? '') ?? 0);
   }
 
   int? parseRecipeDuration(String value) => _durationInMinutes(value);
@@ -335,7 +471,10 @@ class AbcuistoRepository extends ChangeNotifier {
     body.addAll({
       'id': _newGuid(),
       'nameWithoutDiacritics': removeDiacritics(recipe.name),
-      'groupsIds': recipe.groups.map((group) => group.id).whereType<String>().toList(),
+      'groupsIds': recipe.groups
+          .map((group) => group.id)
+          .whereType<String>()
+          .toList(),
       'categoriesIds': <String>[],
       'note': 0,
       'nbNotes': 0,
@@ -348,10 +487,18 @@ class AbcuistoRepository extends ChangeNotifier {
   Future<Map<String, dynamic>> _recipeBody(RecipeFull recipe) async {
     final body = recipe.toJson();
     final localImages = await Future.wait(
-      recipe.documents.where((uri) => uri.scheme == 'file').map((uri) => ApiImageInput.fromXFile(XFile(uri.toFilePath()))),
+      recipe.documents
+          .where((uri) => uri.scheme == 'file')
+          .map((uri) => ApiImageInput.fromXFile(XFile(uri.toFilePath()))),
     );
-    body['documents'] = recipe.documents.where((uri) => uri.scheme != 'file').map((uri) => uri.pathSegments.last).toList();
-    body['images'] = [...recipe.images, ...localImages].map((image) => image.toJson()).toList();
+    body['documents'] = recipe.documents
+        .where((uri) => uri.scheme != 'file')
+        .map((uri) => uri.pathSegments.last)
+        .toList();
+    body['images'] = [
+      ...recipe.images,
+      ...localImages,
+    ].map((image) => image.toJson()).toList();
     body['ingredientsCategories'] = recipe.ingredientCategories.map((category) {
       final json = category.toJson();
       if (category.id.isEmpty) json.remove('id');
@@ -372,7 +519,9 @@ class AbcuistoRepository extends ChangeNotifier {
     final bytes = List<int>.generate(16, (_) => random.nextInt(256));
     bytes[6] = (bytes[6] & 0x0f) | 0x40;
     bytes[8] = (bytes[8] & 0x3f) | 0x80;
-    final hex = bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
+    final hex = bytes
+        .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
+        .join();
     return '${hex.substring(0, 8)}-${hex.substring(8, 12)}-${hex.substring(12, 16)}-${hex.substring(16, 20)}-${hex.substring(20)}';
   }
 }
@@ -401,7 +550,11 @@ class ApiImageInput {
   final String extension;
   final String fileType;
 
-  const ApiImageInput({required this.imageBase64, required this.extension, required this.fileType});
+  const ApiImageInput({
+    required this.imageBase64,
+    required this.extension,
+    required this.fileType,
+  });
 
   Map<String, dynamic> toJson() => {
     'imageBase64': imageBase64,
@@ -410,15 +563,22 @@ class ApiImageInput {
   };
 
   static Future<ApiImageInput> fromXFile(XFile file) async {
-    final extension = file.name.contains('.') ? file.name.split('.').last.toLowerCase() : 'jpg';
-    final fileType = file.mimeType ??
+    final extension = file.name.contains('.')
+        ? file.name.split('.').last.toLowerCase()
+        : 'jpg';
+    final fileType =
+        file.mimeType ??
         switch (extension) {
           'jpg' || 'jpeg' => 'image/jpeg',
           'png' => 'image/png',
           'gif' => 'image/gif',
           _ => 'application/octet-stream',
         };
-    return ApiImageInput(imageBase64: base64Encode(await file.readAsBytes()), extension: extension, fileType: fileType);
+    return ApiImageInput(
+      imageBase64: base64Encode(await file.readAsBytes()),
+      extension: extension,
+      fileType: fileType,
+    );
   }
 }
 
@@ -428,12 +588,19 @@ class IngredientPriceInput {
   final String? unit;
   final double price;
 
-  const IngredientPriceInput({this.id, this.name, this.unit, required this.price});
+  const IngredientPriceInput({
+    this.id,
+    this.name,
+    this.unit,
+    required this.price,
+  });
 
   factory IngredientPriceInput.fromJson(Map<String, dynamic> json) {
     final price = json['price'];
     if (price is! num || !price.isFinite || price < 0) {
-      throw const FormatException('Réponse invalide : prix d’ingrédient invalide.');
+      throw const FormatException(
+        'Réponse invalide : prix d’ingrédient invalide.',
+      );
     }
     return IngredientPriceInput(
       id: json['id'] as String?,
@@ -443,5 +610,10 @@ class IngredientPriceInput {
     );
   }
 
-  Map<String, dynamic> toJson() => {if (id != null) 'id': id, if (name != null) 'name': name, if (unit != null) 'unit': unit, 'price': price};
+  Map<String, dynamic> toJson() => {
+    if (id != null) 'id': id,
+    if (name != null) 'name': name,
+    if (unit != null) 'unit': unit,
+    'price': price,
+  };
 }

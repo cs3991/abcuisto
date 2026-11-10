@@ -1,10 +1,7 @@
 enum AppFlavor { dev, prod }
 
 class AppConfig {
-  const AppConfig({
-    required this.flavor,
-    required this.apiUrl,
-  });
+  const AppConfig({required this.flavor, required this.apiUrl});
 
   final AppFlavor flavor;
   final String apiUrl;
@@ -14,7 +11,9 @@ class AppConfig {
   static AppConfig get instance {
     final current = _instance;
     if (current == null) {
-      throw StateError('AppConfig has not been initialized. Call AppConfig.initialize() before use.');
+      throw StateError(
+        'AppConfig has not been initialized. Call AppConfig.initialize() before use.',
+      );
     }
     return current;
   }

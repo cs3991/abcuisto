@@ -37,17 +37,22 @@ class RecipeQuantitiesState {
     return total.isFinite ? total : null;
   }
 
-  int get pricedIngredients => ingredientCosts.where((ingredient) => ingredient.baseCost != null).length;
-  bool get hasUnpricedIngredients => ingredientCosts.any((ingredient) => ingredient.baseCost == null);
+  int get pricedIngredients =>
+      ingredientCosts.where((ingredient) => ingredient.baseCost != null).length;
+  bool get hasUnpricedIngredients =>
+      ingredientCosts.any((ingredient) => ingredient.baseCost == null);
 
-  RecipeQuantitiesState copyWith({double? factor, RecipePriceStatus? priceStatus,
+  RecipeQuantitiesState copyWith({
+    double? factor,
+    RecipePriceStatus? priceStatus,
     List<RecipeIngredientCost>? ingredientCosts,
-    String? priceError}) => RecipeQuantitiesState(
-      factor: factor ?? this.factor,
-      priceStatus: priceStatus ?? this.priceStatus,
-      ingredientCosts: ingredientCosts ?? this.ingredientCosts,
-      priceError: priceError,
-    );
+    String? priceError,
+  }) => RecipeQuantitiesState(
+    factor: factor ?? this.factor,
+    priceStatus: priceStatus ?? this.priceStatus,
+    ingredientCosts: ingredientCosts ?? this.ingredientCosts,
+    priceError: priceError,
+  );
 }
 
 class RecipeQuantitiesCubit extends Cubit<RecipeQuantitiesState> {
@@ -79,9 +84,12 @@ class RecipeQuantitiesCubit extends Cubit<RecipeQuantitiesState> {
     emit(state.copyWith(priceStatus: RecipePriceStatus.loading));
     try {
       final prices = await repository.getIngredientsPrices();
-      if (isClosed || request != _priceRequest || token != repository.authToken) return;
+      if (isClosed || request != _priceRequest || token != repository.authToken)
+        return;
       final ingredientCosts = <RecipeIngredientCost>[];
-      for (final ingredient in recipe.ingredientCategories.expand((category) => category.ingredients)) {
+      for (final ingredient in recipe.ingredientCategories.expand(
+        (category) => category.ingredients,
+      )) {
         final quantity = ingredient.quantity;
         final name = ingredient.name;
         final unit = ingredient.type.trim();
@@ -103,15 +111,23 @@ class RecipeQuantitiesCubit extends Cubit<RecipeQuantitiesState> {
         }
         // The checks above guarantee a quantity and a supported unit.
         if (quantity == null || measure == null) continue;
-        final namedPrices = prices.where((price) => _normalize(price.name ?? '') == _normalize(name)).toList();
-        final compatible = namedPrices.where((price) => _measure(price.unit ?? '')?.$1 == measure.$1).toList();
+        final namedPrices = prices
+            .where((price) => _normalize(price.name ?? '') == _normalize(name))
+            .toList();
+        final compatible = namedPrices
+            .where((price) => _measure(price.unit ?? '')?.$1 == measure.$1)
+            .toList();
         if (compatible.length != 1) {
           final priceUnit = switch (measure.$1) {
             'mass' => 'au kilo',
             'volume' => 'au litre',
             _ => 'à la pièce',
           };
-          final issue = namedPrices.isEmpty ? 'prix non renseigné' : compatible.isEmpty ? 'prix à renseigner $priceUnit' : 'plusieurs prix pour cet ingrédient';
+          final issue = namedPrices.isEmpty
+              ? 'prix non renseigné'
+              : compatible.isEmpty
+              ? 'prix à renseigner $priceUnit'
+              : 'plusieurs prix pour cet ingrédient';
           ingredientCosts.add(RecipeIngredientCost(name: name, issue: issue));
           continue;
         }
@@ -126,29 +142,46 @@ class RecipeQuantitiesCubit extends Cubit<RecipeQuantitiesState> {
         ingredientCosts.add(RecipeIngredientCost(name: name, baseCost: cost));
       }
       final result = List<RecipeIngredientCost>.unmodifiable(ingredientCosts);
-      final total = result.fold<double>(0, (sum, ingredient) => sum + (ingredient.baseCost ?? 0));
-      if (!total.isFinite) throw const FormatException('Le coût dépasse les limites de calcul.');
-      emit(state.copyWith(priceStatus: RecipePriceStatus.success, ingredientCosts: result));
+      final total = result.fold<double>(
+        0,
+        (sum, ingredient) => sum + (ingredient.baseCost ?? 0),
+      );
+      if (!total.isFinite)
+        throw const FormatException('Le coût dépasse les limites de calcul.');
+      emit(
+        state.copyWith(
+          priceStatus: RecipePriceStatus.success,
+          ingredientCosts: result,
+        ),
+      );
     } catch (error) {
-      if (isClosed || request != _priceRequest || token != repository.authToken) return;
-      emit(state.copyWith(priceStatus: RecipePriceStatus.failure,
-        priceError: 'Impossible de calculer le coût : $error'));
+      if (isClosed || request != _priceRequest || token != repository.authToken)
+        return;
+      emit(
+        state.copyWith(
+          priceStatus: RecipePriceStatus.failure,
+          priceError: 'Impossible de calculer le coût : $error',
+        ),
+      );
     }
   }
 
-  static String _normalize(String name) => removeDiacritics(name).trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
+  static String _normalize(String name) => removeDiacritics(
+    name,
+  ).trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
 
   // Quantities expressed in kg, L or pieces. No mass/volume conversion.
-  static (String, double)? _measure(String unit) => switch (unit.trim().toLowerCase()) {
-    'kg' => ('mass', 1),
-    'g' => ('mass', 0.001),
-    'mg' => ('mass', 0.000001),
-    'l' => ('volume', 1),
-    'cl' => ('volume', 0.01),
-    'ml' => ('volume', 0.001),
-    'pièce(s)' || 'pièce' || 'pièces' => ('piece', 1),
-    _ => null,
-  };
+  static (String, double)? _measure(String unit) =>
+      switch (unit.trim().toLowerCase()) {
+        'kg' => ('mass', 1),
+        'g' => ('mass', 0.001),
+        'mg' => ('mass', 0.000001),
+        'l' => ('volume', 1),
+        'cl' => ('volume', 0.01),
+        'ml' => ('volume', 0.001),
+        'pièce(s)' || 'pièce' || 'pièces' => ('piece', 1),
+        _ => null,
+      };
 
   void changeServings(double servings, int originalServings) {
     if (!servings.isFinite || servings <= 0 || originalServings <= 0) return;
@@ -159,7 +192,12 @@ class RecipeQuantitiesCubit extends Cubit<RecipeQuantitiesState> {
 
   bool changeFromIngredient(Ingredient ingredient, double quantity) {
     final original = ingredient.quantity;
-    if (original == null || !original.isFinite || original <= 0 || !quantity.isFinite || quantity <= 0) return false;
+    if (original == null ||
+        !original.isFinite ||
+        original <= 0 ||
+        !quantity.isFinite ||
+        quantity <= 0)
+      return false;
     final factor = quantity / original;
     if (!factor.isFinite || factor <= 0) return false;
     emit(state.copyWith(factor: factor, priceError: state.priceError));

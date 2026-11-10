@@ -12,10 +12,21 @@ class AddRecipeState {
   final AddRecipeStatus status;
   final String? message;
 
-  const AddRecipeState({this.modifiedRecipe, this.status = AddRecipeStatus.editing, this.message});
+  const AddRecipeState({
+    this.modifiedRecipe,
+    this.status = AddRecipeStatus.editing,
+    this.message,
+  });
 
-  AddRecipeState copyWith({RecipeFull? modifiedRecipe, AddRecipeStatus? status, String? message}) =>
-      AddRecipeState(modifiedRecipe: modifiedRecipe ?? this.modifiedRecipe, status: status ?? this.status, message: message);
+  AddRecipeState copyWith({
+    RecipeFull? modifiedRecipe,
+    AddRecipeStatus? status,
+    String? message,
+  }) => AddRecipeState(
+    modifiedRecipe: modifiedRecipe ?? this.modifiedRecipe,
+    status: status ?? this.status,
+    message: message,
+  );
 }
 
 class AddRecipeCubit extends Cubit<AddRecipeState> {
@@ -47,11 +58,18 @@ class AddRecipeCubit extends Cubit<AddRecipeState> {
               .map(
                 (category) => category.copyWith(
                   index: _nextIndex++,
-                  ingredients: category.ingredients.map((ingredient) => ingredient.copyWith(index: _nextIndex++)).toList(),
+                  ingredients: category.ingredients
+                      .map(
+                        (ingredient) =>
+                            ingredient.copyWith(index: _nextIndex++),
+                      )
+                      .toList(),
                 ),
               )
               .toList(),
-          instructions: modifiedRecipe.instructions.isEmpty ? [''] : List.of(modifiedRecipe.instructions),
+          instructions: modifiedRecipe.instructions.isEmpty
+              ? ['']
+              : List.of(modifiedRecipe.instructions),
         ),
       ),
     );
@@ -60,7 +78,12 @@ class AddRecipeCubit extends Cubit<AddRecipeState> {
 
   void modify(RecipeFull modifiedRecipe) {
     if (state.status == AddRecipeStatus.loading) return;
-    emit(state.copyWith(modifiedRecipe: modifiedRecipe, status: AddRecipeStatus.editing));
+    emit(
+      state.copyWith(
+        modifiedRecipe: modifiedRecipe,
+        status: AddRecipeStatus.editing,
+      ),
+    );
   }
 
   void addPhoto(Uri uri) {
@@ -70,12 +93,26 @@ class AddRecipeCubit extends Cubit<AddRecipeState> {
 
   void setPublic(bool isPublic) {
     final recipe = state.modifiedRecipe!;
-    modify(recipe.copyWith(groups: [...recipe.groups.where((group) => !group.isPublic), if (isPublic) RecipeGroup.publicGroup]));
+    modify(
+      recipe.copyWith(
+        groups: [
+          ...recipe.groups.where((group) => !group.isPublic),
+          if (isPublic) RecipeGroup.publicGroup,
+        ],
+      ),
+    );
   }
 
   void selectGroup(RecipeGroup group, bool selected) {
     final recipe = state.modifiedRecipe!;
-    modify(recipe.copyWith(groups: [...recipe.groups.where((value) => value.id != group.id), if (selected) group]));
+    modify(
+      recipe.copyWith(
+        groups: [
+          ...recipe.groups.where((value) => value.id != group.id),
+          if (selected) group,
+        ],
+      ),
+    );
   }
 
   void replacePhoto(int index, Uri uri) {
@@ -94,17 +131,31 @@ class AddRecipeCubit extends Cubit<AddRecipeState> {
       recipe.copyWith(
         ingredientCategories: [
           ...recipe.ingredientCategories,
-          RecipeIngredientCategory(id: '', name: '', index: _nextIndex++, ingredients: [_emptyIngredient()]),
+          RecipeIngredientCategory(
+            id: '',
+            name: '',
+            index: _nextIndex++,
+            ingredients: [_emptyIngredient()],
+          ),
         ],
       ),
     );
   }
 
-  Ingredient _emptyIngredient() => Ingredient(id: '', name: '', nameWithoutDiacritics: '', quantity: null, type: 'g', index: _nextIndex++);
+  Ingredient _emptyIngredient() => Ingredient(
+    id: '',
+    name: '',
+    nameWithoutDiacritics: '',
+    quantity: null,
+    type: 'g',
+    index: _nextIndex++,
+  );
 
   void changeCategory(int index, RecipeIngredientCategory category) {
     final recipe = state.modifiedRecipe!;
-    final categories = List<RecipeIngredientCategory>.of(recipe.ingredientCategories);
+    final categories = List<RecipeIngredientCategory>.of(
+      recipe.ingredientCategories,
+    );
     categories[index] = category;
     modify(recipe.copyWith(ingredientCategories: categories));
   }
@@ -112,12 +163,21 @@ class AddRecipeCubit extends Cubit<AddRecipeState> {
   void removeCategory(int index) {
     final recipe = state.modifiedRecipe!;
     if (recipe.ingredientCategories.length <= 1) return;
-    modify(recipe.copyWith(ingredientCategories: [...recipe.ingredientCategories]..removeAt(index)));
+    modify(
+      recipe.copyWith(
+        ingredientCategories: [...recipe.ingredientCategories]..removeAt(index),
+      ),
+    );
   }
 
   void addIngredient(int categoryIndex) {
     final category = state.modifiedRecipe!.ingredientCategories[categoryIndex];
-    changeCategory(categoryIndex, category.copyWith(ingredients: [...category.ingredients, _emptyIngredient()]));
+    changeCategory(
+      categoryIndex,
+      category.copyWith(
+        ingredients: [...category.ingredients, _emptyIngredient()],
+      ),
+    );
   }
 
   void changeIngredient(int categoryIndex, int index, Ingredient ingredient) {
@@ -130,7 +190,12 @@ class AddRecipeCubit extends Cubit<AddRecipeState> {
   void removeIngredient(int categoryIndex, int index) {
     final category = state.modifiedRecipe!.ingredientCategories[categoryIndex];
     if (category.ingredients.length <= 1) return;
-    changeCategory(categoryIndex, category.copyWith(ingredients: [...category.ingredients]..removeAt(index)));
+    changeCategory(
+      categoryIndex,
+      category.copyWith(
+        ingredients: [...category.ingredients]..removeAt(index),
+      ),
+    );
   }
 
   void reorderIngredient(int categoryIndex, int oldIndex, int newIndex) {
@@ -153,25 +218,50 @@ class AddRecipeCubit extends Cubit<AddRecipeState> {
         : double.parse(fraction.group(2)!) == 0
         ? null
         : double.parse(fraction.group(1)!) / double.parse(fraction.group(2)!);
-    final ingredient = state.modifiedRecipe!.ingredientCategories[categoryIndex].ingredients[index];
-    changeIngredient(categoryIndex, index, ingredient.copyWith(quantity: quantity, clearQuantity: quantity == null));
+    final ingredient = state
+        .modifiedRecipe!
+        .ingredientCategories[categoryIndex]
+        .ingredients[index];
+    changeIngredient(
+      categoryIndex,
+      index,
+      ingredient.copyWith(quantity: quantity, clearQuantity: quantity == null),
+    );
   }
 
   void changeIngredientUnit(int categoryIndex, int index, String unit) {
-    final ingredient = state.modifiedRecipe!.ingredientCategories[categoryIndex].ingredients[index];
-    changeIngredient(categoryIndex, index, ingredient.copyWith(type: unit, clearQuantity: unit.isEmpty));
+    final ingredient = state
+        .modifiedRecipe!
+        .ingredientCategories[categoryIndex]
+        .ingredients[index];
+    changeIngredient(
+      categoryIndex,
+      index,
+      ingredient.copyWith(type: unit, clearQuantity: unit.isEmpty),
+    );
   }
 
   void changeStep(int index, String value) {
     final recipe = state.modifiedRecipe!;
-    modify(recipe.copyWith(instructions: [...recipe.instructions]..[index] = value));
+    modify(
+      recipe.copyWith(instructions: [...recipe.instructions]..[index] = value),
+    );
   }
 
-  void addStep() => modify(state.modifiedRecipe!.copyWith(instructions: [...state.modifiedRecipe!.instructions, '']));
+  void addStep() => modify(
+    state.modifiedRecipe!.copyWith(
+      instructions: [...state.modifiedRecipe!.instructions, ''],
+    ),
+  );
 
   void removeStep(int index) {
     final recipe = state.modifiedRecipe!;
-    if (recipe.instructions.length > 1) modify(recipe.copyWith(instructions: [...recipe.instructions]..removeAt(index)));
+    if (recipe.instructions.length > 1)
+      modify(
+        recipe.copyWith(
+          instructions: [...recipe.instructions]..removeAt(index),
+        ),
+      );
   }
 
   Future<void> save() async {
@@ -185,11 +275,14 @@ class AddRecipeCubit extends Cubit<AddRecipeState> {
     } else if (recipe.forNumber == null || recipe.forNumber! <= 0) {
       error = 'Indiquez un nombre de portions valide.';
     } else {
-      for (final ingredient in recipe.ingredientCategories.expand((category) => category.ingredients)) {
+      for (final ingredient in recipe.ingredientCategories.expand(
+        (category) => category.ingredients,
+      )) {
         if (ingredient.name.trim().isNotEmpty &&
             ingredient.type.isNotEmpty &&
             (ingredient.quantity == null || !ingredient.quantity!.isFinite)) {
-          error = 'La quantité de « ${ingredient.name} » doit être un nombre valide.';
+          error =
+              'La quantité de « ${ingredient.name} » doit être un nombre valide.';
           break;
         }
       }
@@ -201,10 +294,17 @@ class AddRecipeCubit extends Cubit<AddRecipeState> {
     final categories = recipe.ingredientCategories
         .map(
           (category) => category.copyWith(
-            name: category.name.trim().isEmpty ? 'Ingrédients' : category.name.trim(),
+            name: category.name.trim().isEmpty
+                ? 'Ingrédients'
+                : category.name.trim(),
             ingredients: category.ingredients
                 .where((ingredient) => ingredient.name.trim().isNotEmpty)
-                .map((ingredient) => ingredient.copyWith(name: ingredient.name.trim(), clearQuantity: ingredient.type.isEmpty))
+                .map(
+                  (ingredient) => ingredient.copyWith(
+                    name: ingredient.name.trim(),
+                    clearQuantity: ingredient.type.isEmpty,
+                  ),
+                )
                 .toList(),
           ),
         )
@@ -212,14 +312,25 @@ class AddRecipeCubit extends Cubit<AddRecipeState> {
         .toList();
     final modifiedRecipe = recipe.copyWith(
       name: recipe.name.trim(),
-      apiTotalTime: (recipe.prepTime ?? Duration.zero) + (recipe.cookTime ?? Duration.zero) + (recipe.restTime ?? Duration.zero),
-      instructions: recipe.instructions.map((step) => step.trim()).where((step) => step.isNotEmpty).toList(),
+      apiTotalTime:
+          (recipe.prepTime ?? Duration.zero) +
+          (recipe.cookTime ?? Duration.zero) +
+          (recipe.restTime ?? Duration.zero),
+      instructions: recipe.instructions
+          .map((step) => step.trim())
+          .where((step) => step.isNotEmpty)
+          .toList(),
       ingredientCategories: [
         for (var i = 0; i < categories.length; i++)
           categories[i].copyWith(
-            name: categories.length == 1 ? recipe.name.trim() : categories[i].name,
+            name: categories.length == 1
+                ? recipe.name.trim()
+                : categories[i].name,
             index: i,
-            ingredients: [for (var j = 0; j < categories[i].ingredients.length; j++) categories[i].ingredients[j].copyWith(index: j)],
+            ingredients: [
+              for (var j = 0; j < categories[i].ingredients.length; j++)
+                categories[i].ingredients[j].copyWith(index: j),
+            ],
           ),
       ],
     );
@@ -232,7 +343,12 @@ class AddRecipeCubit extends Cubit<AddRecipeState> {
       }
       emit(state.copyWith(status: AddRecipeStatus.success));
     } catch (error) {
-      emit(state.copyWith(status: AddRecipeStatus.error, message: error.toString()));
+      emit(
+        state.copyWith(
+          status: AddRecipeStatus.error,
+          message: error.toString(),
+        ),
+      );
       rethrow;
     }
   }

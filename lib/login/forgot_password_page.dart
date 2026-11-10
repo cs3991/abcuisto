@@ -25,7 +25,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
             child: AutofillGroup(
               child: ListView(
                 padding: const EdgeInsets.only(bottom: 24),
-                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
                 children: [
                   const SizedBox(height: 64),
                   // TEXT
@@ -53,12 +54,22 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                     child: FilledButton(
                       onPressed: () async {
                         try {
-                          await context.read<AuthenticationCubit>().sendPasswordReset(emailController.text);
+                          await context
+                              .read<AuthenticationCubit>()
+                              .sendPasswordReset(emailController.text);
                           if (!context.mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Si un compte existe, un email a été envoyé.")));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                "Si un compte existe, un email a été envoyé.",
+                              ),
+                            ),
+                          );
                         } on Exception catch (error) {
                           if (!context.mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.toString())));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(error.toString())),
+                          );
                         }
                       },
                       child: const Text("Envoyer le lien"),
@@ -80,7 +91,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                           },
                           child: Text(
                             "Se connecter",
-                            style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),

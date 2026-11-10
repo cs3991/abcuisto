@@ -22,14 +22,24 @@ class AppLinkCubit extends Cubit<AppLinkState> {
 
   void start() {
     if (_subscription != null) return;
-    _subscription = appLinks.uriLinkStream.listen((uri) {
-      final link = AppLink.fromUri(uri);
-      emit(link == null
-          ? const AppLinkState(errorMessage: 'Ce lien ABCuisto est invalide ou non pris en charge.')
-          : AppLinkState(link: link));
-    }, onError: (Object error) {
-      emit(const AppLinkState(errorMessage: 'Impossible d’ouvrir le lien reçu.'));
-    });
+    _subscription = appLinks.uriLinkStream.listen(
+      (uri) {
+        final link = AppLink.fromUri(uri);
+        emit(
+          link == null
+              ? const AppLinkState(
+                  errorMessage:
+                      'Ce lien ABCuisto est invalide ou non pris en charge.',
+                )
+              : AppLinkState(link: link),
+        );
+      },
+      onError: (Object error) {
+        emit(
+          const AppLinkState(errorMessage: 'Impossible d’ouvrir le lien reçu.'),
+        );
+      },
+    );
   }
 
   @override

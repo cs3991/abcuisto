@@ -36,7 +36,8 @@ class _CreateGroupDialogState extends State<_CreateGroupDialog> {
   Widget build(BuildContext context) {
     return BlocConsumer<CreateGroupCubit, CreateGroupState>(
       listener: (context, state) {
-        if (state.status == CreateGroupStatus.success) Navigator.of(context).pop(true);
+        if (state.status == CreateGroupStatus.success)
+          Navigator.of(context).pop(true);
       },
       builder: (context, state) {
         final loading = state.status == CreateGroupStatus.loading;
@@ -52,21 +53,32 @@ class _CreateGroupDialogState extends State<_CreateGroupDialog> {
                 textCapitalization: TextCapitalization.sentences,
                 textInputAction: TextInputAction.done,
                 decoration: const InputDecoration(labelText: 'Nom du groupe'),
-                onSubmitted: (_) => context.read<CreateGroupCubit>().createGroup(_nameController.text),
+                onSubmitted: (_) => context
+                    .read<CreateGroupCubit>()
+                    .createGroup(_nameController.text),
               ),
               if (state.errorMessage != null) ...[
                 const SizedBox(height: 12),
-                Text(state.errorMessage!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                Text(
+                  state.errorMessage!,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
               ],
             ],
           ),
           actions: [
             TextButton(
-              onPressed: loading ? null : () => Navigator.of(context).pop(false),
+              onPressed: loading
+                  ? null
+                  : () => Navigator.of(context).pop(false),
               child: const Text('Annuler'),
             ),
             FilledButton(
-              onPressed: loading ? null : () => context.read<CreateGroupCubit>().createGroup(_nameController.text),
+              onPressed: loading
+                  ? null
+                  : () => context.read<CreateGroupCubit>().createGroup(
+                      _nameController.text,
+                    ),
               child: Text(loading ? 'Création…' : 'Créer'),
             ),
           ],

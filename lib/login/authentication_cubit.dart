@@ -69,7 +69,9 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
     try {
       await repository.signUp(email, password, username);
       await repository.login(email, password);
-      emit(AuthenticationLoggedIn(username: repository.user?.userName ?? username));
+      emit(
+        AuthenticationLoggedIn(username: repository.user?.userName ?? username),
+      );
     } on Exception catch (error) {
       emit(AuthenticationFailure(message: error.toString()));
     }

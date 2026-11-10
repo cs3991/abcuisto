@@ -10,7 +10,10 @@ class CreateGroupState {
   final CreateGroupStatus status;
   final String? errorMessage;
 
-  const CreateGroupState({this.status = CreateGroupStatus.initial, this.errorMessage});
+  const CreateGroupState({
+    this.status = CreateGroupStatus.initial,
+    this.errorMessage,
+  });
 }
 
 class CreateGroupCubit extends Cubit<CreateGroupState> {
@@ -19,10 +22,17 @@ class CreateGroupCubit extends Cubit<CreateGroupState> {
   CreateGroupCubit(this.repository) : super(const CreateGroupState());
 
   Future<void> createGroup(String name) async {
-    if (state.status == CreateGroupStatus.loading || state.status == CreateGroupStatus.success) return;
+    if (state.status == CreateGroupStatus.loading ||
+        state.status == CreateGroupStatus.success)
+      return;
     final trimmedName = name.trim();
     if (trimmedName.isEmpty) {
-      emit(const CreateGroupState(status: CreateGroupStatus.failure, errorMessage: 'Saisissez un nom de groupe.'));
+      emit(
+        const CreateGroupState(
+          status: CreateGroupStatus.failure,
+          errorMessage: 'Saisissez un nom de groupe.',
+        ),
+      );
       return;
     }
     emit(const CreateGroupState(status: CreateGroupStatus.loading));
@@ -32,7 +42,12 @@ class CreateGroupCubit extends Cubit<CreateGroupState> {
       emit(const CreateGroupState(status: CreateGroupStatus.success));
     } catch (error) {
       if (isClosed) return;
-      emit(CreateGroupState(status: CreateGroupStatus.failure, errorMessage: error.toString()));
+      emit(
+        CreateGroupState(
+          status: CreateGroupStatus.failure,
+          errorMessage: error.toString(),
+        ),
+      );
     }
   }
 }

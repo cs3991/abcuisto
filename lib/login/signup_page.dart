@@ -22,13 +22,17 @@ class _SignUpPageState extends State<SignUpPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isLoading = context.select<AuthenticationCubit, bool>((cubit) => cubit.state is AuthenticationLoading);
+    final isLoading = context.select<AuthenticationCubit, bool>(
+      (cubit) => cubit.state is AuthenticationLoading,
+    );
     return BlocListener<AuthenticationCubit, AuthenticationState>(
       listener: (context, state) {
         if (state is AuthenticationLoggedIn) {
           Navigator.pop(context);
         } else if (state is AuthenticationFailure) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(state.message)));
         }
       },
       child: Scaffold(
@@ -40,7 +44,8 @@ class _SignUpPageState extends State<SignUpPage> {
               child: AutofillGroup(
                 child: ListView(
                   padding: const EdgeInsets.only(bottom: 24),
-                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
                   children: [
                     const SizedBox(height: 64),
 
@@ -83,7 +88,11 @@ class _SignUpPageState extends State<SignUpPage> {
                       obscureText: obscurePassword,
                       autofillHints: const [AutofillHints.newPassword],
                       suffixIcon: IconButton(
-                        icon: Icon(obscurePassword ? Icons.visibility_off : Icons.visibility),
+                        icon: Icon(
+                          obscurePassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                        ),
                         onPressed: () {
                           setState(() {
                             obscurePassword = !obscurePassword;
@@ -100,7 +109,11 @@ class _SignUpPageState extends State<SignUpPage> {
                       hintText: "Confirmer le mot de passe",
                       obscureText: obscureConfirm,
                       suffixIcon: IconButton(
-                        icon: Icon(obscureConfirm ? Icons.visibility_off : Icons.visibility),
+                        icon: Icon(
+                          obscureConfirm
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                        ),
                         onPressed: () {
                           setState(() {
                             obscureConfirm = !obscureConfirm;
@@ -116,12 +129,23 @@ class _SignUpPageState extends State<SignUpPage> {
                       label: "Créer un compte",
                       isLoading: isLoading,
                       onPressed: () {
-                        if (passwordController.text != confirmPasswordController.text) {
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Les mots de passe ne correspondent pas")));
+                        if (passwordController.text !=
+                            confirmPasswordController.text) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                "Les mots de passe ne correspondent pas",
+                              ),
+                            ),
+                          );
                           return;
                         }
 
-                        context.read<AuthenticationCubit>().signUp(emailController.text, passwordController.text, usernameController.text);
+                        context.read<AuthenticationCubit>().signUp(
+                          emailController.text,
+                          passwordController.text,
+                          usernameController.text,
+                        );
                       },
                     ),
 
@@ -138,7 +162,10 @@ class _SignUpPageState extends State<SignUpPage> {
                             onTap: () => Navigator.pop(context),
                             child: Text(
                               "Se connecter",
-                              style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),

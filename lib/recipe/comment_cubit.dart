@@ -21,7 +21,11 @@ class CommentState {
     this.selectedRating,
   });
 
-  CommentState copyWith({CommentStatus? status, CommentAction? action, String? errorMessage}) {
+  CommentState copyWith({
+    CommentStatus? status,
+    CommentAction? action,
+    String? errorMessage,
+  }) {
     return CommentState(
       status: status ?? this.status,
       action: action ?? this.action,
@@ -37,38 +41,82 @@ class CommentCubit extends Cubit<CommentState> {
   CommentCubit(this.repository) : super(const CommentState());
 
   void toggleRating(int rating) {
-    if (state.status == CommentStatus.loading || rating < 1 || rating > 5) return;
-    emit(CommentState(selectedRating: state.selectedRating == rating ? null : rating));
+    if (state.status == CommentStatus.loading || rating < 1 || rating > 5)
+      return;
+    emit(
+      CommentState(
+        selectedRating: state.selectedRating == rating ? null : rating,
+      ),
+    );
   }
 
   void addComment({required String recipeId, required String comment}) async {
-    if (state.status == CommentStatus.loading || state.selectedRating == null) return;
+    if (state.status == CommentStatus.loading || state.selectedRating == null)
+      return;
     final note = state.selectedRating;
-    emit(state.copyWith(status: CommentStatus.loading, action: CommentAction.add));
+    emit(
+      state.copyWith(status: CommentStatus.loading, action: CommentAction.add),
+    );
 
     try {
-      await repository.commentRecipe(recipeId: recipeId, comment: comment, note: note);
-      emit(state.copyWith(status: CommentStatus.success, action: CommentAction.add));
+      await repository.commentRecipe(
+        recipeId: recipeId,
+        comment: comment,
+        note: note,
+      );
+      emit(
+        state.copyWith(
+          status: CommentStatus.success,
+          action: CommentAction.add,
+        ),
+      );
     } catch (error) {
-      emit(state.copyWith(status: CommentStatus.failure, action: CommentAction.add, errorMessage: error.toString()));
+      emit(
+        state.copyWith(
+          status: CommentStatus.failure,
+          action: CommentAction.add,
+          errorMessage: error.toString(),
+        ),
+      );
     }
   }
 
-  Future<void> deleteComment({required String recipeId, required String commentId}) async {
+  Future<void> deleteComment({
+    required String recipeId,
+    required String commentId,
+  }) async {
     if (state.status == CommentStatus.loading) return;
 
-    emit(state.copyWith(status: CommentStatus.loading, action: CommentAction.delete));
+    emit(
+      state.copyWith(
+        status: CommentStatus.loading,
+        action: CommentAction.delete,
+      ),
+    );
 
     try {
       await repository.deleteComment(recipeId: recipeId, commentId: commentId);
-      emit(state.copyWith(status: CommentStatus.success, action: CommentAction.delete));
+      emit(
+        state.copyWith(
+          status: CommentStatus.success,
+          action: CommentAction.delete,
+        ),
+      );
     } catch (error) {
-      emit(state.copyWith(status: CommentStatus.failure, action: CommentAction.delete, errorMessage: error.toString()));
+      emit(
+        state.copyWith(
+          status: CommentStatus.failure,
+          action: CommentAction.delete,
+          errorMessage: error.toString(),
+        ),
+      );
     }
   }
 
   void reset({bool clearRating = false}) {
     if (state.status == CommentStatus.loading) return;
-    emit(CommentState(selectedRating: clearRating ? null : state.selectedRating));
+    emit(
+      CommentState(selectedRating: clearRating ? null : state.selectedRating),
+    );
   }
 }
