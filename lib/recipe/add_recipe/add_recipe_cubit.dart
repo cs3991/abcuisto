@@ -100,7 +100,7 @@ class AddRecipeCubit extends Cubit<AddRecipeState> {
     );
   }
 
-  Ingredient _emptyIngredient() => Ingredient(id: '', name: '', nameWithoutDiacritics: '', quantity: 0, type: 'g', index: _nextIndex++);
+  Ingredient _emptyIngredient() => Ingredient(id: '', name: '', nameWithoutDiacritics: '', quantity: null, type: 'g', index: _nextIndex++);
 
   void changeCategory(int index, RecipeIngredientCategory category) {
     final recipe = state.modifiedRecipe!;
@@ -147,7 +147,7 @@ class AddRecipeCubit extends Cubit<AddRecipeState> {
     final value = raw.trim().replaceAll(',', '.');
     final fraction = RegExp(r'^(\d+)\s*/\s*(\d+)$').firstMatch(value);
     final quantity = value.isEmpty
-        ? 0.0
+        ? null
         : fraction == null
         ? double.tryParse(value)
         : double.parse(fraction.group(2)!) == 0
