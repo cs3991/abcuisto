@@ -275,6 +275,7 @@ class _AddRecipePageState extends State<AddRecipePage> {
                             _RecipeField(
                               label: 'Ex: fouet, casserole...',
                               value: modifiedRecipe.cookware.join(', '),
+                              textInputAction: TextInputAction.done,
                               onChanged: (value) => cubit.modify(
                                 modifiedRecipe.copyWith(
                                   cookware: value.split(',').map((item) => item.trim()).where((item) => item.isNotEmpty).toList(),
@@ -553,6 +554,7 @@ class _RecipeField extends StatelessWidget {
   final int? maxLines;
   final FocusNode? focusNode;
   final bool enabled;
+  final TextInputAction textInputAction;
 
   const _RecipeField({
     super.key,
@@ -563,7 +565,27 @@ class _RecipeField extends StatelessWidget {
     this.maxLines = 1,
     this.focusNode,
     this.enabled = true,
+    this.textInputAction = TextInputAction.next,
   });
+
+  void _focusNextField() {
+    final current = FocusManager.instance.primaryFocus;
+    final scope = current?.nearestScope;
+    if (current == null || scope == null) return;
+    if (textInputAction == TextInputAction.done) {
+      current.unfocus();
+      return;
+    }
+    final fields = ReadingOrderTraversalPolicy.sort(
+      scope.traversalDescendants.where((node) => node.context?.findAncestorWidgetOfExactType<EditableText>() != null),
+    ).toList();
+    final index = fields.indexOf(current);
+    if (index >= 0 && index + 1 < fields.length) {
+      FocusTraversalPolicy.defaultTraversalRequestFocusCallback(fields[index + 1]);
+    } else {
+      current.unfocus();
+    }
+  }
 
   @override
   Widget build(BuildContext context) => TextFormField(
@@ -572,6 +594,11 @@ class _RecipeField extends StatelessWidget {
     enabled: enabled,
     onChanged: onChanged,
     keyboardType: keyboardType,
+    textCapitalization: keyboardType == null ? TextCapitalization.sentences : TextCapitalization.none,
+    autocorrect: keyboardType == null,
+    enableSuggestions: keyboardType == null,
+    textInputAction: textInputAction,
+    onEditingComplete: _focusNextField,
     maxLines: maxLines,
     decoration: InputDecoration(
       hintText: label,
