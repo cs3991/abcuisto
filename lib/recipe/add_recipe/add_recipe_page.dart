@@ -23,10 +23,23 @@ class AddRecipePage extends StatefulWidget {
 }
 
 class _AddRecipePageState extends State<AddRecipePage> {
+  final List<FocusNode> _stepFocusNodes = [];
+
   @override
   void initState() {
     super.initState();
     context.read<AddRecipeCubit>().initialize(widget.initialRecipe);
+    _stepFocusNodes.addAll(
+      List.generate(context.read<AddRecipeCubit>().state.modifiedRecipe!.instructions.length, (_) => FocusNode()),
+    );
+  }
+
+  @override
+  void dispose() {
+    for (final node in _stepFocusNodes) {
+      node.dispose();
+    }
+    super.dispose();
   }
 
   @override
@@ -245,7 +258,17 @@ class _AddRecipePageState extends State<AddRecipePage> {
                             const SectionTitle(title: 'Étapes'),
                             const SizedBox(height: 8),
                             ..._buildSteps(modifiedRecipe, cubit),
-                            TextButton.icon(onPressed: cubit.addStep, icon: const Icon(Icons.add), label: const Text('Ajouter une étape')),
+                            TextButton.icon(
+                              onPressed: () {
+                                if (loading) return;
+                                final node = FocusNode();
+                                _stepFocusNodes.add(node);
+                                cubit.addStep();
+                                node.requestFocus();
+                              },
+                              icon: const Icon(Icons.add_rounded),
+                              label: const Text('Ajouter une étape'),
+                            ),
                             const SizedBox(height: 24),
                             const SectionTitle(title: 'Ustensiles'),
                             const SizedBox(height: 8),
@@ -275,20 +298,29 @@ class _AddRecipePageState extends State<AddRecipePage> {
 
   List<Widget> _buildSteps(RecipeFull modifiedRecipe, AddRecipeCubit cubit) => List.generate(modifiedRecipe.instructions.length, (index) {
     return Padding(
-      key: ValueKey('step-${modifiedRecipe.instructions.length}-$index'),
+      key: ValueKey(_stepFocusNodes[index]),
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
-            child: StepField(index: index + 1, value: modifiedRecipe.instructions[index], onChanged: (value) => cubit.changeStep(index, value)),
+            child: StepField(
+              index: index + 1,
+              value: modifiedRecipe.instructions[index],
+              focusNode: _stepFocusNodes[index],
+              onChanged: (value) => cubit.changeStep(index, value),
+            ),
           ),
           if (modifiedRecipe.instructions.length > 1)
             IconButton(
               tooltip: 'Supprimer l’étape',
               color: Theme.of(context).colorScheme.primary,
-              onPressed: () => cubit.removeStep(index),
-              icon: const Icon(Icons.delete_outline),
+              onPressed: () {
+                if (cubit.state.status == AddRecipeStatus.loading) return;
+                _stepFocusNodes.removeAt(index).dispose();
+                cubit.removeStep(index);
+              },
+              icon: const Icon(Icons.delete_outline_rounded),
             ),
         ],
       ),
@@ -305,7 +337,7 @@ class SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) => Text(title, style: Theme.of(context).textTheme.titleMedium);
 }
 
-class IngredientCategoryWidget extends StatelessWidget {
+class IngredientCategoryWidget extends StatefulWidget {
   final RecipeIngredientCategory category;
   final int categoryIndex;
   final bool showCategory;
@@ -314,12 +346,30 @@ class IngredientCategoryWidget extends StatelessWidget {
   const IngredientCategoryWidget({super.key, required this.category, required this.categoryIndex, required this.showCategory});
 
   @override
+  State<IngredientCategoryWidget> createState() => _IngredientCategoryWidgetState();
+}
+
+class _IngredientCategoryWidgetState extends State<IngredientCategoryWidget> {
+  final Map<int, FocusNode> _nameFocusNodes = {};
+
+  @override
+  void dispose() {
+    for (final node in _nameFocusNodes.values) {
+      node.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final cubit = context.read<AddRecipeCubit>();
+    final category = widget.category;
+    final categoryIndex = widget.categoryIndex;
+    final units = IngredientCategoryWidget.units;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (showCategory) ...[
+        if (widget.showCategory) ...[
         Row(
           children: [
             Expanded(
@@ -357,6 +407,7 @@ class IngredientCategoryWidget extends StatelessWidget {
                   final nameField = _RecipeField(
                     label: 'Ingrédient',
                     value: ingredient.name,
+                    focusNode: _nameFocusNodes.putIfAbsent(ingredient.index, () => FocusNode()),
                     onChanged: (value) => cubit.changeIngredient(categoryIndex, index, ingredient.copyWith(name: value)),
                   );
                   final quantityField = _RecipeField(
@@ -433,7 +484,12 @@ class IngredientCategoryWidget extends StatelessWidget {
         Align(
           alignment: Alignment.centerRight,
           child: TextButton.icon(
-            onPressed: () => cubit.addIngredient(categoryIndex),
+            onPressed: () {
+              if (cubit.state.status == AddRecipeStatus.loading) return;
+              cubit.addIngredient(categoryIndex);
+              final ingredient = cubit.state.modifiedRecipe!.ingredientCategories[categoryIndex].ingredients.last;
+              _nameFocusNodes.putIfAbsent(ingredient.index, () => FocusNode()).requestFocus();
+            },
             icon: const Icon(Icons.add_rounded),
             label: const Text('Ajouter un ingrédient'),
           ),
@@ -448,8 +504,9 @@ class StepField extends StatelessWidget {
   final int index;
   final String value;
   final ValueChanged<String> onChanged;
+  final FocusNode? focusNode;
 
-  const StepField({super.key, required this.index, required this.value, required this.onChanged});
+  const StepField({super.key, required this.index, required this.value, required this.onChanged, this.focusNode});
 
   @override
   Widget build(BuildContext context) {
@@ -477,7 +534,7 @@ class StepField extends StatelessWidget {
               border: Border(left: BorderSide(color: Theme.of(context).colorScheme.primary, width: 2)),
             ),
             padding: const EdgeInsets.only(left: 8),
-            child: _RecipeField(label: 'Étape $index', value: value, onChanged: onChanged, maxLines: null),
+            child: _RecipeField(label: 'Étape $index', value: value, onChanged: onChanged, maxLines: null, focusNode: focusNode),
           ),
         ),
       ],
@@ -491,12 +548,14 @@ class _RecipeField extends StatelessWidget {
   final ValueChanged<String> onChanged;
   final TextInputType? keyboardType;
   final int? maxLines;
+  final FocusNode? focusNode;
 
-  const _RecipeField({required this.label, required this.value, required this.onChanged, this.keyboardType, this.maxLines = 1});
+  const _RecipeField({required this.label, required this.value, required this.onChanged, this.keyboardType, this.maxLines = 1, this.focusNode});
 
   @override
   Widget build(BuildContext context) => TextFormField(
     initialValue: value,
+    focusNode: focusNode,
     onChanged: onChanged,
     keyboardType: keyboardType,
     maxLines: maxLines,
