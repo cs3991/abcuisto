@@ -31,7 +31,7 @@ Prefer `StatelessWidget` when a screen can render from its inputs and provided s
 
 - Always write commit messages in English.
 - Use only rounded icons (`Icons.*_rounded`) for new or modified UI.
-- While working, record concrete inconsistencies, bugs, and improvement opportunities in the root `todo.md`. Keep this file growing without overwriting existing entries, avoid duplicates, and include enough context for another chat to act on each item. Briefly mention new findings to the user, but keep unrelated fixes outside the current task.
+- While working, record only newly discovered, unresolved inconsistencies, bugs, and improvement opportunities in the root `todo.md`, using unchecked entries. Do not add already completed or checked items, or use this file as a changelog for the current task. Preserve existing entries, avoid duplicates, and include enough context for another chat to act on each item. Mark an existing entry as completed when its work is done. Briefly mention new findings to the user, but keep unrelated fixes outside the current task.
 
 Keep the user involved in architectural decisions. The user wants to understand how the app is structured and retain control over changes that affect its architecture.
 

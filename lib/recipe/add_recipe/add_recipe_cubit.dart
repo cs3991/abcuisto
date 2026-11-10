@@ -157,6 +157,11 @@ class AddRecipeCubit extends Cubit<AddRecipeState> {
     changeIngredient(categoryIndex, index, ingredient.copyWith(quantity: quantity, clearQuantity: quantity == null));
   }
 
+  void changeIngredientUnit(int categoryIndex, int index, String unit) {
+    final ingredient = state.modifiedRecipe!.ingredientCategories[categoryIndex].ingredients[index];
+    changeIngredient(categoryIndex, index, ingredient.copyWith(type: unit, clearQuantity: unit.isEmpty));
+  }
+
   void changeStep(int index, String value) {
     final recipe = state.modifiedRecipe!;
     modify(recipe.copyWith(instructions: [...recipe.instructions]..[index] = value));
@@ -181,7 +186,9 @@ class AddRecipeCubit extends Cubit<AddRecipeState> {
       error = 'Indiquez un nombre de portions valide.';
     } else {
       for (final ingredient in recipe.ingredientCategories.expand((category) => category.ingredients)) {
-        if (ingredient.name.trim().isNotEmpty && (ingredient.quantity == null || !ingredient.quantity!.isFinite)) {
+        if (ingredient.name.trim().isNotEmpty &&
+            ingredient.type.isNotEmpty &&
+            (ingredient.quantity == null || !ingredient.quantity!.isFinite)) {
           error = 'La quantité de « ${ingredient.name} » doit être un nombre valide.';
           break;
         }
@@ -197,7 +204,7 @@ class AddRecipeCubit extends Cubit<AddRecipeState> {
             name: category.name.trim().isEmpty ? 'Ingrédients' : category.name.trim(),
             ingredients: category.ingredients
                 .where((ingredient) => ingredient.name.trim().isNotEmpty)
-                .map((ingredient) => ingredient.copyWith(name: ingredient.name.trim()))
+                .map((ingredient) => ingredient.copyWith(name: ingredient.name.trim(), clearQuantity: ingredient.type.isEmpty))
                 .toList(),
           ),
         )

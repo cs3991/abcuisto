@@ -341,7 +341,7 @@ class IngredientCategoryWidget extends StatefulWidget {
   final RecipeIngredientCategory category;
   final int categoryIndex;
   final bool showCategory;
-  static const units = ['g', 'kg', 'mg', 'L', 'cL', 'mL', 'pièce(s)', 'cuillère à café', 'cuillère à soupe', 'pincée(s)'];
+  static const units = ['', 'g', 'kg', 'mg', 'L', 'cL', 'mL', 'pièce(s)', 'cuillère à café', 'cuillère à soupe', 'pincée(s)'];
 
   const IngredientCategoryWidget({super.key, required this.category, required this.categoryIndex, required this.showCategory});
 
@@ -411,8 +411,10 @@ class _IngredientCategoryWidgetState extends State<IngredientCategoryWidget> {
                     onChanged: (value) => cubit.changeIngredient(categoryIndex, index, ingredient.copyWith(name: value)),
                   );
                   final quantityField = _RecipeField(
+                    key: ValueKey(ingredient.type.isEmpty),
                     label: 'Qté',
-                    value: ingredient.quantity?.toString() ?? '',
+                    value: ingredient.type.isEmpty ? '' : ingredient.quantity?.toString() ?? '',
+                    enabled: ingredient.type.isNotEmpty,
                     onChanged: (value) => cubit.changeQuantity(categoryIndex, index, value),
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   );
@@ -420,16 +422,17 @@ class _IngredientCategoryWidgetState extends State<IngredientCategoryWidget> {
                     initialValue: ingredient.type,
                     isExpanded: true,
                     decoration: const InputDecoration(border: OutlineInputBorder()),
+                    selectedItemBuilder: (context) => availableUnits.map((unit) => Text(unit, overflow: TextOverflow.ellipsis)).toList(),
                     items: availableUnits
                         .map(
                           (unit) => DropdownMenuItem(
                             value: unit,
-                            child: Text(unit.isEmpty ? 'Unité' : unit, overflow: TextOverflow.ellipsis),
+                            child: Text(unit.isEmpty ? 'Sans unité' : unit, overflow: TextOverflow.ellipsis),
                           ),
                         )
                         .toList(),
                     onChanged: (unit) {
-                      if (unit != null) cubit.changeIngredient(categoryIndex, index, ingredient.copyWith(type: unit));
+                      if (unit != null) cubit.changeIngredientUnit(categoryIndex, index, unit);
                     },
                   );
                   return Row(
@@ -549,13 +552,24 @@ class _RecipeField extends StatelessWidget {
   final TextInputType? keyboardType;
   final int? maxLines;
   final FocusNode? focusNode;
+  final bool enabled;
 
-  const _RecipeField({required this.label, required this.value, required this.onChanged, this.keyboardType, this.maxLines = 1, this.focusNode});
+  const _RecipeField({
+    super.key,
+    required this.label,
+    required this.value,
+    required this.onChanged,
+    this.keyboardType,
+    this.maxLines = 1,
+    this.focusNode,
+    this.enabled = true,
+  });
 
   @override
   Widget build(BuildContext context) => TextFormField(
     initialValue: value,
     focusNode: focusNode,
+    enabled: enabled,
     onChanged: onChanged,
     keyboardType: keyboardType,
     maxLines: maxLines,
