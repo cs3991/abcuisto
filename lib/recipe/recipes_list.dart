@@ -369,14 +369,14 @@ class _RecipeCardState extends State<RecipeCard> {
     ui.Picture? picture;
     ui.Image? sample;
     try {
-      // Sample the already loaded photo instead of downloading a second decode.
+      // Sample only the rightmost 20% of the already loaded photo.
       final recorder = ui.PictureRecorder();
       Canvas(recorder).drawImageRect(
         info.image,
         Rect.fromLTWH(
+          info.image.width * 0.95,
           0,
-          0,
-          info.image.width.toDouble(),
+          info.image.width * 0.05,
           info.image.height.toDouble(),
         ),
         const Rect.fromLTWH(0, 0, 16, 16),
@@ -384,9 +384,7 @@ class _RecipeCardState extends State<RecipeCard> {
       );
       picture = recorder.endRecording();
       sample = await picture.toImage(16, 16);
-      final data = await sample.toByteData(
-        format: ui.ImageByteFormat.rawRgba,
-      );
+      final data = await sample.toByteData(format: ui.ImageByteFormat.rawRgba);
       if (data == null || !mounted || _imageUrl != url) return;
       var red = 0.0;
       var green = 0.0;
@@ -437,6 +435,8 @@ class _RecipeCardState extends State<RecipeCard> {
           errorBuilder: (context, _, _) => NoImageBuilder(height: height),
         )
       : NoImageBuilder(height: height);
+
+  
 
   @override
   Widget build(BuildContext context) {
@@ -490,7 +490,7 @@ class _RecipeCardState extends State<RecipeCard> {
                         shaderCallback: (bounds) => const LinearGradient(
                           begin: Alignment.centerLeft,
                           end: Alignment.centerRight,
-                          stops: [0, 0.45, 0.82, 1],
+                          stops: [0, 0.7, 0.9, 1],
                           colors: [
                             Colors.white,
                             Colors.white,
@@ -507,7 +507,7 @@ class _RecipeCardState extends State<RecipeCard> {
                           gradient: LinearGradient(
                             begin: Alignment.centerLeft,
                             end: Alignment.centerRight,
-                            stops: const [0, 0.48, 0.94, 1],
+                            stops: const [0, 0.6, 1, 1],
                             colors: [
                               background.withValues(alpha: 0),
                               background.withValues(alpha: 0),
@@ -638,10 +638,19 @@ class NoImageBuilder extends StatelessWidget {
     return SizedBox(
       height: height,
       width: 400,
-      child: Icon(
-        Icons.no_photography_rounded,
-        size: 70,
-        color: Theme.of(context).colorScheme.onSecondaryContainer.withAlpha(50),
+      child: Row(
+        children: [
+          Expanded(
+            child: Icon(
+              Icons.no_photography_rounded,
+              size: 70,
+              color: Theme.of(context).colorScheme.onSecondaryContainer.withAlpha(50),
+            ),
+          ),
+          SizedBox(
+            width: 50,
+          )
+        ],
       ),
     );
   }
