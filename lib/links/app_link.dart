@@ -9,7 +9,7 @@ class AppLink {
 
   static AppLink? fromUri(Uri uri) {
     if (uri.scheme != 'https' ||
-        !const {'abcuisto.fr', 'dev.abcuisto.fr'}.contains(uri.host))
+        !const {'abcuisto.fr'}.contains(uri.host))
       return null;
     final segments = uri.pathSegments.where((part) => part.isNotEmpty).toList();
     if (segments.length != 2) return null;

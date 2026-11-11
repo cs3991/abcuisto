@@ -5,7 +5,6 @@
     <key>com.apple.developer.associated-domains</key>
     <array>
         <string>applinks:abcuisto.fr</string>
-        <string>applinks:dev.abcuisto.fr</string>
     </array>
 </dict>
 </plist>

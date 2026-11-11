@@ -253,6 +253,7 @@ class _AddRecipePageState extends State<AddRecipePage> {
                               const SizedBox(height: 8),
                               Wrap(
                                 spacing: 8,
+                                runSpacing: 8,
                                 children: groups.map((group) {
                                   final id = group.id!;
                                   return FilterChip(

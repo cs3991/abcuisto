@@ -35,7 +35,7 @@ class JoinGroupCubit extends Cubit<JoinGroupState> {
             .where((segment) => segment.isNotEmpty)
             .toList();
         if (uri.scheme != 'https' ||
-            !const {'abcuisto.fr', 'dev.abcuisto.fr'}.contains(uri.host) ||
+            !const {'abcuisto.fr'}.contains(uri.host) ||
             segments.length != 2 ||
             segments.first != 'group') {
           throw const FormatException('Lien d’invitation invalide.');

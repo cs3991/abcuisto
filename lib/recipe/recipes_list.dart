@@ -436,8 +436,6 @@ class _RecipeCardState extends State<RecipeCard> {
         )
       : NoImageBuilder(height: height);
 
-  
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -644,12 +642,12 @@ class NoImageBuilder extends StatelessWidget {
             child: Icon(
               Icons.no_photography_rounded,
               size: 70,
-              color: Theme.of(context).colorScheme.onSecondaryContainer.withAlpha(50),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSecondaryContainer.withAlpha(50),
             ),
           ),
-          SizedBox(
-            width: 50,
-          )
+          SizedBox(width: 50),
         ],
       ),
     );

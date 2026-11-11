@@ -1,7 +1,7 @@
 # Liens vers l’application ABCuisto
 
 La partie application Android/iOS accepte les liens HTTPS suivants sur
-`abcuisto.fr` et `dev.abcuisto.fr` :
+`abcuisto.fr` :
 
 - `/group/ID` : invitation, connexion si nécessaire, puis confirmation d’adhésion.
 - `/recette/ID` : chargement de la recette, avec affichage d’erreur si elle n’est pas accessible.
